@@ -21,6 +21,7 @@ Duotronics is described as a polygon-native counting/labeling system with a stri
 A recurring working convention is a center-dot/offset mapping rule (often “subtract one” when translating raw geometric sums to display labels), with explicit policy/version tracking so assumptions do not silently drift.
 
 ## Repository contents
+- `ROADMAP.md` — Program roadmap for taking Duotronics from formal semantics to binary/quantum execution and eventual hardware co-design.
 - `Duotronics - Chapter 1-17.html` — Core workbook foundations: scope, formal objects, state semantics, duotronics mapping, dynamics, observables, bridge tests, implementation mapping, validation gates, theory variants, and glossary.
 - `Duotronics - Chapter 18.html` — End-to-end **catalog track instantiation**: family registry, canonicalization, offset survey, degeneracy policy, reproducible JSON/CSV artifacts.
 - `Duotronics - Chapter 19.html` — **Catalog expansion protocol**: versioning discipline, drift/threat model, semantic vs display identity, migration-safe catalog growth.
