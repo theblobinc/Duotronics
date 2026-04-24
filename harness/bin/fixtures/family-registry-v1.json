@@ -1,0 +1,96 @@
+{
+  "cases": [
+    {
+      "case_id": "family.hex6",
+      "expect": {
+        "equals": {
+          "base": 6,
+          "digit_alphabet": [
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6"
+          ],
+          "family_id": "hex6",
+          "is_bijective_base": true
+        }
+      },
+      "given": {
+        "family_id": "hex6"
+      },
+      "op": "resolve_family"
+    },
+    {
+      "case_id": "family.refl3",
+      "expect": {
+        "equals": {
+          "base": 3,
+          "family_id": "refl3",
+          "is_bijective_base": true
+        }
+      },
+      "given": {
+        "family_id": "refl3"
+      },
+      "op": "resolve_family"
+    },
+    {
+      "case_id": "family.edo31",
+      "expect": {
+        "equals": {
+          "base": 31,
+          "family_id": "edo31",
+          "is_bijective_base": true
+        }
+      },
+      "given": {
+        "family_id": "edo31"
+      },
+      "op": "resolve_family"
+    },
+    {
+      "case_id": "geometry.hex6_regular",
+      "expect": {
+        "equals": {
+          "chirality": "achiral",
+          "family_id": "hex6",
+          "n_sides": 6
+        }
+      },
+      "given": {
+        "geometry_id": "hex6.regular"
+      },
+      "op": "resolve_geometry"
+    },
+    {
+      "case_id": "geometry.refl3_regular",
+      "expect": {
+        "equals": {
+          "family_id": "refl3",
+          "n_sides": 3
+        }
+      },
+      "given": {
+        "geometry_id": "refl3.regular"
+      },
+      "op": "resolve_geometry"
+    },
+    {
+      "case_id": "geometry.edo31_cyclic",
+      "expect": {
+        "equals": {
+          "family_id": "edo31",
+          "n_sides": 31
+        }
+      },
+      "given": {
+        "geometry_id": "edo31.cyclic"
+      },
+      "op": "resolve_geometry"
+    }
+  ],
+  "description": "Family registry baseline (DPFC App H \u00a7H.3) and geometry registry baseline\n(App H \u00a7H.4). Resolution must be deterministic and version-pinned.\n",
+  "pack_id": "family-registry-v1"
+}

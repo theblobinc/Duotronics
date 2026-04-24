@@ -1,0 +1,125 @@
+{
+  "cases": [
+    {
+      "case_id": "schema.dpfc_core_v1",
+      "expect": {
+        "equals": {
+          "schema_id": "dpfc-core",
+          "status": "active",
+          "version": "v1.0"
+        }
+      },
+      "given": {
+        "schema_id": "dpfc-core",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.witness_runtime_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "witness-runtime",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.dbp_frame_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "dbp-frame",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.wsb2_row_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "wsb2-row",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.witness8_row_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "witness8-row",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.normalizer_profile_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "normalizer-profile",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.retention_baseline_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "retention-baseline",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.policy_shield_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "policy-shield",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    },
+    {
+      "case_id": "schema.migration_plan_v1",
+      "expect": {
+        "equals": {
+          "status": "active"
+        }
+      },
+      "given": {
+        "schema_id": "migration-plan",
+        "version": "v1.0"
+      },
+      "op": "resolve_schema"
+    }
+  ],
+  "description": "Schema registry baseline (DPFC App H \u00a7H.6). Used by the canonicalizer\nfor the `schema_version:Y` slot in canonical storage strings.\n",
+  "pack_id": "schema-registry-v1"
+}

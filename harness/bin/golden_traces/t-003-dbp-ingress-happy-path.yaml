@@ -1,0 +1,26 @@
+trace_id: t-003-dbp-ingress-happy-path
+description: |
+  Clean ingress through dbp-minsafe@v1, witness8 payload, canonicalize.
+steps:
+  - op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-minsafe@v1
+        integrity_check: passed
+        payload_kind: witness8
+    expect:
+      equals:
+        semantic_decode_allowed: true
+        trusted_memory_write: false
+        policy_mode: normal
+  - op: canonicalize_witness_key_bundle
+    given:
+      bundle:
+        family_id: hex6
+        family_schema_version: dpfc-family@v5.6
+        digits: [h1, h4]
+    expect:
+      equals:
+        canonicalization_result: canonical_success
+        core_magnitude: mu_10

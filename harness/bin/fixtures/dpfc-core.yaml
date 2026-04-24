@@ -1,0 +1,135 @@
+pack_id: dpfc-core
+description: |
+  DPFC v5.6 reference vectors covering Φ_F evaluation, family-successor with
+  bijective carry, encode/decode round-trip, family conversion preserving
+  core magnitude, exported-nonneg arithmetic with mandatory affine
+  correction, and the deliberately-wrong "without correction" path that
+  must surface a policy mismatch.
+
+cases:
+  - case_id: hex6.evaluate.h1h4
+    op: evaluate_family_word
+    given: { family_id: hex6, word: [h1, h4] }
+    expect:
+      equals: { value: 10, core_magnitude: mu_10 }
+
+  - case_id: hex6.evaluate.h6
+    op: evaluate_family_word
+    given: { family_id: hex6, word: [h6] }
+    expect:
+      equals: { value: 6, core_magnitude: mu_6 }
+
+  - case_id: refl3.evaluate.r2r3
+    op: evaluate_family_word
+    given: { family_id: refl3, word: [r2, r3] }
+    expect:
+      equals: { value: 9, core_magnitude: mu_9 }
+
+  - case_id: edo31.evaluate.e1
+    op: evaluate_family_word
+    given: { family_id: edo31, word: [e1] }
+    expect:
+      equals: { value: 1, core_magnitude: mu_1 }
+
+  - case_id: hex6.successor.h1h4
+    op: family_successor
+    given: { family_id: hex6, word: [h1, h4] }
+    expect:
+      equals: { successor: [h1, h5] }
+
+  - case_id: hex6.successor.h6_carry
+    op: family_successor
+    given: { family_id: hex6, word: [h6] }
+    expect:
+      equals: { successor: [h1, h1] }
+
+  - case_id: hex6.successor.h1h6_carry
+    op: family_successor
+    given: { family_id: hex6, word: [h1, h6] }
+    expect:
+      equals: { successor: [h2, h1] }
+
+  - case_id: refl3.successor.r3_carry
+    op: family_successor
+    given: { family_id: refl3, word: [r3] }
+    expect:
+      equals: { successor: [r1, r1] }
+
+  - case_id: hex6.encode.10
+    op: encode_core_to_family
+    given: { family_id: hex6, core_index: 10 }
+    expect:
+      equals: { word: [h1, h4] }
+
+  - case_id: refl3.encode.10
+    op: encode_core_to_family
+    given: { family_id: refl3, core_index: 10 }
+    expect:
+      equals: { word: [r3, r1] }
+
+  - case_id: convert.hex6_to_refl3.h1h4
+    op: family_conversion
+    given: { word: [h1, h4], source_family: hex6, target_family: refl3 }
+    expect:
+      equals:
+        target_word: [r3, r1]
+        source_core_magnitude: mu_10
+        target_core_magnitude: mu_10
+
+  - case_id: convert.refl3_to_edo31.r2r3
+    op: family_conversion
+    given: { word: [r2, r3], source_family: refl3, target_family: edo31 }
+    expect:
+      equals:
+        source_core_magnitude: mu_9
+        target_core_magnitude: mu_9
+
+  - case_id: convert.round_trip_preserves_core_magnitude
+    op: family_conversion_with_retention_report
+    given: { word: [h1, h4], source_family: hex6, target_family: refl3 }
+    expect:
+      equals:
+        core_magnitude_preserved: true
+        round_trip_word: [h1, h4]
+
+  - case_id: canonical_storage.hex6.h1h4
+    op: canonical_storage
+    given: { family_id: hex6, word: [h1, h4] }
+    expect:
+      equals:
+        canonical_storage: "family:hex6 schema_version:dpfc-family@v5.6 digits:1 4"
+
+  - case_id: canonicalize_object.hex6.h1h4
+    op: canonicalize_family_object
+    given: { family_id: hex6, word: [h1, h4] }
+    expect:
+      equals:
+        family_id: hex6
+        schema_version: dpfc-family@v5.6
+        digit_ordinals: [1, 4]
+        core_magnitude: mu_10
+
+  - case_id: exported_nonneg.add.with_correction.2_3
+    op: exported_nonnegative_add_with_correction
+    given: { left: 2, right: 3 }
+    expect:
+      equals: { value: 4 }
+
+  - case_id: exported_nonneg.add.without_correction_must_flag.2_3
+    op: exported_nonnegative_add_without_correction
+    given: { left: 2, right: 3 }
+    expect:
+      equals:
+        value: 3
+        expected_correct_value: 4
+        required_correction: 1
+        failure_code: export_policy_mismatch
+        trusted_arithmetic_use: false
+
+  - case_id: detect_export_policy_mismatch.label_mismatch
+    op: detect_export_policy_mismatch
+    given: { left_core: 3, right_core: 4, declared_left_export: 99, declared_right_export: 3 }
+    expect:
+      equals:
+        failure_code: export_label_mismatch
+        trusted_arithmetic_use: false

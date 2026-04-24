@@ -1,0 +1,58 @@
+pack_id: family-registry-v1
+description: |
+  Family registry baseline (DPFC App H §H.3) and geometry registry baseline
+  (App H §H.4). Resolution must be deterministic and version-pinned.
+
+cases:
+  - case_id: family.hex6
+    op: resolve_family
+    given: { family_id: hex6 }
+    expect:
+      equals:
+        family_id: hex6
+        base: 6
+        digit_alphabet: [h1, h2, h3, h4, h5, h6]
+        is_bijective_base: true
+
+  - case_id: family.refl3
+    op: resolve_family
+    given: { family_id: refl3 }
+    expect:
+      equals:
+        family_id: refl3
+        base: 3
+        is_bijective_base: true
+
+  - case_id: family.edo31
+    op: resolve_family
+    given: { family_id: edo31 }
+    expect:
+      equals:
+        family_id: edo31
+        base: 31
+        is_bijective_base: true
+
+  - case_id: geometry.hex6_regular
+    op: resolve_geometry
+    given: { geometry_id: hex6.regular }
+    expect:
+      equals:
+        family_id: hex6
+        n_sides: 6
+        chirality: achiral
+
+  - case_id: geometry.refl3_regular
+    op: resolve_geometry
+    given: { geometry_id: refl3.regular }
+    expect:
+      equals:
+        family_id: refl3
+        n_sides: 3
+
+  - case_id: geometry.edo31_cyclic
+    op: resolve_geometry
+    given: { geometry_id: edo31.cyclic }
+    expect:
+      equals:
+        family_id: edo31
+        n_sides: 31

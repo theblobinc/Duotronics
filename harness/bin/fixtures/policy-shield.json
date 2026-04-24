@@ -1,0 +1,159 @@
+{
+  "cases": [
+    {
+      "case_id": "shield.ok.no_transition",
+      "expect": {
+        "equals": {
+          "mode": "normal",
+          "policy_decision": "accept",
+          "trust_status": "trusted"
+        },
+        "must_not_emit_audit": [
+          "bypass_transition"
+        ]
+      },
+      "given": {
+        "event": "ok"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.transport_rejected",
+      "expect": {
+        "equals": {
+          "freeze_metrics": true,
+          "mode": "transport_bypass",
+          "policy_decision": "bypass",
+          "trust_status": "untrusted_until_replay"
+        },
+        "must_emit_audit": [
+          "bypass_transition"
+        ]
+      },
+      "given": {
+        "event": "transport_rejected"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.schema_mismatch",
+      "expect": {
+        "equals": {
+          "freeze_metrics": true,
+          "mode": "family_bypass",
+          "trust_status": "needs_migration_or_bypass"
+        }
+      },
+      "given": {
+        "event": "schema_mismatch"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.family_bypass_required",
+      "expect": {
+        "equals": {
+          "mode": "family_bypass",
+          "trust_status": "needs_migration_or_bypass"
+        }
+      },
+      "given": {
+        "event": "family_bypass_required"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.malformed_reject",
+      "expect": {
+        "equals": {
+          "mode": "transport_bypass",
+          "trust_status": "rejected"
+        }
+      },
+      "given": {
+        "event": "malformed_reject"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.absence_zero_collision_attempt",
+      "expect": {
+        "equals": {
+          "mode": "lookup_bypass",
+          "trust_status": "untrusted"
+        }
+      },
+      "given": {
+        "event": "absence_zero_collision_attempt"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.normalizer_failure",
+      "expect": {
+        "equals": {
+          "mode": "lookup_bypass"
+        }
+      },
+      "given": {
+        "event": "normalizer_failure"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.retention_baseline_unfrozen",
+      "expect": {
+        "equals": {
+          "mode": "degraded",
+          "trust_status": "degraded"
+        }
+      },
+      "given": {
+        "event": "retention_baseline_unfrozen"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.policy_breach",
+      "expect": {
+        "equals": {
+          "mode": "full_bypass",
+          "trust_status": "rejected"
+        }
+      },
+      "given": {
+        "event": "policy_breach"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "shield.unknown_event_full_bypass",
+      "expect": {
+        "equals": {
+          "mode": "full_bypass",
+          "reason": "unknown_event:not_a_real_event",
+          "trust_status": "rejected"
+        }
+      },
+      "given": {
+        "event": "not_a_real_event"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "case_id": "registry.policy.transport_rejected",
+      "expect": {
+        "equals": {
+          "freeze_metrics": true,
+          "mode": "transport_bypass"
+        }
+      },
+      "given": {
+        "event": "transport_rejected"
+      },
+      "op": "resolve_policy"
+    }
+  ],
+  "description": "Policy Shield decision matrix (Witness Contract App L \u00a74). Each event\nmust route to the documented mode, freeze metrics, and produce a\n`bypass_transition` audit when the mode is not `normal`.\n",
+  "pack_id": "policy-shield"
+}

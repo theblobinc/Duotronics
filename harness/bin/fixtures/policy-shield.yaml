@@ -1,0 +1,99 @@
+pack_id: policy-shield
+description: |
+  Policy Shield decision matrix (Witness Contract App L §4). Each event
+  must route to the documented mode, freeze metrics, and produce a
+  `bypass_transition` audit when the mode is not `normal`.
+
+cases:
+  - case_id: shield.ok.no_transition
+    op: policy_decide
+    given: { event: ok }
+    expect:
+      equals:
+        policy_decision: accept
+        mode: normal
+        trust_status: trusted
+      must_not_emit_audit: [bypass_transition]
+
+  - case_id: shield.transport_rejected
+    op: policy_decide
+    given: { event: transport_rejected }
+    expect:
+      equals:
+        policy_decision: bypass
+        mode: transport_bypass
+        freeze_metrics: true
+        trust_status: untrusted_until_replay
+      must_emit_audit: [bypass_transition]
+
+  - case_id: shield.schema_mismatch
+    op: policy_decide
+    given: { event: schema_mismatch }
+    expect:
+      equals:
+        mode: family_bypass
+        freeze_metrics: true
+        trust_status: needs_migration_or_bypass
+
+  - case_id: shield.family_bypass_required
+    op: policy_decide
+    given: { event: family_bypass_required }
+    expect:
+      equals:
+        mode: family_bypass
+        trust_status: needs_migration_or_bypass
+
+  - case_id: shield.malformed_reject
+    op: policy_decide
+    given: { event: malformed_reject }
+    expect:
+      equals:
+        mode: transport_bypass
+        trust_status: rejected
+
+  - case_id: shield.absence_zero_collision_attempt
+    op: policy_decide
+    given: { event: absence_zero_collision_attempt }
+    expect:
+      equals:
+        mode: lookup_bypass
+        trust_status: untrusted
+
+  - case_id: shield.normalizer_failure
+    op: policy_decide
+    given: { event: normalizer_failure }
+    expect:
+      equals: { mode: lookup_bypass }
+
+  - case_id: shield.retention_baseline_unfrozen
+    op: policy_decide
+    given: { event: retention_baseline_unfrozen }
+    expect:
+      equals:
+        mode: degraded
+        trust_status: degraded
+
+  - case_id: shield.policy_breach
+    op: policy_decide
+    given: { event: policy_breach }
+    expect:
+      equals:
+        mode: full_bypass
+        trust_status: rejected
+
+  - case_id: shield.unknown_event_full_bypass
+    op: policy_decide
+    given: { event: not_a_real_event }
+    expect:
+      equals:
+        mode: full_bypass
+        trust_status: rejected
+        reason: "unknown_event:not_a_real_event"
+
+  - case_id: registry.policy.transport_rejected
+    op: resolve_policy
+    given: { event: transport_rejected }
+    expect:
+      equals:
+        mode: transport_bypass
+        freeze_metrics: true

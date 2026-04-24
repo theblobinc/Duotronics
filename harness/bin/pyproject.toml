@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "duotronic-conformance"
+version = "1.0.0"
+description = "Duotronic conformance harness (DPFC v5.6 + Witness Contract v10.6)"
+requires-python = ">=3.11"
+authors = [{name = "Xavi"}]
+dependencies = [
+  "pytest>=7.4",
+  "pytest-xdist>=3.5",
+  "pyyaml>=6.0",
+  "hypothesis>=6.90",
+  "jsonschema>=4.20",
+  "cbor2>=5.5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-xdist", "hypothesis"]
+
+[tool.setuptools]
+packages = [
+  "duotronic_ref",
+  "duotronic_ref.registries",
+  "harness_lib",
+  "conformance",
+]
+
+[tool.setuptools.package-data]
+"harness_lib" = ["schemas/*.json"]
+"duotronic_ref.registries" = ["snapshots/**/*.yaml"]

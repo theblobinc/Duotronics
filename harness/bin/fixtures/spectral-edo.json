@@ -1,0 +1,173 @@
+{
+  "cases": [
+    {
+      "case_id": "missing_fundamental.200_300_400_500",
+      "expect": {
+        "equals": {
+          "evidence_pattern": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "inference_type": "missing_fundamental",
+          "inferred_fundamental_hz": 100,
+          "observed_as_fundamental": false
+        }
+      },
+      "given": {
+        "components_hz": [
+          200,
+          300,
+          400,
+          500
+        ]
+      },
+      "op": "infer_missing_fundamental"
+    },
+    {
+      "case_id": "observed_fundamental.100_200_300",
+      "expect": {
+        "equals": {
+          "inference_type": "observed_fundamental",
+          "inferred_fundamental_hz": 100
+        }
+      },
+      "given": {
+        "components_hz": [
+          100,
+          200,
+          300
+        ]
+      },
+      "op": "infer_missing_fundamental"
+    },
+    {
+      "case_id": "transpose.edo31.major_chord",
+      "expect": {
+        "equals": {
+          "retention_score": 1.0,
+          "transposed_chord_external_steps": [
+            5,
+            16,
+            23
+          ]
+        }
+      },
+      "given": {
+        "modulus": 31,
+        "transposition": 5,
+        "values": [
+          0,
+          11,
+          18
+        ]
+      },
+      "op": "transpose_and_measure_interval_retention"
+    },
+    {
+      "case_id": "collapse.edo31_to_edo12.unequal_steps_warns",
+      "expect": {
+        "equals": {
+          "alert_if_loss_undeclared": true,
+          "collapse_allowed": "only_with_expected_loss"
+        }
+      },
+      "given": {
+        "left_step": 2,
+        "right_step": 3,
+        "source_family": "edo31",
+        "target_family": "edo12"
+      },
+      "op": "collapse_to_12edo"
+    },
+    {
+      "case_id": "collapse.same_family_no_loss",
+      "expect": {
+        "equals": {
+          "collapse_allowed": true
+        }
+      },
+      "given": {
+        "left_step": 1,
+        "right_step": 1,
+        "source_family": "edo12",
+        "target_family": "edo12"
+      },
+      "op": "collapse_to_12edo"
+    },
+    {
+      "case_id": "fourier_provenance.missing_fields",
+      "expect": {
+        "equals": {
+          "authoritative_memory_allowed": false,
+          "failure_code": "missing_fourier_provenance"
+        }
+      },
+      "given": {
+        "witness": {
+          "partials": [
+            {
+              "amplitude": 0.8,
+              "frequency_hz": 200
+            }
+          ],
+          "sample_rate_hz": null,
+          "window_function": null
+        }
+      },
+      "op": "validate_fourier_provenance"
+    },
+    {
+      "case_id": "fourier_provenance.full",
+      "expect": {
+        "equals": {
+          "authoritative_memory_allowed": true
+        }
+      },
+      "given": {
+        "witness": {
+          "partials": [
+            {
+              "amplitude": 0.8,
+              "frequency_hz": 200
+            }
+          ],
+          "sample_rate_hz": 48000,
+          "window_function": "hann"
+        }
+      },
+      "op": "validate_fourier_provenance"
+    },
+    {
+      "case_id": "temperament.5_4_in_31edo",
+      "expect": {
+        "equals": {
+          "nearest_step": "10\\31",
+          "preservation_class": "approximate_preserve"
+        }
+      },
+      "given": {
+        "ratio": "5/4",
+        "target_family": "edo31"
+      },
+      "op": "temperament_error_witness"
+    },
+    {
+      "case_id": "approximate_in_edo.5_4_in_31edo",
+      "expect": {
+        "equals": {
+          "edostep": "10\\31",
+          "nearest_step": 10
+        }
+      },
+      "given": {
+        "ratio": "5/4",
+        "steps": 31
+      },
+      "op": "approximate_ratio_in_edo"
+    }
+  ],
+  "description": "Spectral / EDO reference vectors (Witness Contract App K.12).\n",
+  "pack_id": "spectral-edo"
+}

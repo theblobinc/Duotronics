@@ -1,0 +1,138 @@
+{
+  "description": "Replay freshness, L5 veto, migration dry-run, and rollback-aware architectural review.",
+  "steps": [
+    {
+      "expect": {
+        "contains": {
+          "failure_reasons": "stale_objective_bundle"
+        },
+        "equals": {
+          "status": "rejected",
+          "valid": false
+        }
+      },
+      "given": {
+        "policy_shield": {
+          "objective_bundle_hash": "bundle-current"
+        },
+        "replay_spec": {
+          "objective_bundle_hash": "bundle-stale",
+          "sequence_ids": [
+            "seq-0",
+            "seq-1",
+            "seq-2",
+            "seq-3",
+            "seq-4",
+            "seq-5",
+            "seq-6",
+            "seq-7",
+            "seq-8",
+            "seq-9",
+            "seq-10",
+            "seq-11",
+            "seq-12",
+            "seq-13",
+            "seq-14",
+            "seq-15",
+            "seq-16",
+            "seq-17",
+            "seq-18",
+            "seq-19",
+            "seq-20",
+            "seq-21",
+            "seq-22",
+            "seq-23",
+            "seq-24",
+            "seq-25",
+            "seq-26",
+            "seq-27",
+            "seq-28",
+            "seq-29",
+            "seq-30",
+            "seq-31"
+          ],
+          "slice_boundaries": [
+            [
+              0,
+              2048
+            ]
+          ]
+        }
+      },
+      "op": "validate_replay_spec"
+    },
+    {
+      "expect": {
+        "contains": {
+          "failure_reasons": "no_silent_coercion"
+        },
+        "equals": {
+          "diagnostics.feasibility.feasible": false,
+          "status": "rejected"
+        }
+      },
+      "given": {
+        "state_snapshot": {
+          "active_family_count": 99,
+          "memory_mb": 900,
+          "silent_coercion_detected": true,
+          "step_time_ms": 75
+        }
+      },
+      "op": "evaluate_policy_constraints"
+    },
+    {
+      "expect": {
+        "equals": {
+          "report.migrated_state.new_counter": 0,
+          "report.rollback_compatible": true,
+          "report.success": true,
+          "status": "accepted"
+        },
+        "key_falsy": [
+          "failure_reasons",
+          "report.errors"
+        ]
+      },
+      "given": {
+        "migration_plan": {
+          "defaulting_rules": {
+            "new_counter": 0
+          },
+          "dropped_fields": [
+            "old_field"
+          ],
+          "from_generation": 1,
+          "from_schema_version": "runtime-state@v1",
+          "new_fields": [
+            "new_counter"
+          ],
+          "to_generation": 2,
+          "to_schema_version": "runtime-state@v2"
+        },
+        "state_snapshot": {
+          "old_field": "legacy",
+          "stable": true
+        }
+      },
+      "op": "dry_run_state_migration"
+    },
+    {
+      "expect": {
+        "equals": {
+          "proposal.proposal_type": "enable_family",
+          "review_bundle.rollback_restore_verified": true,
+          "status": "ok"
+        }
+      },
+      "given": {
+        "family_id": "cross_source",
+        "proposal_type": "enable_family",
+        "rollback_restore_verified": true,
+        "rollback_snapshot_id": "rollback-001"
+      },
+      "op": "propose_architectural_change"
+    }
+  ],
+  "trace_id": "mt-002-meta-policy-and-migration-guardrails"
+}

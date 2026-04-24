@@ -1,0 +1,114 @@
+{
+  "description": "Deterministic meta-object normalization and stable bundle summary.",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "normalized.canonical_digest": "sha256:69d8588f090c3f87",
+          "status": "ok"
+        }
+      },
+      "given": {
+        "attributes": {
+          "Color": "Blue",
+          "Tags": [
+            "B",
+            "A"
+          ]
+        },
+        "canonical_name": " Spiral Gate ",
+        "category": "visual_symbol",
+        "confidence": 0.81234567,
+        "evidence_class": "direct_observation",
+        "object_id": "  Assertion 1  ",
+        "provenance": {
+          "frames": [
+            2,
+            1
+          ],
+          "source": "camera"
+        },
+        "tags": [
+          "Zeta",
+          "alpha",
+          "alpha"
+        ],
+        "type_name": "Visual Symbol"
+      },
+      "op": "normalize_meta_object"
+    },
+    {
+      "expect": {
+        "equals": {
+          "normalized.canonical_digest": "sha256:69d8588f090c3f87",
+          "status": "ok"
+        }
+      },
+      "given": {
+        "attributes": {
+          "Color": "Blue",
+          "Tags": [
+            "A",
+            "B"
+          ]
+        },
+        "canonical_name": "spiral gate",
+        "category_path": "perceptual/visual_symbol",
+        "confidence": 0.81234567,
+        "evidence_class": "direct_observation",
+        "object_id": "assertion_1",
+        "provenance": {
+          "frames": [
+            1,
+            2
+          ],
+          "source": "camera"
+        },
+        "tags": [
+          "alpha",
+          "zeta"
+        ],
+        "type_name": "visual   symbol"
+      },
+      "op": "normalize_meta_object"
+    },
+    {
+      "expect": {
+        "equals": {
+          "status": "ok",
+          "summary.assertion_count": 3,
+          "summary.counts_by_category.perceptual/scene": 1,
+          "summary.counts_by_category.semantic/motif": 2
+        }
+      },
+      "given": {
+        "assertions": [
+          {
+            "canonical_name": "Night",
+            "category": "scene",
+            "confidence": 0.9,
+            "object_id": "1",
+            "type_name": "scene"
+          },
+          {
+            "canonical_name": "Echo",
+            "category": "motif",
+            "confidence": 0.5,
+            "object_id": "2",
+            "type_name": "motif"
+          },
+          {
+            "canonical_name": "Return",
+            "category": "motif",
+            "confidence": 0.7,
+            "object_id": "3",
+            "type_name": "motif"
+          }
+        ],
+        "bundle_id": "summary"
+      },
+      "op": "compute_meta_summary"
+    }
+  ],
+  "trace_id": "mt-001-meta-normalization-and-summary"
+}

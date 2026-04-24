@@ -1,0 +1,177 @@
+{
+  "cases": [
+    {
+      "case_id": "migration.missing_plan_for_normalizer_v2",
+      "expect": {
+        "equals": {
+          "failure_code": "missing_migration_plan",
+          "resolved": false
+        },
+        "must_emit_audit": [
+          "migration_rejected"
+        ]
+      },
+      "given": {
+        "component": "normalizer",
+        "from_version": "simple-bijective-word-normalizer@v1",
+        "to_version": "simple-bijective-word-normalizer@v2"
+      },
+      "op": "migration_resolve_plan"
+    },
+    {
+      "case_id": "migration.register_then_resolve",
+      "expect": {
+        "equals": {
+          "plan_id": "plan.normalizer.v1_to_v2",
+          "registered": true
+        }
+      },
+      "given": {
+        "component": "normalizer",
+        "from_version": "simple-bijective-word-normalizer@v1",
+        "plan_id": "plan.normalizer.v1_to_v2",
+        "strategy": "bijective",
+        "to_version": "simple-bijective-word-normalizer@v2"
+      },
+      "marker": "migration",
+      "op": "register_migration_plan"
+    },
+    {
+      "case_id": "replay.normal_form_hash.deterministic",
+      "expect": {
+        "equals": {
+          "normal_form_hash": "d8daa5993efb1c4784822304dbc2d970937006a1e5850a650c653e645c559faf"
+        }
+      },
+      "given": {
+        "object": {
+          "digits": [
+            "h1",
+            "h4"
+          ],
+          "family_id": "hex6"
+        }
+      },
+      "op": "replay_compute_normal_form_hash"
+    },
+    {
+      "case_id": "replay.input_hash.equivalence_under_key_order",
+      "expect": {
+        "equals": {
+          "input_hash": "d8daa5993efb1c4784822304dbc2d970937006a1e5850a650c653e645c559faf"
+        }
+      },
+      "given": {
+        "object": {
+          "digits": [
+            "h1",
+            "h4"
+          ],
+          "family_id": "hex6"
+        }
+      },
+      "op": "replay_compute_input_hash"
+    },
+    {
+      "case_id": "replay.match.exact",
+      "expect": {
+        "equals": {
+          "replay_match": true
+        }
+      },
+      "given": {
+        "expected": {
+          "expected_normal_form_hash": "def",
+          "input_hash": "abc"
+        },
+        "observed": {
+          "deterministic_seed": 0,
+          "expected_normal_form_hash": "def",
+          "family_registry_version": "family-registry@v1.0",
+          "floating_point_profile": "ieee754-double",
+          "geometry_registry_version": "geometry-registry@v1.0",
+          "input_hash": "abc",
+          "normalizer_versions": {},
+          "policy_shield_version": "policy-shield@v1.0",
+          "retention_metric_versions": {},
+          "schema_versions": {},
+          "serializer_versions": {},
+          "transport_profile_version": "dbp-minsafe@v1"
+        }
+      },
+      "op": "replay_compare"
+    },
+    {
+      "case_id": "replay.mismatch.unmarked_recorded",
+      "expect": {
+        "equals": {
+          "replay_match": false,
+          "replay_mismatch": true
+        },
+        "must_emit_audit": [
+          "replay_mismatch_unmarked"
+        ]
+      },
+      "given": {
+        "expected": {
+          "expected_normal_form_hash": "def",
+          "input_hash": "abc"
+        },
+        "expected_mismatch": false,
+        "observed": {
+          "deterministic_seed": 0,
+          "expected_normal_form_hash": "DRIFT",
+          "family_registry_version": "family-registry@v1.0",
+          "floating_point_profile": "ieee754-double",
+          "geometry_registry_version": "geometry-registry@v1.0",
+          "input_hash": "abc",
+          "normalizer_versions": {},
+          "policy_shield_version": "policy-shield@v1.0",
+          "retention_metric_versions": {},
+          "schema_versions": {},
+          "serializer_versions": {},
+          "transport_profile_version": "dbp-minsafe@v1"
+        }
+      },
+      "op": "replay_compare"
+    },
+    {
+      "case_id": "replay.mismatch.expected_recorded",
+      "expect": {
+        "equals": {
+          "replay_match": false
+        },
+        "must_emit_audit": [
+          "replay_mismatch_expected"
+        ],
+        "must_not_emit_audit": [
+          "replay_mismatch_unmarked"
+        ]
+      },
+      "given": {
+        "expected": {
+          "expected_normal_form_hash": "def",
+          "input_hash": "abc"
+        },
+        "expected_mismatch": true,
+        "observed": {
+          "deterministic_seed": 0,
+          "expected_normal_form_hash": "DRIFT",
+          "family_registry_version": "family-registry@v1.0",
+          "floating_point_profile": "ieee754-double",
+          "geometry_registry_version": "geometry-registry@v1.0",
+          "input_hash": "abc",
+          "normalizer_versions": {},
+          "policy_shield_version": "policy-shield@v1.0",
+          "retention_metric_versions": {},
+          "schema_versions": {},
+          "serializer_versions": {},
+          "transport_profile_version": "dbp-minsafe@v1"
+        }
+      },
+      "op": "replay_compare"
+    }
+  ],
+  "description": "Migration & replay (Migration Guide \u00a73-\u00a74). A version bump on any\nidentity-affecting component MUST ship with a registered migration\nplan; a missing plan is detectable and produces `migration_rejected`.\nReplay-identity comparison must surface diffs against pinned versions.\n",
+  "pack_id": "migration"
+}

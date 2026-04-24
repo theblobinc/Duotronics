@@ -1,0 +1,51 @@
+trace_id: mt-003-meta-build-and-acceptance-contracts
+description: Object build fallback coverage and L3 low-evidence rejection contract.
+steps:
+  - op: build_meta_object_instance
+    given:
+      object_id: "  Assertion 7  "
+      object_type: Visual Symbol
+      category: visual_symbol
+      confidence: 0.6
+      tags: [Beta, alpha, alpha]
+    expect:
+      equals:
+        status: ok
+        schema_version: meta-object-build-result@v1
+        object.type_name: visual_symbol
+        object.canonical_name: visual_symbol
+        object.category_path: perceptual/visual_symbol
+        object.tags: [alpha, beta]
+      key_truthy: [object.canonical_digest, diagnostics.ontology_version]
+      key_falsy: [failure_reasons]
+  - op: run_l3_acceptance
+    given:
+      previous_witness:
+        log_decay_offset:
+          temporal_local: 0.2
+      candidate_witness:
+        log_decay_offset:
+          temporal_local: 0.2
+        controller_confidence: 0.7
+        epoch_step_count: 2
+      diagnostics:
+        epoch_step_count: 2
+        objective_bundle_hash: bundle-1
+        sufficient_evidence: false
+        coverage_ratio: 0.0
+        eval_count: 1
+      replay_spec:
+        objective_bundle_hash: bundle-1
+        sequence_ids: [seq-1]
+      policy_shield:
+        objective_bundle_hash: bundle-1
+        approval_policy:
+          l3_auto_apply: true
+    expect:
+      equals:
+        status: rejected
+        schema_version: l3-acceptance-result@v1
+        witness.rejected_updates: 1
+      contains:
+        failure_reasons: low_evidence
+      key_truthy: [diagnostics]

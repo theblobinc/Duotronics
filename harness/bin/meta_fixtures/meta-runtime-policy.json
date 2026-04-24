@@ -1,0 +1,232 @@
+{
+  "cases": [
+    {
+      "case_id": "meta.l3.rejects_low_evidence",
+      "expect": {
+        "contains": {
+          "failure_reasons": "low_evidence"
+        },
+        "equals": {
+          "schema_version": "l3-acceptance-result@v1",
+          "status": "rejected",
+          "witness.rejected_updates": 1
+        },
+        "key_truthy": [
+          "diagnostics"
+        ]
+      },
+      "extra_markers": [
+        "replay"
+      ],
+      "given": {
+        "candidate_witness": {
+          "controller_confidence": 0.7,
+          "epoch_step_count": 2,
+          "log_decay_offset": {
+            "temporal_local": 0.2
+          }
+        },
+        "diagnostics": {
+          "coverage_ratio": 0.0,
+          "epoch_step_count": 2,
+          "eval_count": 1,
+          "objective_bundle_hash": "bundle-1",
+          "sufficient_evidence": false
+        },
+        "policy_shield": {
+          "approval_policy": {
+            "l3_auto_apply": true
+          },
+          "objective_bundle_hash": "bundle-1"
+        },
+        "previous_witness": {
+          "log_decay_offset": {
+            "temporal_local": 0.2
+          }
+        },
+        "replay_spec": {
+          "objective_bundle_hash": "bundle-1",
+          "sequence_ids": [
+            "seq-1"
+          ]
+        }
+      },
+      "marker": "normative",
+      "op": "run_l3_acceptance"
+    },
+    {
+      "case_id": "meta.policy.hard_violation_veto",
+      "expect": {
+        "contains": {
+          "failure_reasons": "no_silent_coercion"
+        },
+        "equals": {
+          "diagnostics.feasibility.feasible": false,
+          "schema_version": "policy-constraint-evaluation@v1",
+          "status": "rejected"
+        },
+        "key_truthy": [
+          "policy_shield"
+        ]
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "state_snapshot": {
+          "active_family_count": 99,
+          "memory_mb": 900,
+          "silent_coercion_detected": true,
+          "step_time_ms": 75
+        }
+      },
+      "marker": "normative",
+      "op": "evaluate_policy_constraints"
+    },
+    {
+      "case_id": "meta.replay.rejects_stale_objective_bundle",
+      "expect": {
+        "contains": {
+          "failure_reasons": "stale_objective_bundle"
+        },
+        "equals": {
+          "schema_version": "replay-spec-validation-result@v1",
+          "status": "rejected",
+          "valid": false
+        },
+        "key_truthy": [
+          "diagnostics"
+        ]
+      },
+      "extra_markers": [
+        "replay"
+      ],
+      "given": {
+        "policy_shield": {
+          "objective_bundle_hash": "bundle-current"
+        },
+        "replay_spec": {
+          "objective_bundle_hash": "bundle-stale",
+          "sequence_ids": [
+            "seq-0",
+            "seq-1",
+            "seq-2",
+            "seq-3",
+            "seq-4",
+            "seq-5",
+            "seq-6",
+            "seq-7",
+            "seq-8",
+            "seq-9",
+            "seq-10",
+            "seq-11",
+            "seq-12",
+            "seq-13",
+            "seq-14",
+            "seq-15",
+            "seq-16",
+            "seq-17",
+            "seq-18",
+            "seq-19",
+            "seq-20",
+            "seq-21",
+            "seq-22",
+            "seq-23",
+            "seq-24",
+            "seq-25",
+            "seq-26",
+            "seq-27",
+            "seq-28",
+            "seq-29",
+            "seq-30",
+            "seq-31"
+          ],
+          "slice_boundaries": [
+            [
+              0,
+              2048
+            ]
+          ]
+        }
+      },
+      "marker": "normative",
+      "op": "validate_replay_spec"
+    },
+    {
+      "case_id": "meta.migration.dry_run_defaults_and_drops",
+      "expect": {
+        "equals": {
+          "report.migrated_state.new_counter": 0,
+          "report.rollback_compatible": true,
+          "report.success": true,
+          "schema_version": "state-migration-operation@v1",
+          "status": "accepted"
+        },
+        "key_falsy": [
+          "failure_reasons",
+          "report.errors"
+        ],
+        "key_truthy": [
+          "migration_plan"
+        ]
+      },
+      "extra_markers": [
+        "migration"
+      ],
+      "given": {
+        "migration_plan": {
+          "defaulting_rules": {
+            "new_counter": 0
+          },
+          "dropped_fields": [
+            "old_field"
+          ],
+          "from_generation": 1,
+          "from_schema_version": "runtime-state@v1",
+          "new_fields": [
+            "new_counter"
+          ],
+          "to_generation": 2,
+          "to_schema_version": "runtime-state@v2"
+        },
+        "state_snapshot": {
+          "old_field": "legacy",
+          "stable": true
+        }
+      },
+      "marker": "normative",
+      "op": "dry_run_state_migration"
+    },
+    {
+      "case_id": "meta.architecture.enable_family_review_bundle",
+      "expect": {
+        "equals": {
+          "proposal.proposal_type": "enable_family",
+          "review_bundle.rollback_restore_verified": true,
+          "schema_version": "architecture-proposal-result@v1",
+          "status": "ok"
+        },
+        "key_falsy": [
+          "failure_reasons"
+        ],
+        "key_truthy": [
+          "proposal",
+          "review_bundle"
+        ]
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "family_id": "cross_source",
+        "proposal_type": "enable_family",
+        "rollback_restore_verified": true,
+        "rollback_snapshot_id": "rollback-001"
+      },
+      "marker": "normative",
+      "op": "propose_architectural_change"
+    }
+  ],
+  "description": "Policy, replay, and architectural guardrail cases for the standalone meta runtime.",
+  "pack_id": "meta-runtime-policy"
+}

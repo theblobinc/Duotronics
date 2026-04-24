@@ -1,0 +1,28 @@
+trace_id: t-002-witness8-absence-vs-zero
+description: |
+  Two adjacent rows: one all-zero (must be token_free_absent) and one
+  with value_norm=0 under a profile that declares numeric zero (must be
+  present_zero_value). The two MUST NOT collide.
+steps:
+  - op: decode_witness8
+    given: { row: [0, 0, 0, 0, 0, 0, 0, 0] }
+    expect:
+      equals:
+        decode_status: token_free_absent
+        numeric_zero_inferred: false
+  - op: decode_witness8
+    given:
+      row:
+        value_norm: 0.0
+        n_sides_norm: 0.6
+        center_on: 1.0
+        activation_density: 0.125
+        kind_flag: 1.0
+        band_position: 0.5
+        parity: 1.0
+        degeneracy: 1.0
+      profile_declares_numeric_zero: true
+    expect:
+      equals:
+        presence_status: present_zero_value
+        numeric_zero_inferred: true

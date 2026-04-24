@@ -1,0 +1,47 @@
+{
+  "description": "hex6 word [h1,h4] \u2192 refl3 [r3,r1] \u2192 back to hex6, must recover [h1,h4]\nwith \u00b5_10 preserved end-to-end.\n",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "source_core_magnitude": "mu_10",
+          "target_core_magnitude": "mu_10",
+          "target_word": [
+            "r3",
+            "r1"
+          ]
+        }
+      },
+      "given": {
+        "source_family": "hex6",
+        "target_family": "refl3",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "family_conversion"
+    },
+    {
+      "expect": {
+        "equals": {
+          "core_magnitude_preserved": true,
+          "round_trip_word": [
+            "h1",
+            "h4"
+          ]
+        }
+      },
+      "given": {
+        "source_family": "hex6",
+        "target_family": "refl3",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "family_conversion_with_retention_report"
+    }
+  ],
+  "trace_id": "t-005-family-conversion-preserves-core-magnitude"
+}

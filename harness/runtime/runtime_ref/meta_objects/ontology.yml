@@ -1,0 +1,33 @@
+{
+  "version": "ontology@v1",
+  "domains": {
+    "perceptual": {
+      "children": {
+        "visual_symbol": {},
+        "scene": {},
+        "sonic_texture": {}
+      }
+    },
+    "semantic": {
+      "children": {
+        "motif": {},
+        "narrative": {},
+        "constraint": {}
+      }
+    }
+  },
+  "relations": [
+    "co_occurs_with",
+    "implies",
+    "contrasts_with",
+    "recurs_as"
+  ],
+  "category_aliases": {
+    "visual_symbol": "perceptual/visual_symbol",
+    "scene": "perceptual/scene",
+    "sonic_texture": "perceptual/sonic_texture",
+    "motif": "semantic/motif",
+    "narrative": "semantic/narrative",
+    "constraint": "semantic/constraint"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "description": "Recording a sample under `normal` policy is accepted. Recording the same\nmetric under `lookup_bypass` policy must be rejected with `frozen_on_bypass`.\n",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "accepted": true
+        }
+      },
+      "given": {
+        "metric_id": "shuffled_lookup_retention",
+        "policy_mode": "normal",
+        "value": 0.99
+      },
+      "op": "record_retention_sample"
+    },
+    {
+      "expect": {
+        "equals": {
+          "accepted": false,
+          "reason": "frozen_on_bypass"
+        }
+      },
+      "given": {
+        "metric_id": "shuffled_lookup_retention",
+        "policy_mode": "lookup_bypass",
+        "value": 0.99
+      },
+      "op": "record_retention_sample"
+    }
+  ],
+  "trace_id": "t-008-retention-baseline-frozen-on-bypass"
+}

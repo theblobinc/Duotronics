@@ -1,0 +1,212 @@
+{
+  "cases": [
+    {
+      "case_id": "simple.hex6.h1h4",
+      "expect": {
+        "equals": {
+          "canonical_storage": "family:hex6 schema_version:dpfc-family@v5.6 digits:1 4",
+          "core_magnitude": "mu_10",
+          "failure_code": null,
+          "lookup_allowed": true,
+          "normalizer_version": "simple-bijective-word-normalizer@v1",
+          "policy_action": "normal"
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "normalize_family_word"
+    },
+    {
+      "case_id": "simple.unknown_family",
+      "expect": {
+        "equals": {
+          "failure_code": "unknown_family",
+          "lookup_allowed": false,
+          "policy_action": "family_bypass"
+        }
+      },
+      "given": {
+        "family_id": "nope",
+        "word": [
+          "x"
+        ]
+      },
+      "op": "normalize_family_word"
+    },
+    {
+      "case_id": "simple.empty_word",
+      "expect": {
+        "equals": {
+          "failure_code": "empty_family_word",
+          "policy_action": "reject"
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": []
+      },
+      "op": "normalize_family_word"
+    },
+    {
+      "case_id": "simple.invalid_digit",
+      "expect": {
+        "equals": {
+          "failure_code": "invalid_digit",
+          "invalid_digit": "h9",
+          "policy_action": "reject"
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h9"
+        ]
+      },
+      "op": "normalize_family_word"
+    },
+    {
+      "case_id": "simple.schema_mismatch",
+      "expect": {
+        "equals": {
+          "failure_code": null
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h1"
+        ]
+      },
+      "op": "normalize_family_word"
+    },
+    {
+      "case_id": "reflection.reduce_double_token",
+      "expect": {
+        "equals": {
+          "lookup_allowed": true,
+          "normalizer_version": "reflection-path-normalizer@v1",
+          "policy_action": "normal",
+          "reduced_path": [
+            "b"
+          ]
+        }
+      },
+      "given": {
+        "path": [
+          "a",
+          "a",
+          "b"
+        ]
+      },
+      "op": "normalize_reflection_path"
+    },
+    {
+      "case_id": "reflection.full_cancel_rejected_as_empty",
+      "expect": {
+        "equals": {
+          "failure_code": "empty_family_word",
+          "policy_action": "reject"
+        }
+      },
+      "given": {
+        "path": [
+          "a",
+          "a"
+        ]
+      },
+      "op": "normalize_reflection_path"
+    },
+    {
+      "case_id": "witness8.absence_routes_to_token_free",
+      "expect": {
+        "equals": {
+          "decode_status": "token_free_absent",
+          "normalizer_version": "witness8-row-normalizer@v1"
+        }
+      },
+      "given": {
+        "witness8_row": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "op": "normalize_witness8_row"
+    },
+    {
+      "case_id": "witness8.invalid_arity",
+      "expect": {
+        "equals": {
+          "decode_status": "present_invalid",
+          "failure_code": "field_order_invalid",
+          "policy_action": "reject"
+        }
+      },
+      "given": {
+        "witness8_row": [
+          1,
+          2,
+          3
+        ]
+      },
+      "op": "normalize_witness8_row"
+    },
+    {
+      "case_id": "registry.normalizer.simple_v1",
+      "expect": {
+        "equals": {
+          "has_migration_plan": true,
+          "normalizer_id": "simple-bijective-word-normalizer",
+          "version": "v1"
+        }
+      },
+      "given": {
+        "normalizer_id": "simple-bijective-word-normalizer",
+        "version": "v1"
+      },
+      "op": "resolve_normalizer"
+    },
+    {
+      "case_id": "registry.normalizer.reflection_v1",
+      "expect": {
+        "equals": {
+          "has_migration_plan": true,
+          "normalizer_id": "reflection-path-normalizer",
+          "version": "v1"
+        }
+      },
+      "given": {
+        "normalizer_id": "reflection-path-normalizer",
+        "version": "v1"
+      },
+      "op": "resolve_normalizer"
+    },
+    {
+      "case_id": "registry.normalizer.witness8_v1",
+      "expect": {
+        "equals": {
+          "has_migration_plan": true,
+          "normalizer_id": "witness8-row-normalizer",
+          "version": "v1"
+        }
+      },
+      "given": {
+        "normalizer_id": "witness8-row-normalizer",
+        "version": "v1"
+      },
+      "op": "resolve_normalizer"
+    }
+  ],
+  "description": "Normalizer Profiles v1 (Witness Contract Normalizer \u00a77-\u00a78). Each profile\nis deterministic and version-pinned; failures surface explicit failure\ncodes and a policy_action mapping into the policy shield.\n",
+  "pack_id": "normalizer-profiles-v1"
+}

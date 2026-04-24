@@ -1,0 +1,29 @@
+name: Duotronic Conformance
+
+on:
+  push:
+    paths:
+      - "harness/**"
+  pull_request:
+    paths:
+      - "harness/**"
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: harness/bin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -U pip
+          .venv/bin/pip install -e .
+          .venv/bin/pip install pytest pytest-xdist pyyaml hypothesis jsonschema cbor2
+      - name: Acceptance
+        run: PYTHON=.venv/bin/python bash ci/acceptance.sh

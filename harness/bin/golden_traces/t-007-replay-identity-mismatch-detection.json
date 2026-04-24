@@ -1,0 +1,36 @@
+{
+  "description": "Pin a replay identity, then re-run with a deliberately drifted\nexpected_normal_form_hash and an expected_mismatch flag \u2014 the diff\nmust be surfaced and ledger-recorded as expected.\n",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "replay_match": false,
+          "replay_mismatch": true
+        }
+      },
+      "given": {
+        "expected": {
+          "expected_normal_form_hash": "def",
+          "input_hash": "abc"
+        },
+        "expected_mismatch": true,
+        "observed": {
+          "deterministic_seed": 0,
+          "expected_normal_form_hash": "DRIFT",
+          "family_registry_version": "family-registry@v1.0",
+          "floating_point_profile": "ieee754-double",
+          "geometry_registry_version": "geometry-registry@v1.0",
+          "input_hash": "abc",
+          "normalizer_versions": {},
+          "policy_shield_version": "policy-shield@v1.0",
+          "retention_metric_versions": {},
+          "schema_versions": {},
+          "serializer_versions": {},
+          "transport_profile_version": "dbp-minsafe@v1"
+        }
+      },
+      "op": "replay_compare"
+    }
+  ],
+  "trace_id": "t-007-replay-identity-mismatch-detection"
+}

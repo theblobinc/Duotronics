@@ -1,0 +1,17 @@
+trace_id: t-006-spectral-transposition
+description: |
+  EDO31 chord [0,11,18] transposed by 5 must yield [5,16,23] and a
+  retention_score of 1.0.
+steps:
+  - op: transpose_and_measure_interval_retention
+    given: { values: [0, 11, 18], transposition: 5, modulus: 31 }
+    expect:
+      equals:
+        transposed_chord_external_steps: [5, 16, 23]
+        retention_score: 1.0
+  - op: infer_missing_fundamental
+    given: { components_hz: [200, 300, 400, 500] }
+    expect:
+      equals:
+        inferred_fundamental_hz: 100
+        inference_type: missing_fundamental

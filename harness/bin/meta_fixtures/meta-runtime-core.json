@@ -1,0 +1,245 @@
+{
+  "cases": [
+    {
+      "case_id": "meta.normalize.deterministic_digest",
+      "expect": {
+        "equals": {
+          "normalized.canonical_digest": "sha256:69d8588f090c3f87",
+          "normalized.category_path": "perceptual/visual_symbol",
+          "schema_version": "normalize-meta-object-result@v1",
+          "status": "ok"
+        },
+        "key_falsy": [
+          "failure_reasons"
+        ],
+        "key_truthy": [
+          "normalized"
+        ]
+      },
+      "given": {
+        "attributes": {
+          "Color": "Blue",
+          "Tags": [
+            "B",
+            "A"
+          ]
+        },
+        "canonical_name": " Spiral Gate ",
+        "category": "visual_symbol",
+        "confidence": 0.81234567,
+        "evidence_class": "direct_observation",
+        "object_id": "  Assertion 1  ",
+        "provenance": {
+          "frames": [
+            2,
+            1
+          ],
+          "source": "camera"
+        },
+        "tags": [
+          "Zeta",
+          "alpha",
+          "alpha"
+        ],
+        "type_name": "Visual Symbol"
+      },
+      "marker": "normative",
+      "op": "normalize_meta_object"
+    },
+    {
+      "case_id": "meta.summary.category_counts",
+      "expect": {
+        "equals": {
+          "schema_version": "compute-meta-summary-result@v1",
+          "status": "ok",
+          "summary.assertion_count": 3,
+          "summary.counts_by_category.perceptual/scene": 1,
+          "summary.counts_by_category.semantic/motif": 2
+        },
+        "key_falsy": [
+          "failure_reasons"
+        ],
+        "key_truthy": [
+          "summary"
+        ]
+      },
+      "given": {
+        "assertions": [
+          {
+            "canonical_name": "Night",
+            "category": "scene",
+            "confidence": 0.9,
+            "object_id": "1",
+            "type_name": "scene"
+          },
+          {
+            "canonical_name": "Echo",
+            "category": "motif",
+            "confidence": 0.5,
+            "object_id": "2",
+            "type_name": "motif"
+          },
+          {
+            "canonical_name": "Return",
+            "category": "motif",
+            "confidence": 0.7,
+            "object_id": "3",
+            "type_name": "motif"
+          }
+        ],
+        "bundle_id": "summary"
+      },
+      "marker": "normative",
+      "op": "compute_meta_summary"
+    },
+    {
+      "case_id": "meta.build.object_type_fallback",
+      "expect": {
+        "equals": {
+          "object.canonical_name": "visual_symbol",
+          "object.category_path": "perceptual/visual_symbol",
+          "object.tags": [
+            "alpha",
+            "beta"
+          ],
+          "object.type_name": "visual_symbol",
+          "schema_version": "meta-object-build-result@v1",
+          "status": "ok"
+        },
+        "key_falsy": [
+          "failure_reasons"
+        ],
+        "key_truthy": [
+          "object.canonical_digest",
+          "diagnostics.ontology_version"
+        ]
+      },
+      "given": {
+        "category": "visual_symbol",
+        "confidence": 0.6,
+        "object_id": "  Assertion 7  ",
+        "object_type": "Visual Symbol",
+        "tags": [
+          "Beta",
+          "alpha",
+          "alpha"
+        ]
+      },
+      "marker": "normative",
+      "op": "build_meta_object_instance"
+    },
+    {
+      "case_id": "meta.retention.threshold",
+      "expect": {
+        "equals": {
+          "retention_ratio": 0.5,
+          "schema_version": "meta-retention-result@v1",
+          "status": "accepted"
+        },
+        "key_falsy": [
+          "failure_reasons"
+        ],
+        "key_truthy": [
+          "diagnostics"
+        ]
+      },
+      "extra_markers": [
+        "meta_runtime"
+      ],
+      "given": {
+        "minimum_retention_ratio": 0.5,
+        "observed_bundle": {
+          "assertions": [
+            {
+              "canonical_name": "Night",
+              "category": "scene",
+              "confidence": 0.9,
+              "object_id": "1",
+              "type_name": "scene"
+            }
+          ],
+          "bundle_id": "observed"
+        },
+        "reference_bundle": {
+          "assertions": [
+            {
+              "canonical_name": "Night",
+              "category": "scene",
+              "confidence": 0.9,
+              "object_id": "1",
+              "type_name": "scene"
+            },
+            {
+              "canonical_name": "Echo",
+              "category": "motif",
+              "confidence": 0.7,
+              "object_id": "2",
+              "type_name": "motif"
+            }
+          ],
+          "bundle_id": "reference"
+        }
+      },
+      "marker": "normative",
+      "op": "evaluate_meta_retention"
+    },
+    {
+      "case_id": "meta.l3.rejects_stale_replay_identity",
+      "expect": {
+        "contains": {
+          "failure_reasons": "stale_replay_identity"
+        },
+        "equals": {
+          "schema_version": "l3-acceptance-result@v1",
+          "status": "rejected",
+          "witness.rejected_updates": 1
+        },
+        "key_truthy": [
+          "diagnostics"
+        ]
+      },
+      "extra_markers": [
+        "replay"
+      ],
+      "given": {
+        "candidate_witness": {
+          "controller_confidence": 0.7,
+          "epoch_step_count": 2,
+          "log_decay_offset": {
+            "temporal_local": 0.2
+          }
+        },
+        "diagnostics": {
+          "coverage_ratio": 0.8,
+          "epoch_step_count": 2,
+          "eval_count": 3,
+          "objective_bundle_hash": "bundle-1",
+          "replay_identity": "sha256:stale0000000000:bundle-1",
+          "replay_spec_hash": "sha256:stale0000000000",
+          "sufficient_evidence": true
+        },
+        "policy_shield": {
+          "approval_policy": {
+            "l3_auto_apply": true
+          },
+          "objective_bundle_hash": "bundle-1"
+        },
+        "previous_witness": {
+          "log_decay_offset": {
+            "temporal_local": 0.2
+          }
+        },
+        "replay_spec": {
+          "objective_bundle_hash": "bundle-1",
+          "sequence_ids": [
+            "seq-1"
+          ]
+        }
+      },
+      "marker": "normative",
+      "op": "run_l3_acceptance"
+    }
+  ],
+  "description": "Core standalone meta-runtime conformance cases.",
+  "pack_id": "meta-runtime-core"
+}

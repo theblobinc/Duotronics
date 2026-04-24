@@ -1,0 +1,89 @@
+{
+  "description": "Object build fallback coverage and L3 low-evidence rejection contract.",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "object.canonical_name": "visual_symbol",
+          "object.category_path": "perceptual/visual_symbol",
+          "object.tags": [
+            "alpha",
+            "beta"
+          ],
+          "object.type_name": "visual_symbol",
+          "schema_version": "meta-object-build-result@v1",
+          "status": "ok"
+        },
+        "key_falsy": [
+          "failure_reasons"
+        ],
+        "key_truthy": [
+          "object.canonical_digest",
+          "diagnostics.ontology_version"
+        ]
+      },
+      "given": {
+        "category": "visual_symbol",
+        "confidence": 0.6,
+        "object_id": "  Assertion 7  ",
+        "object_type": "Visual Symbol",
+        "tags": [
+          "Beta",
+          "alpha",
+          "alpha"
+        ]
+      },
+      "op": "build_meta_object_instance"
+    },
+    {
+      "expect": {
+        "contains": {
+          "failure_reasons": "low_evidence"
+        },
+        "equals": {
+          "schema_version": "l3-acceptance-result@v1",
+          "status": "rejected",
+          "witness.rejected_updates": 1
+        },
+        "key_truthy": [
+          "diagnostics"
+        ]
+      },
+      "given": {
+        "candidate_witness": {
+          "controller_confidence": 0.7,
+          "epoch_step_count": 2,
+          "log_decay_offset": {
+            "temporal_local": 0.2
+          }
+        },
+        "diagnostics": {
+          "coverage_ratio": 0.0,
+          "epoch_step_count": 2,
+          "eval_count": 1,
+          "objective_bundle_hash": "bundle-1",
+          "sufficient_evidence": false
+        },
+        "policy_shield": {
+          "approval_policy": {
+            "l3_auto_apply": true
+          },
+          "objective_bundle_hash": "bundle-1"
+        },
+        "previous_witness": {
+          "log_decay_offset": {
+            "temporal_local": 0.2
+          }
+        },
+        "replay_spec": {
+          "objective_bundle_hash": "bundle-1",
+          "sequence_ids": [
+            "seq-1"
+          ]
+        }
+      },
+      "op": "run_l3_acceptance"
+    }
+  ],
+  "trace_id": "mt-003-meta-build-and-acceptance-contracts"
+}

@@ -1,0 +1,84 @@
+pack_id: spectral-edo
+description: |
+  Spectral / EDO reference vectors (Witness Contract App K.12).
+
+cases:
+  - case_id: missing_fundamental.200_300_400_500
+    op: infer_missing_fundamental
+    given: { components_hz: [200, 300, 400, 500] }
+    expect:
+      equals:
+        inferred_fundamental_hz: 100
+        evidence_pattern: [2, 3, 4, 5]
+        inference_type: missing_fundamental
+        observed_as_fundamental: false
+
+  - case_id: observed_fundamental.100_200_300
+    op: infer_missing_fundamental
+    given: { components_hz: [100, 200, 300] }
+    expect:
+      equals:
+        inferred_fundamental_hz: 100
+        inference_type: observed_fundamental
+
+  - case_id: transpose.edo31.major_chord
+    op: transpose_and_measure_interval_retention
+    given: { values: [0, 11, 18], transposition: 5, modulus: 31 }
+    expect:
+      equals:
+        transposed_chord_external_steps: [5, 16, 23]
+        retention_score: 1.0
+
+  - case_id: collapse.edo31_to_edo12.unequal_steps_warns
+    op: collapse_to_12edo
+    given: { source_family: edo31, target_family: edo12, left_step: 2, right_step: 3 }
+    expect:
+      equals:
+        collapse_allowed: only_with_expected_loss
+        alert_if_loss_undeclared: true
+
+  - case_id: collapse.same_family_no_loss
+    op: collapse_to_12edo
+    given: { source_family: edo12, target_family: edo12, left_step: 1, right_step: 1 }
+    expect:
+      equals:
+        collapse_allowed: true
+
+  - case_id: fourier_provenance.missing_fields
+    op: validate_fourier_provenance
+    given:
+      witness:
+        partials: [{frequency_hz: 200, amplitude: 0.8}]
+        sample_rate_hz: null
+        window_function: null
+    expect:
+      equals:
+        authoritative_memory_allowed: false
+        failure_code: missing_fourier_provenance
+
+  - case_id: fourier_provenance.full
+    op: validate_fourier_provenance
+    given:
+      witness:
+        partials: [{frequency_hz: 200, amplitude: 0.8}]
+        sample_rate_hz: 48000
+        window_function: hann
+    expect:
+      equals:
+        authoritative_memory_allowed: true
+
+  - case_id: temperament.5_4_in_31edo
+    op: temperament_error_witness
+    given: { ratio: "5/4", target_family: edo31 }
+    expect:
+      equals:
+        nearest_step: "10\\31"
+        preservation_class: approximate_preserve
+
+  - case_id: approximate_in_edo.5_4_in_31edo
+    op: approximate_ratio_in_edo
+    given: { ratio: "5/4", steps: 31 }
+    expect:
+      equals:
+        nearest_step: 10
+        edostep: "10\\31"

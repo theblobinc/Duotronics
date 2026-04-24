@@ -1,0 +1,69 @@
+pack_id: retention-baseline
+description: |
+  Retention metric baselines (Witness Contract App R + Retention §6).
+  Every metric must be queryable, baseline-required, and frozen on bypass.
+  The reference impl seeds default baselines per-test (conftest), so
+  record_sample under `normal` policy must accept; under any non-normal
+  policy it must reject with `frozen_on_bypass`.
+
+cases:
+  - case_id: retention.shuffled_lookup_resolves
+    op: resolve_retention
+    given: { metric_id: shuffled_lookup_retention }
+    expect:
+      equals:
+        metric_id: shuffled_lookup_retention
+        version: v1.0
+        baseline_required: true
+        frozen_on_bypass: true
+
+  - case_id: retention.malformed_frame_resolves
+    op: resolve_retention
+    given: { metric_id: malformed_frame_retention }
+    expect:
+      equals: { baseline_required: true }
+
+  - case_id: retention.schema_mismatch_resolves
+    op: resolve_retention
+    given: { metric_id: schema_mismatch_retention }
+    expect:
+      equals: { frozen_on_bypass: true }
+
+  - case_id: retention.transpose_interval_resolves
+    op: resolve_retention
+    given: { metric_id: transpose_interval_retention }
+    expect:
+      equals: { baseline_required: true }
+
+  - case_id: retention.enharmonic_resolves
+    op: resolve_retention
+    given: { metric_id: enharmonic_retention }
+    expect:
+      equals: { baseline_required: true }
+
+  - case_id: retention.absence_zero_separation_resolves
+    op: resolve_retention
+    given: { metric_id: absence_zero_separation_retention }
+    expect:
+      equals: { baseline_required: true }
+
+  - case_id: retention.replay_identity_resolves
+    op: resolve_retention
+    given: { metric_id: replay_identity_retention }
+    expect:
+      equals: { baseline_required: true }
+
+  - case_id: retention.sample.normal_accepted
+    op: record_retention_sample
+    given: { metric_id: shuffled_lookup_retention, value: 0.99, policy_mode: normal }
+    expect:
+      equals: { accepted: true, metric_id: shuffled_lookup_retention }
+
+  - case_id: retention.sample.bypass_rejected
+    op: record_retention_sample
+    given: { metric_id: shuffled_lookup_retention, value: 0.99, policy_mode: lookup_bypass }
+    expect:
+      equals:
+        accepted: false
+        reason: frozen_on_bypass
+        policy_mode: lookup_bypass

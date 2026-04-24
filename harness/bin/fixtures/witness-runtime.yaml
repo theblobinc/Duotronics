@@ -1,0 +1,120 @@
+pack_id: witness-runtime
+description: |
+  Witness8 row decoder (App I §I.2) — explicit field order, token-free
+  absence vs numeric-zero presence discrimination, profile flag handling,
+  and field-arity rejection.
+
+cases:
+  - case_id: witness8.absence.all_zero
+    op: decode_witness8
+    given: { row: [0, 0, 0, 0, 0, 0, 0, 0] }
+    expect:
+      equals:
+        decode_status: token_free_absent
+        presence_status: structurally_absent
+        numeric_zero_inferred: false
+        normal_form_key_constructed: false
+        trusted_for_lookup: false
+      must_not_emit_audit: [absence_zero_collision_accepted]
+
+  - case_id: witness8.present_zero.declared_profile
+    op: decode_witness8
+    given:
+      row:
+        value_norm: 0.0
+        n_sides_norm: 0.6
+        center_on: 1.0
+        activation_density: 0.125
+        kind_flag: 1.0
+        band_position: 0.5
+        parity: 1.0
+        degeneracy: 1.0
+      profile_id: witness8-strict@v1
+      profile_declares_numeric_zero: true
+    expect:
+      equals:
+        decode_status: decoded_exact
+        presence_status: present_zero_value
+        token_free_absent: false
+        numeric_zero_inferred: true
+
+  - case_id: witness8.present_nonzero.minsafe
+    op: decode_witness8
+    given:
+      row: [0.25, 0.6, 1.0, 0.5, 1.0, 0.25, 1.0, 1.0]
+      profile_declares_numeric_zero: false
+    expect:
+      equals:
+        decode_status: decoded_lossy
+        presence_status: present_nonzero_value
+        trusted_for_lookup: only_after_canonicalization
+
+  - case_id: witness8.invalid.short_row
+    op: decode_witness8
+    given: { row: [1, 2, 3] }
+    expect:
+      equals:
+        decode_status: present_invalid
+        failure_code: field_order_invalid
+        trusted_for_lookup: false
+
+  - case_id: wsb2.mixed.lane_inactive_plus_active
+    op: decode_wsb2
+    given:
+      payload:
+        rows:
+          - { lane: 1, active: false }
+          - lane: 2
+            active: true
+            witness8: [0.25, 0.6, 1.0, 0.5, 1.0, 0.25, 1.0, 1.0]
+    expect:
+      equals: { failure_code: null }
+
+  - case_id: canonicalize_bundle.hex6.h1h4
+    op: canonicalize_witness_key_bundle
+    given:
+      bundle:
+        family_id: hex6
+        family_schema_version: dpfc-family@v5.6
+        digits: [h1, h4]
+    expect:
+      equals:
+        canonicalization_result: canonical_success
+        core_magnitude: mu_10
+        lookup_allowed: true
+        trust_status: canonicalized
+
+  - case_id: canonicalize_bundle.unknown_family
+    op: canonicalize_witness_key_bundle
+    given:
+      bundle: { family_id: nope, digits: [x1] }
+    expect:
+      equals:
+        canonicalization_result: family_bypass_required
+        failure_code: unknown_family
+        lookup_allowed: false
+        trust_status: rejected
+
+  - case_id: canonicalize_bundle.schema_mismatch
+    op: canonicalize_witness_key_bundle
+    given:
+      bundle:
+        family_id: hex6
+        family_schema_version: dpfc-family@v6.0
+        digits: [h1]
+    expect:
+      equals:
+        canonicalization_result: schema_mismatch
+        failure_code: schema_mismatch
+        lookup_allowed: false
+
+  - case_id: canonicalize_bundle.invalid_digit
+    op: canonicalize_witness_key_bundle
+    given:
+      bundle: { family_id: hex6, digits: [h9] }
+    expect:
+      equals:
+        canonicalization_result: malformed_reject
+        failure_code: invalid_digit
+        invalid_digit: h9
+        lookup_allowed: false

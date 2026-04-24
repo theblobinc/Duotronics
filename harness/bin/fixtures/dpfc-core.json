@@ -1,0 +1,323 @@
+{
+  "cases": [
+    {
+      "case_id": "hex6.evaluate.h1h4",
+      "expect": {
+        "equals": {
+          "core_magnitude": "mu_10",
+          "value": 10
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "evaluate_family_word"
+    },
+    {
+      "case_id": "hex6.evaluate.h6",
+      "expect": {
+        "equals": {
+          "core_magnitude": "mu_6",
+          "value": 6
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h6"
+        ]
+      },
+      "op": "evaluate_family_word"
+    },
+    {
+      "case_id": "refl3.evaluate.r2r3",
+      "expect": {
+        "equals": {
+          "core_magnitude": "mu_9",
+          "value": 9
+        }
+      },
+      "given": {
+        "family_id": "refl3",
+        "word": [
+          "r2",
+          "r3"
+        ]
+      },
+      "op": "evaluate_family_word"
+    },
+    {
+      "case_id": "edo31.evaluate.e1",
+      "expect": {
+        "equals": {
+          "core_magnitude": "mu_1",
+          "value": 1
+        }
+      },
+      "given": {
+        "family_id": "edo31",
+        "word": [
+          "e1"
+        ]
+      },
+      "op": "evaluate_family_word"
+    },
+    {
+      "case_id": "hex6.successor.h1h4",
+      "expect": {
+        "equals": {
+          "successor": [
+            "h1",
+            "h5"
+          ]
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "family_successor"
+    },
+    {
+      "case_id": "hex6.successor.h6_carry",
+      "expect": {
+        "equals": {
+          "successor": [
+            "h1",
+            "h1"
+          ]
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h6"
+        ]
+      },
+      "op": "family_successor"
+    },
+    {
+      "case_id": "hex6.successor.h1h6_carry",
+      "expect": {
+        "equals": {
+          "successor": [
+            "h2",
+            "h1"
+          ]
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h1",
+          "h6"
+        ]
+      },
+      "op": "family_successor"
+    },
+    {
+      "case_id": "refl3.successor.r3_carry",
+      "expect": {
+        "equals": {
+          "successor": [
+            "r1",
+            "r1"
+          ]
+        }
+      },
+      "given": {
+        "family_id": "refl3",
+        "word": [
+          "r3"
+        ]
+      },
+      "op": "family_successor"
+    },
+    {
+      "case_id": "hex6.encode.10",
+      "expect": {
+        "equals": {
+          "word": [
+            "h1",
+            "h4"
+          ]
+        }
+      },
+      "given": {
+        "core_index": 10,
+        "family_id": "hex6"
+      },
+      "op": "encode_core_to_family"
+    },
+    {
+      "case_id": "refl3.encode.10",
+      "expect": {
+        "equals": {
+          "word": [
+            "r3",
+            "r1"
+          ]
+        }
+      },
+      "given": {
+        "core_index": 10,
+        "family_id": "refl3"
+      },
+      "op": "encode_core_to_family"
+    },
+    {
+      "case_id": "convert.hex6_to_refl3.h1h4",
+      "expect": {
+        "equals": {
+          "source_core_magnitude": "mu_10",
+          "target_core_magnitude": "mu_10",
+          "target_word": [
+            "r3",
+            "r1"
+          ]
+        }
+      },
+      "given": {
+        "source_family": "hex6",
+        "target_family": "refl3",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "family_conversion"
+    },
+    {
+      "case_id": "convert.refl3_to_edo31.r2r3",
+      "expect": {
+        "equals": {
+          "source_core_magnitude": "mu_9",
+          "target_core_magnitude": "mu_9"
+        }
+      },
+      "given": {
+        "source_family": "refl3",
+        "target_family": "edo31",
+        "word": [
+          "r2",
+          "r3"
+        ]
+      },
+      "op": "family_conversion"
+    },
+    {
+      "case_id": "convert.round_trip_preserves_core_magnitude",
+      "expect": {
+        "equals": {
+          "core_magnitude_preserved": true,
+          "round_trip_word": [
+            "h1",
+            "h4"
+          ]
+        }
+      },
+      "given": {
+        "source_family": "hex6",
+        "target_family": "refl3",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "family_conversion_with_retention_report"
+    },
+    {
+      "case_id": "canonical_storage.hex6.h1h4",
+      "expect": {
+        "equals": {
+          "canonical_storage": "family:hex6 schema_version:dpfc-family@v5.6 digits:1 4"
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "canonical_storage"
+    },
+    {
+      "case_id": "canonicalize_object.hex6.h1h4",
+      "expect": {
+        "equals": {
+          "core_magnitude": "mu_10",
+          "digit_ordinals": [
+            1,
+            4
+          ],
+          "family_id": "hex6",
+          "schema_version": "dpfc-family@v5.6"
+        }
+      },
+      "given": {
+        "family_id": "hex6",
+        "word": [
+          "h1",
+          "h4"
+        ]
+      },
+      "op": "canonicalize_family_object"
+    },
+    {
+      "case_id": "exported_nonneg.add.with_correction.2_3",
+      "expect": {
+        "equals": {
+          "value": 4
+        }
+      },
+      "given": {
+        "left": 2,
+        "right": 3
+      },
+      "op": "exported_nonnegative_add_with_correction"
+    },
+    {
+      "case_id": "exported_nonneg.add.without_correction_must_flag.2_3",
+      "expect": {
+        "equals": {
+          "expected_correct_value": 4,
+          "failure_code": "export_policy_mismatch",
+          "required_correction": 1,
+          "trusted_arithmetic_use": false,
+          "value": 3
+        }
+      },
+      "given": {
+        "left": 2,
+        "right": 3
+      },
+      "op": "exported_nonnegative_add_without_correction"
+    },
+    {
+      "case_id": "detect_export_policy_mismatch.label_mismatch",
+      "expect": {
+        "equals": {
+          "failure_code": "export_label_mismatch",
+          "trusted_arithmetic_use": false
+        }
+      },
+      "given": {
+        "declared_left_export": 99,
+        "declared_right_export": 3,
+        "left_core": 3,
+        "right_core": 4
+      },
+      "op": "detect_export_policy_mismatch"
+    }
+  ],
+  "description": "DPFC v5.6 reference vectors covering \u03a6_F evaluation, family-successor with\nbijective carry, encode/decode round-trip, family conversion preserving\ncore magnitude, exported-nonneg arithmetic with mandatory affine\ncorrection, and the deliberately-wrong \"without correction\" path that\nmust surface a policy mismatch.\n",
+  "pack_id": "dpfc-core"
+}

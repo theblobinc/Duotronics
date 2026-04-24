@@ -1,0 +1,24 @@
+trace_id: t-004-dbp-malformed-stays-untrusted
+description: |
+  Malformed shape, then unknown profile, then integrity failure — every
+  rejection must surface a transport_bypass policy mode and never produce
+  a writeable canonical key.
+steps:
+  - op: dbp_ingress
+    given:
+      frame: { shape_valid: false }
+    expect: { equals: { failure_code: frame_shape_invalid, policy_mode: transport_bypass } }
+  - op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-future@v1
+        integrity_check: passed
+    expect: { equals: { failure_code: unknown_transport_profile } }
+  - op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-minsafe@v1
+        integrity_check: failed
+    expect: { equals: { failure_code: transport_integrity_failed } }

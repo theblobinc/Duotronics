@@ -1,0 +1,43 @@
+{
+  "description": "Clean ingress through dbp-minsafe@v1, witness8 payload, canonicalize.\n",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "policy_mode": "normal",
+          "semantic_decode_allowed": true,
+          "trusted_memory_write": false
+        }
+      },
+      "given": {
+        "frame": {
+          "integrity_check": "passed",
+          "payload_kind": "witness8",
+          "profile_id": "dbp-minsafe@v1",
+          "shape_valid": true
+        }
+      },
+      "op": "dbp_ingress"
+    },
+    {
+      "expect": {
+        "equals": {
+          "canonicalization_result": "canonical_success",
+          "core_magnitude": "mu_10"
+        }
+      },
+      "given": {
+        "bundle": {
+          "digits": [
+            "h1",
+            "h4"
+          ],
+          "family_id": "hex6",
+          "family_schema_version": "dpfc-family@v5.6"
+        }
+      },
+      "op": "canonicalize_witness_key_bundle"
+    }
+  ],
+  "trace_id": "t-003-dbp-ingress-happy-path"
+}

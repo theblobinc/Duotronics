@@ -1,0 +1,21 @@
+trace_id: t-001-policy-shield-recovery
+description: |
+  Shield starts in normal, transitions to family_bypass on schema_mismatch,
+  then to lookup_bypass on absence_zero_collision_attempt, finally back to
+  full_bypass on policy_breach. Each transition records a bypass_transition.
+steps:
+  - op: reset_policy_shield
+    given: {}
+    expect: { equals: { reset: true } }
+  - op: policy_decide
+    given: { event: ok }
+    expect: { equals: { mode: normal, trust_status: trusted } }
+  - op: policy_decide
+    given: { event: schema_mismatch }
+    expect: { equals: { mode: family_bypass, freeze_metrics: true } }
+  - op: policy_decide
+    given: { event: absence_zero_collision_attempt }
+    expect: { equals: { mode: lookup_bypass } }
+  - op: policy_decide
+    given: { event: policy_breach }
+    expect: { equals: { mode: full_bypass, trust_status: rejected } }

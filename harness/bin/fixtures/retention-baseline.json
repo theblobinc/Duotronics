@@ -1,0 +1,124 @@
+{
+  "cases": [
+    {
+      "case_id": "retention.shuffled_lookup_resolves",
+      "expect": {
+        "equals": {
+          "baseline_required": true,
+          "frozen_on_bypass": true,
+          "metric_id": "shuffled_lookup_retention",
+          "version": "v1.0"
+        }
+      },
+      "given": {
+        "metric_id": "shuffled_lookup_retention"
+      },
+      "op": "resolve_retention"
+    },
+    {
+      "case_id": "retention.malformed_frame_resolves",
+      "expect": {
+        "equals": {
+          "baseline_required": true
+        }
+      },
+      "given": {
+        "metric_id": "malformed_frame_retention"
+      },
+      "op": "resolve_retention"
+    },
+    {
+      "case_id": "retention.schema_mismatch_resolves",
+      "expect": {
+        "equals": {
+          "frozen_on_bypass": true
+        }
+      },
+      "given": {
+        "metric_id": "schema_mismatch_retention"
+      },
+      "op": "resolve_retention"
+    },
+    {
+      "case_id": "retention.transpose_interval_resolves",
+      "expect": {
+        "equals": {
+          "baseline_required": true
+        }
+      },
+      "given": {
+        "metric_id": "transpose_interval_retention"
+      },
+      "op": "resolve_retention"
+    },
+    {
+      "case_id": "retention.enharmonic_resolves",
+      "expect": {
+        "equals": {
+          "baseline_required": true
+        }
+      },
+      "given": {
+        "metric_id": "enharmonic_retention"
+      },
+      "op": "resolve_retention"
+    },
+    {
+      "case_id": "retention.absence_zero_separation_resolves",
+      "expect": {
+        "equals": {
+          "baseline_required": true
+        }
+      },
+      "given": {
+        "metric_id": "absence_zero_separation_retention"
+      },
+      "op": "resolve_retention"
+    },
+    {
+      "case_id": "retention.replay_identity_resolves",
+      "expect": {
+        "equals": {
+          "baseline_required": true
+        }
+      },
+      "given": {
+        "metric_id": "replay_identity_retention"
+      },
+      "op": "resolve_retention"
+    },
+    {
+      "case_id": "retention.sample.normal_accepted",
+      "expect": {
+        "equals": {
+          "accepted": true,
+          "metric_id": "shuffled_lookup_retention"
+        }
+      },
+      "given": {
+        "metric_id": "shuffled_lookup_retention",
+        "policy_mode": "normal",
+        "value": 0.99
+      },
+      "op": "record_retention_sample"
+    },
+    {
+      "case_id": "retention.sample.bypass_rejected",
+      "expect": {
+        "equals": {
+          "accepted": false,
+          "policy_mode": "lookup_bypass",
+          "reason": "frozen_on_bypass"
+        }
+      },
+      "given": {
+        "metric_id": "shuffled_lookup_retention",
+        "policy_mode": "lookup_bypass",
+        "value": 0.99
+      },
+      "op": "record_retention_sample"
+    }
+  ],
+  "description": "Retention metric baselines (Witness Contract App R + Retention \u00a76).\nEvery metric must be queryable, baseline-required, and frozen on bypass.\nThe reference impl seeds default baselines per-test (conftest), so\nrecord_sample under `normal` policy must accept; under any non-normal\npolicy it must reject with `frozen_on_bypass`.\n",
+  "pack_id": "retention-baseline"
+}

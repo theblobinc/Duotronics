@@ -1,0 +1,151 @@
+pack_id: meta-runtime-core
+description: Core standalone meta-runtime conformance cases.
+cases:
+  - case_id: meta.normalize.deterministic_digest
+    op: normalize_meta_object
+    marker: normative
+    given:
+      object_id: "  Assertion 1  "
+      type_name: "Visual Symbol"
+      canonical_name: " Spiral Gate "
+      category: visual_symbol
+      evidence_class: direct_observation
+      confidence: 0.81234567
+      attributes:
+        Color: Blue
+        Tags: [B, A]
+      provenance:
+        source: camera
+        frames: [2, 1]
+      tags: [Zeta, alpha, alpha]
+    expect:
+      equals:
+        status: ok
+        schema_version: normalize-meta-object-result@v1
+        normalized.canonical_digest: sha256:69d8588f090c3f87
+        normalized.category_path: perceptual/visual_symbol
+      key_truthy: [normalized]
+      key_falsy: [failure_reasons]
+
+  - case_id: meta.summary.category_counts
+    op: compute_meta_summary
+    marker: normative
+    given:
+      bundle_id: summary
+      assertions:
+        - object_id: "1"
+          type_name: scene
+          canonical_name: Night
+          category: scene
+          confidence: 0.9
+        - object_id: "2"
+          type_name: motif
+          canonical_name: Echo
+          category: motif
+          confidence: 0.5
+        - object_id: "3"
+          type_name: motif
+          canonical_name: Return
+          category: motif
+          confidence: 0.7
+    expect:
+      equals:
+        status: ok
+        schema_version: compute-meta-summary-result@v1
+        summary.assertion_count: 3
+        summary.counts_by_category.perceptual/scene: 1
+        summary.counts_by_category.semantic/motif: 2
+      key_truthy: [summary]
+      key_falsy: [failure_reasons]
+
+  - case_id: meta.build.object_type_fallback
+    op: build_meta_object_instance
+    marker: normative
+    given:
+      object_id: "  Assertion 7  "
+      object_type: Visual Symbol
+      category: visual_symbol
+      confidence: 0.6
+      tags: [Beta, alpha, alpha]
+    expect:
+      equals:
+        status: ok
+        schema_version: meta-object-build-result@v1
+        object.type_name: visual_symbol
+        object.canonical_name: visual_symbol
+        object.category_path: perceptual/visual_symbol
+        object.tags: [alpha, beta]
+      key_truthy: [object.canonical_digest, diagnostics.ontology_version]
+      key_falsy: [failure_reasons]
+
+  - case_id: meta.retention.threshold
+    op: evaluate_meta_retention
+    marker: normative
+    extra_markers: [meta_runtime]
+    given:
+      minimum_retention_ratio: 0.5
+      reference_bundle:
+        bundle_id: reference
+        assertions:
+          - object_id: "1"
+            type_name: scene
+            canonical_name: Night
+            category: scene
+            confidence: 0.9
+          - object_id: "2"
+            type_name: motif
+            canonical_name: Echo
+            category: motif
+            confidence: 0.7
+      observed_bundle:
+        bundle_id: observed
+        assertions:
+          - object_id: "1"
+            type_name: scene
+            canonical_name: Night
+            category: scene
+            confidence: 0.9
+    expect:
+      equals:
+        status: accepted
+        schema_version: meta-retention-result@v1
+        retention_ratio: 0.5
+      key_truthy: [diagnostics]
+      key_falsy: [failure_reasons]
+
+  - case_id: meta.l3.rejects_stale_replay_identity
+    op: run_l3_acceptance
+    marker: normative
+    extra_markers: [replay]
+    given:
+      previous_witness:
+        log_decay_offset:
+          temporal_local: 0.2
+      candidate_witness:
+        log_decay_offset:
+          temporal_local: 0.2
+        controller_confidence: 0.7
+        epoch_step_count: 2
+      diagnostics:
+        epoch_step_count: 2
+        objective_bundle_hash: bundle-1
+        replay_spec_hash: sha256:stale0000000000
+        replay_identity: sha256:stale0000000000:bundle-1
+        sufficient_evidence: true
+        coverage_ratio: 0.8
+        eval_count: 3
+      replay_spec:
+        objective_bundle_hash: bundle-1
+        sequence_ids: [seq-1]
+      policy_shield:
+        objective_bundle_hash: bundle-1
+        approval_policy:
+          l3_auto_apply: true
+    expect:
+      equals:
+        status: rejected
+        schema_version: l3-acceptance-result@v1
+        witness.rejected_updates: 1
+      contains:
+        failure_reasons: stale_replay_identity
+      key_truthy: [diagnostics]

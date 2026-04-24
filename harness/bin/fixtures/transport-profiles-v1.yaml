@@ -1,0 +1,127 @@
+pack_id: transport-profiles-v1
+description: |
+  DBP transport state machine — shape → profile → integrity → sequence →
+  replay. Failures must surface explicit failure codes and never reach
+  trusted memory (Transport §5, §7).
+
+cases:
+  - case_id: dbp.minsafe.happy_path
+    op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-minsafe@v1
+        integrity_check: passed
+        payload_kind: witness8
+    expect:
+      equals:
+        semantic_decode_allowed: true
+        trusted_memory_write: false
+        policy_mode: normal
+        state_reached: semantic_decoder_allowed
+      must_not_emit_audit: [transport_rejected]
+
+  - case_id: dbp.invalid_shape
+    op: dbp_ingress
+    given:
+      frame: { shape_valid: false }
+    expect:
+      equals:
+        semantic_decode_allowed: false
+        failure_code: frame_shape_invalid
+        policy_mode: transport_bypass
+      must_emit_audit: [transport_rejected]
+
+  - case_id: dbp.unknown_profile
+    op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-future@v1
+        integrity_check: passed
+    expect:
+      equals:
+        failure_code: unknown_transport_profile
+        policy_mode: transport_bypass
+      must_emit_audit: [transport_rejected]
+
+  - case_id: dbp.minsafe.integrity_failed
+    op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-minsafe@v1
+        integrity_check: failed
+    expect:
+      equals:
+        failure_code: transport_integrity_failed
+        policy_mode: transport_bypass
+      must_emit_audit: [transport_rejected]
+
+  - case_id: dbp.strict.requires_sequence
+    op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-strict@v1
+        integrity_check: passed
+    expect:
+      equals:
+        failure_code: transport_sequence_missing
+        policy_mode: transport_bypass
+
+  - case_id: dbp.replay_window_rejected
+    op: dbp_ingress
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-minsafe@v1
+        integrity_check: passed
+        replay_token_seen: true
+    expect:
+      equals:
+        failure_code: transport_replay_window
+        policy_mode: transport_bypass
+      must_emit_audit: [transport_rejected]
+
+  - case_id: ingress.composite.witness8_rejected_at_transport
+    op: ingress_frame
+    given:
+      frame:
+        shape_valid: false
+        profile_id: dbp-minsafe@v1
+    expect:
+      key_falsy: [decoded, canonical]
+
+  - case_id: ingress.composite.wsb2_through_minsafe
+    op: ingress_frame
+    given:
+      frame:
+        shape_valid: true
+        profile_id: dbp-minsafe@v1
+        integrity_check: passed
+        payload_kind: wsb2
+        payload:
+          rows:
+            - { lane: 1, active: false }
+            - lane: 2
+              active: true
+              witness8: [0.25, 0.6, 1.0, 0.5, 1.0, 0.25, 1.0, 1.0]
+    expect:
+      key_truthy: [transport, decoded]
+
+  - case_id: registry.transport.minsafe
+    op: resolve_transport
+    given: { profile_id: dbp-minsafe, version: v1 }
+    expect:
+      equals:
+        profile_id: dbp-minsafe
+        declares_numeric_zero: false
+        requires_replay_key: true
+
+  - case_id: registry.transport.strict
+    op: resolve_transport
+    given: { profile_id: dbp-strict, version: v1 }
+    expect:
+      equals:
+        declares_numeric_zero: true

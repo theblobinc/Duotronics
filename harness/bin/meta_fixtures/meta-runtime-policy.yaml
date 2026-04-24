@@ -1,0 +1,153 @@
+pack_id: meta-runtime-policy
+description: Policy, replay, and architectural guardrail cases for the standalone meta runtime.
+cases:
+  - case_id: meta.l3.rejects_low_evidence
+    op: run_l3_acceptance
+    marker: normative
+    extra_markers: [replay]
+    given:
+      previous_witness:
+        log_decay_offset:
+          temporal_local: 0.2
+      candidate_witness:
+        log_decay_offset:
+          temporal_local: 0.2
+        controller_confidence: 0.7
+        epoch_step_count: 2
+      diagnostics:
+        epoch_step_count: 2
+        objective_bundle_hash: bundle-1
+        sufficient_evidence: false
+        coverage_ratio: 0.0
+        eval_count: 1
+      replay_spec:
+        objective_bundle_hash: bundle-1
+        sequence_ids: [seq-1]
+      policy_shield:
+        objective_bundle_hash: bundle-1
+        approval_policy:
+          l3_auto_apply: true
+    expect:
+      equals:
+        status: rejected
+        schema_version: l3-acceptance-result@v1
+        witness.rejected_updates: 1
+      contains:
+        failure_reasons: low_evidence
+      key_truthy: [diagnostics]
+
+  - case_id: meta.policy.hard_violation_veto
+    op: evaluate_policy_constraints
+    marker: normative
+    extra_markers: [policy]
+    given:
+      state_snapshot:
+        active_family_count: 99
+        memory_mb: 900
+        step_time_ms: 75
+        silent_coercion_detected: true
+    expect:
+      equals:
+        status: rejected
+        schema_version: policy-constraint-evaluation@v1
+        diagnostics.feasibility.feasible: false
+      contains:
+        failure_reasons: no_silent_coercion
+      key_truthy: [policy_shield]
+
+  - case_id: meta.replay.rejects_stale_objective_bundle
+    op: validate_replay_spec
+    marker: normative
+    extra_markers: [replay]
+    given:
+      policy_shield:
+        objective_bundle_hash: bundle-current
+      replay_spec:
+        sequence_ids:
+          - seq-0
+          - seq-1
+          - seq-2
+          - seq-3
+          - seq-4
+          - seq-5
+          - seq-6
+          - seq-7
+          - seq-8
+          - seq-9
+          - seq-10
+          - seq-11
+          - seq-12
+          - seq-13
+          - seq-14
+          - seq-15
+          - seq-16
+          - seq-17
+          - seq-18
+          - seq-19
+          - seq-20
+          - seq-21
+          - seq-22
+          - seq-23
+          - seq-24
+          - seq-25
+          - seq-26
+          - seq-27
+          - seq-28
+          - seq-29
+          - seq-30
+          - seq-31
+        slice_boundaries: [[0, 2048]]
+        objective_bundle_hash: bundle-stale
+    expect:
+      equals:
+        status: rejected
+        schema_version: replay-spec-validation-result@v1
+        valid: false
+      contains:
+        failure_reasons: stale_objective_bundle
+      key_truthy: [diagnostics]
+
+  - case_id: meta.migration.dry_run_defaults_and_drops
+    op: dry_run_state_migration
+    marker: normative
+    extra_markers: [migration]
+    given:
+      migration_plan:
+        from_generation: 1
+        to_generation: 2
+        from_schema_version: runtime-state@v1
+        to_schema_version: runtime-state@v2
+        new_fields: [new_counter]
+        defaulting_rules:
+          new_counter: 0
+        dropped_fields: [old_field]
+      state_snapshot:
+        old_field: legacy
+        stable: true
+    expect:
+      equals:
+        status: accepted
+        schema_version: state-migration-operation@v1
+        report.success: true
+        report.rollback_compatible: true
+        report.migrated_state.new_counter: 0
+      key_falsy: [failure_reasons, report.errors]
+      key_truthy: [migration_plan]
+
+  - case_id: meta.architecture.enable_family_review_bundle
+    op: propose_architectural_change
+    marker: normative
+    extra_markers: [policy]
+    given:
+      proposal_type: enable_family
+      family_id: cross_source
+      rollback_snapshot_id: rollback-001
+      rollback_restore_verified: true
+    expect:
+      equals:
+        status: ok
+        schema_version: architecture-proposal-result@v1
+        proposal.proposal_type: enable_family
+        review_bundle.rollback_restore_verified: true
+      key_truthy: [proposal, review_bundle]
+      key_falsy: [failure_reasons]

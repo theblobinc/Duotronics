@@ -1,0 +1,62 @@
+{
+  "description": "Shield starts in normal, transitions to family_bypass on schema_mismatch,\nthen to lookup_bypass on absence_zero_collision_attempt, finally back to\nfull_bypass on policy_breach. Each transition records a bypass_transition.\n",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "reset": true
+        }
+      },
+      "given": {},
+      "op": "reset_policy_shield"
+    },
+    {
+      "expect": {
+        "equals": {
+          "mode": "normal",
+          "trust_status": "trusted"
+        }
+      },
+      "given": {
+        "event": "ok"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "expect": {
+        "equals": {
+          "freeze_metrics": true,
+          "mode": "family_bypass"
+        }
+      },
+      "given": {
+        "event": "schema_mismatch"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "expect": {
+        "equals": {
+          "mode": "lookup_bypass"
+        }
+      },
+      "given": {
+        "event": "absence_zero_collision_attempt"
+      },
+      "op": "policy_decide"
+    },
+    {
+      "expect": {
+        "equals": {
+          "mode": "full_bypass",
+          "trust_status": "rejected"
+        }
+      },
+      "given": {
+        "event": "policy_breach"
+      },
+      "op": "policy_decide"
+    }
+  ],
+  "trace_id": "t-001-policy-shield-recovery"
+}

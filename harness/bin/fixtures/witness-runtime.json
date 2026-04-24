@@ -1,0 +1,217 @@
+{
+  "cases": [
+    {
+      "case_id": "witness8.absence.all_zero",
+      "expect": {
+        "equals": {
+          "decode_status": "token_free_absent",
+          "normal_form_key_constructed": false,
+          "numeric_zero_inferred": false,
+          "presence_status": "structurally_absent",
+          "trusted_for_lookup": false
+        },
+        "must_not_emit_audit": [
+          "absence_zero_collision_accepted"
+        ]
+      },
+      "given": {
+        "row": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "op": "decode_witness8"
+    },
+    {
+      "case_id": "witness8.present_zero.declared_profile",
+      "expect": {
+        "equals": {
+          "decode_status": "decoded_exact",
+          "numeric_zero_inferred": true,
+          "presence_status": "present_zero_value",
+          "token_free_absent": false
+        }
+      },
+      "given": {
+        "profile_declares_numeric_zero": true,
+        "profile_id": "witness8-strict@v1",
+        "row": {
+          "activation_density": 0.125,
+          "band_position": 0.5,
+          "center_on": 1.0,
+          "degeneracy": 1.0,
+          "kind_flag": 1.0,
+          "n_sides_norm": 0.6,
+          "parity": 1.0,
+          "value_norm": 0.0
+        }
+      },
+      "op": "decode_witness8"
+    },
+    {
+      "case_id": "witness8.present_nonzero.minsafe",
+      "expect": {
+        "equals": {
+          "decode_status": "decoded_lossy",
+          "presence_status": "present_nonzero_value",
+          "trusted_for_lookup": "only_after_canonicalization"
+        }
+      },
+      "given": {
+        "profile_declares_numeric_zero": false,
+        "row": [
+          0.25,
+          0.6,
+          1.0,
+          0.5,
+          1.0,
+          0.25,
+          1.0,
+          1.0
+        ]
+      },
+      "op": "decode_witness8"
+    },
+    {
+      "case_id": "witness8.invalid.short_row",
+      "expect": {
+        "equals": {
+          "decode_status": "present_invalid",
+          "failure_code": "field_order_invalid",
+          "trusted_for_lookup": false
+        }
+      },
+      "given": {
+        "row": [
+          1,
+          2,
+          3
+        ]
+      },
+      "op": "decode_witness8"
+    },
+    {
+      "case_id": "wsb2.mixed.lane_inactive_plus_active",
+      "expect": {
+        "equals": {
+          "failure_code": null
+        }
+      },
+      "given": {
+        "payload": {
+          "rows": [
+            {
+              "active": false,
+              "lane": 1
+            },
+            {
+              "active": true,
+              "lane": 2,
+              "witness8": [
+                0.25,
+                0.6,
+                1.0,
+                0.5,
+                1.0,
+                0.25,
+                1.0,
+                1.0
+              ]
+            }
+          ]
+        }
+      },
+      "op": "decode_wsb2"
+    },
+    {
+      "case_id": "canonicalize_bundle.hex6.h1h4",
+      "expect": {
+        "equals": {
+          "canonicalization_result": "canonical_success",
+          "core_magnitude": "mu_10",
+          "lookup_allowed": true,
+          "trust_status": "canonicalized"
+        }
+      },
+      "given": {
+        "bundle": {
+          "digits": [
+            "h1",
+            "h4"
+          ],
+          "family_id": "hex6",
+          "family_schema_version": "dpfc-family@v5.6"
+        }
+      },
+      "op": "canonicalize_witness_key_bundle"
+    },
+    {
+      "case_id": "canonicalize_bundle.unknown_family",
+      "expect": {
+        "equals": {
+          "canonicalization_result": "family_bypass_required",
+          "failure_code": "unknown_family",
+          "lookup_allowed": false,
+          "trust_status": "rejected"
+        }
+      },
+      "given": {
+        "bundle": {
+          "digits": [
+            "x1"
+          ],
+          "family_id": "nope"
+        }
+      },
+      "op": "canonicalize_witness_key_bundle"
+    },
+    {
+      "case_id": "canonicalize_bundle.schema_mismatch",
+      "expect": {
+        "equals": {
+          "canonicalization_result": "schema_mismatch",
+          "failure_code": "schema_mismatch",
+          "lookup_allowed": false
+        }
+      },
+      "given": {
+        "bundle": {
+          "digits": [
+            "h1"
+          ],
+          "family_id": "hex6",
+          "family_schema_version": "dpfc-family@v6.0"
+        }
+      },
+      "op": "canonicalize_witness_key_bundle"
+    },
+    {
+      "case_id": "canonicalize_bundle.invalid_digit",
+      "expect": {
+        "equals": {
+          "canonicalization_result": "malformed_reject",
+          "failure_code": "invalid_digit",
+          "invalid_digit": "h9",
+          "lookup_allowed": false
+        }
+      },
+      "given": {
+        "bundle": {
+          "digits": [
+            "h9"
+          ],
+          "family_id": "hex6"
+        }
+      },
+      "op": "canonicalize_witness_key_bundle"
+    }
+  ],
+  "description": "Witness8 row decoder (App I \u00a7I.2) \u2014 explicit field order, token-free\nabsence vs numeric-zero presence discrimination, profile flag handling,\nand field-arity rejection.\n",
+  "pack_id": "witness-runtime"
+}

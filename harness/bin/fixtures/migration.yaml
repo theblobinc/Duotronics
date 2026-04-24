@@ -1,0 +1,118 @@
+pack_id: migration
+description: |
+  Migration & replay (Migration Guide §3-§4). A version bump on any
+  identity-affecting component MUST ship with a registered migration
+  plan; a missing plan is detectable and produces `migration_rejected`.
+  Replay-identity comparison must surface diffs against pinned versions.
+
+cases:
+  - case_id: migration.missing_plan_for_normalizer_v2
+    op: migration_resolve_plan
+    given:
+      component: normalizer
+      from_version: simple-bijective-word-normalizer@v1
+      to_version: simple-bijective-word-normalizer@v2
+    expect:
+      equals:
+        resolved: false
+        failure_code: missing_migration_plan
+      must_emit_audit: [migration_rejected]
+
+  - case_id: migration.register_then_resolve
+    marker: migration
+    op: register_migration_plan
+    given:
+      plan_id: plan.normalizer.v1_to_v2
+      component: normalizer
+      from_version: simple-bijective-word-normalizer@v1
+      to_version: simple-bijective-word-normalizer@v2
+      strategy: bijective
+    expect:
+      equals: { registered: true, plan_id: plan.normalizer.v1_to_v2 }
+
+  - case_id: replay.normal_form_hash.deterministic
+    op: replay_compute_normal_form_hash
+    given:
+      object: { family_id: hex6, digits: [h1, h4] }
+    expect:
+      equals:
+        normal_form_hash: "d8daa5993efb1c4784822304dbc2d970937006a1e5850a650c653e645c559faf"
+
+  - case_id: replay.input_hash.equivalence_under_key_order
+    op: replay_compute_input_hash
+    given:
+      object: { digits: [h1, h4], family_id: hex6 }
+    expect:
+      equals:
+        input_hash: "d8daa5993efb1c4784822304dbc2d970937006a1e5850a650c653e645c559faf"
+
+  - case_id: replay.match.exact
+    op: replay_compare
+    given:
+      expected:
+        input_hash: "abc"
+        expected_normal_form_hash: "def"
+      observed:
+        input_hash: "abc"
+        expected_normal_form_hash: "def"
+        transport_profile_version: "dbp-minsafe@v1"
+        schema_versions: {}
+        family_registry_version: "family-registry@v1.0"
+        geometry_registry_version: "geometry-registry@v1.0"
+        normalizer_versions: {}
+        serializer_versions: {}
+        policy_shield_version: "policy-shield@v1.0"
+        retention_metric_versions: {}
+        floating_point_profile: "ieee754-double"
+        deterministic_seed: 0
+    expect:
+      equals: { replay_match: true }
+
+  - case_id: replay.mismatch.unmarked_recorded
+    op: replay_compare
+    given:
+      expected:
+        input_hash: "abc"
+        expected_normal_form_hash: "def"
+      observed:
+        input_hash: "abc"
+        expected_normal_form_hash: "DRIFT"
+        transport_profile_version: "dbp-minsafe@v1"
+        schema_versions: {}
+        family_registry_version: "family-registry@v1.0"
+        geometry_registry_version: "geometry-registry@v1.0"
+        normalizer_versions: {}
+        serializer_versions: {}
+        policy_shield_version: "policy-shield@v1.0"
+        retention_metric_versions: {}
+        floating_point_profile: "ieee754-double"
+        deterministic_seed: 0
+      expected_mismatch: false
+    expect:
+      equals: { replay_match: false, replay_mismatch: true }
+      must_emit_audit: [replay_mismatch_unmarked]
+
+  - case_id: replay.mismatch.expected_recorded
+    op: replay_compare
+    given:
+      expected:
+        input_hash: "abc"
+        expected_normal_form_hash: "def"
+      observed:
+        input_hash: "abc"
+        expected_normal_form_hash: "DRIFT"
+        transport_profile_version: "dbp-minsafe@v1"
+        schema_versions: {}
+        family_registry_version: "family-registry@v1.0"
+        geometry_registry_version: "geometry-registry@v1.0"
+        normalizer_versions: {}
+        serializer_versions: {}
+        policy_shield_version: "policy-shield@v1.0"
+        retention_metric_versions: {}
+        floating_point_profile: "ieee754-double"
+        deterministic_seed: 0
+      expected_mismatch: true
+    expect:
+      equals: { replay_match: false }
+      must_emit_audit: [replay_mismatch_expected]
+      must_not_emit_audit: [replay_mismatch_unmarked]

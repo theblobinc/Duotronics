@@ -1,0 +1,59 @@
+pack_id: schema-registry-v1
+description: |
+  Schema registry baseline (DPFC App H §H.6). Used by the canonicalizer
+  for the `schema_version:Y` slot in canonical storage strings.
+
+cases:
+  - case_id: schema.dpfc_core_v1
+    op: resolve_schema
+    given: { schema_id: dpfc-core, version: v1.0 }
+    expect:
+      equals: { schema_id: dpfc-core, version: v1.0, status: active }
+
+  - case_id: schema.witness_runtime_v1
+    op: resolve_schema
+    given: { schema_id: witness-runtime, version: v1.0 }
+    expect:
+      equals: { status: active }
+
+  - case_id: schema.dbp_frame_v1
+    op: resolve_schema
+    given: { schema_id: dbp-frame, version: v1.0 }
+    expect:
+      equals: { status: active }
+
+  - case_id: schema.wsb2_row_v1
+    op: resolve_schema
+    given: { schema_id: wsb2-row, version: v1.0 }
+    expect:
+      equals: { status: active }
+
+  - case_id: schema.witness8_row_v1
+    op: resolve_schema
+    given: { schema_id: witness8-row, version: v1.0 }
+    expect:
+      equals: { status: active }
+
+  - case_id: schema.normalizer_profile_v1
+    op: resolve_schema
+    given: { schema_id: normalizer-profile, version: v1.0 }
+    expect:
+      equals: { status: active }
+
+  - case_id: schema.retention_baseline_v1
+    op: resolve_schema
+    given: { schema_id: retention-baseline, version: v1.0 }
+    expect:
+      equals: { status: active }
+
+  - case_id: schema.policy_shield_v1
+    op: resolve_schema
+    given: { schema_id: policy-shield, version: v1.0 }
+    expect:
+      equals: { status: active }
+
+  - case_id: schema.migration_plan_v1
+    op: resolve_schema
+    given: { schema_id: migration-plan, version: v1.0 }
+    expect:
+      equals: { status: active }

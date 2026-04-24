@@ -1,0 +1,49 @@
+{
+  "description": "Two adjacent rows: one all-zero (must be token_free_absent) and one\nwith value_norm=0 under a profile that declares numeric zero (must be\npresent_zero_value). The two MUST NOT collide.\n",
+  "steps": [
+    {
+      "expect": {
+        "equals": {
+          "decode_status": "token_free_absent",
+          "numeric_zero_inferred": false
+        }
+      },
+      "given": {
+        "row": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "op": "decode_witness8"
+    },
+    {
+      "expect": {
+        "equals": {
+          "numeric_zero_inferred": true,
+          "presence_status": "present_zero_value"
+        }
+      },
+      "given": {
+        "profile_declares_numeric_zero": true,
+        "row": {
+          "activation_density": 0.125,
+          "band_position": 0.5,
+          "center_on": 1.0,
+          "degeneracy": 1.0,
+          "kind_flag": 1.0,
+          "n_sides_norm": 0.6,
+          "parity": 1.0,
+          "value_norm": 0.0
+        }
+      },
+      "op": "decode_witness8"
+    }
+  ],
+  "trace_id": "t-002-witness8-absence-vs-zero"
+}

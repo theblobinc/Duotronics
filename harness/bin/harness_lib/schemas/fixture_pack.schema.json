@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronic.local/schemas/fixture_pack.schema.json",
+  "title": "Duotronic Conformance Fixture Pack",
+  "type": "object",
+  "required": ["pack_id", "cases"],
+  "properties": {
+    "pack_id": {"type": "string"},
+    "description": {"type": "string"},
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["case_id", "op", "given", "expect"],
+        "properties": {
+          "case_id": {"type": "string"},
+          "op": {"type": "string"},
+          "marker": {"type": "string"},
+          "extra_markers": {"type": "array", "items": {"type": "string"}},
+          "description": {"type": "string"},
+          "given": {"type": "object"},
+          "expect": {
+            "type": "object",
+            "properties": {
+              "equals": {"type": "object"},
+              "contains": {"type": "object"},
+              "matches": {"type": "object"},
+              "must_emit_audit": {"type": "array", "items": {"type": "string"}},
+              "must_not_emit_audit": {"type": "array", "items": {"type": "string"}},
+              "raises": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}
