@@ -121,5 +121,7 @@
     }
   ],
   "description": "Schema registry baseline (DPFC App H \u00a7H.6). Used by the canonicalizer\nfor the `schema_version:Y` slot in canonical storage strings.\n",
-  "pack_id": "schema-registry-v1"
+  "pack_id": "schema-registry-v1",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

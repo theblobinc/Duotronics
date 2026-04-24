@@ -14,11 +14,11 @@ steps:
         expected_normal_form_hash: "DRIFT"
         transport_profile_version: "dbp-minsafe@v1"
         schema_versions: {}
-        family_registry_version: "family-registry@v1.0"
+        family_registry_version: "family-registry@v1.2"
         geometry_registry_version: "geometry-registry@v1.0"
         normalizer_versions: {}
         serializer_versions: {}
-        policy_shield_version: "policy-shield@v1.0"
+        policy_shield_version: "policy-shield@v1.2"
         retention_metric_versions: {}
         floating_point_profile: "ieee754-double"
         deterministic_seed: 0

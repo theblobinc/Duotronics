@@ -1,4 +1,4 @@
-"""DPFC v5.6 reference implementation.
+"""DPFC v5.8 reference implementation.
 
 Ported faithfully from Appendix H of `duotronic_polygon_family_calculus_v5_6.md`,
 extended with the §28 reference algorithms and the µ_n core type, Φ_F / Φ_F^{-1}
@@ -44,7 +44,7 @@ class Family:
 # Baseline registered families (Family Registry §5)
 HEX6 = Family(
     family_id="hex6",
-    schema_version="dpfc-family@v5.6",
+    schema_version="dpfc-family@v5.8",
     alphabet=("h1", "h2", "h3", "h4", "h5", "h6"),
     kind="polygon",
     status="normative_reference",
@@ -53,7 +53,7 @@ HEX6 = Family(
 )
 REFL3 = Family(
     family_id="refl3",
-    schema_version="dpfc-family@v5.6",
+    schema_version="dpfc-family@v5.8",
     alphabet=("r1", "r2", "r3"),
     kind="reflection",
     status="research_valid",
@@ -62,7 +62,7 @@ REFL3 = Family(
 )
 EDO31 = Family(
     family_id="edo31",
-    schema_version="dpfc-family@v5.6",
+    schema_version="dpfc-family@v5.8",
     alphabet=tuple(f"e{i}" for i in range(1, 32)),
     kind="edo",
     status="research_valid",
@@ -262,4 +262,4 @@ def run_reference_self_test() -> None:
 
 if __name__ == "__main__":  # pragma: no cover
     run_reference_self_test()
-    print("DPFC v5.6 reference self-test passed")
+    print("DPFC v5.8 reference self-test passed")

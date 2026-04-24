@@ -241,5 +241,7 @@
     }
   ],
   "description": "Core standalone meta-runtime conformance cases.",
-  "pack_id": "meta-runtime-core"
+  "pack_id": "meta-runtime-core",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

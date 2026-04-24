@@ -1,4 +1,6 @@
 pack_id: retention-baseline
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   Retention metric baselines (Witness Contract App R + Retention §6).
   Every metric must be queryable, baseline-required, and frozen on bypass.

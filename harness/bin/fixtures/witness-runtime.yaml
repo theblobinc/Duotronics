@@ -1,4 +1,6 @@
 pack_id: witness-runtime
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   Witness8 row decoder (App I §I.2) — explicit field order, token-free
   absence vs numeric-zero presence discrimination, profile flag handling,
@@ -75,7 +77,7 @@ cases:
     given:
       bundle:
         family_id: hex6
-        family_schema_version: dpfc-family@v5.6
+        family_schema_version: dpfc-family@v5.8
         digits: [h1, h4]
     expect:
       equals:

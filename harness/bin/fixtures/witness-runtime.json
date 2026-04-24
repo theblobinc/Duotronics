@@ -146,7 +146,7 @@
             "h4"
           ],
           "family_id": "hex6",
-          "family_schema_version": "dpfc-family@v5.6"
+          "family_schema_version": "dpfc-family@v5.8"
         }
       },
       "op": "canonicalize_witness_key_bundle"
@@ -213,5 +213,7 @@
     }
   ],
   "description": "Witness8 row decoder (App I \u00a7I.2) \u2014 explicit field order, token-free\nabsence vs numeric-zero presence discrimination, profile flag handling,\nand field-arity rejection.\n",
-  "pack_id": "witness-runtime"
+  "pack_id": "witness-runtime",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

@@ -87,12 +87,12 @@
         "observed": {
           "deterministic_seed": 0,
           "expected_normal_form_hash": "def",
-          "family_registry_version": "family-registry@v1.0",
+          "family_registry_version": "family-registry@v1.2",
           "floating_point_profile": "ieee754-double",
           "geometry_registry_version": "geometry-registry@v1.0",
           "input_hash": "abc",
           "normalizer_versions": {},
-          "policy_shield_version": "policy-shield@v1.0",
+          "policy_shield_version": "policy-shield@v1.2",
           "retention_metric_versions": {},
           "schema_versions": {},
           "serializer_versions": {},
@@ -121,12 +121,12 @@
         "observed": {
           "deterministic_seed": 0,
           "expected_normal_form_hash": "DRIFT",
-          "family_registry_version": "family-registry@v1.0",
+          "family_registry_version": "family-registry@v1.2",
           "floating_point_profile": "ieee754-double",
           "geometry_registry_version": "geometry-registry@v1.0",
           "input_hash": "abc",
           "normalizer_versions": {},
-          "policy_shield_version": "policy-shield@v1.0",
+          "policy_shield_version": "policy-shield@v1.2",
           "retention_metric_versions": {},
           "schema_versions": {},
           "serializer_versions": {},
@@ -157,12 +157,12 @@
         "observed": {
           "deterministic_seed": 0,
           "expected_normal_form_hash": "DRIFT",
-          "family_registry_version": "family-registry@v1.0",
+          "family_registry_version": "family-registry@v1.2",
           "floating_point_profile": "ieee754-double",
           "geometry_registry_version": "geometry-registry@v1.0",
           "input_hash": "abc",
           "normalizer_versions": {},
-          "policy_shield_version": "policy-shield@v1.0",
+          "policy_shield_version": "policy-shield@v1.2",
           "retention_metric_versions": {},
           "schema_versions": {},
           "serializer_versions": {},
@@ -173,5 +173,7 @@
     }
   ],
   "description": "Migration & replay (Migration Guide \u00a73-\u00a74). A version bump on any\nidentity-affecting component MUST ship with a registered migration\nplan; a missing plan is detectable and produces `migration_rejected`.\nReplay-identity comparison must surface diffs against pinned versions.\n",
-  "pack_id": "migration"
+  "pack_id": "migration",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

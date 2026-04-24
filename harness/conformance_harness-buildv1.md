@@ -6,11 +6,11 @@ Below I’ll explain what it is, what it must cover, and then give you a concret
 
 ## 1. What the Conformance Harness Is
 
-From the spec’s own words (DPFC v5.6 §24 & Appendix T, Witness Contract v10.6 §27 & Appendices S/I):
+From the spec’s own words (DPFC v5.8 §24 & Appendix T, Witness Contract v10.8 §27 & Appendices S/I):
 
 - **“A DPFC implementation should be verified by a conformance harness, not only by prose review.”** (DPFC, App T)
 - **“The Witness Contract must be testable through fixtures, golden traces, and negative tests.”** (Witness Contract, App S)
-- **“A v10.6 implementation should not pass CI unless all normative fixtures pass; no failed frame enters trusted memory; no absence‑zero collision is accepted; retention metrics have baselines.”** (Witness Contract, App S)
+- **“A v10.8 implementation should not pass CI unless all normative fixtures pass; no failed frame enters trusted memory; no absence‑zero collision is accepted; retention metrics have baselines.”** (Witness Contract, App S)
 
 The harness is the **guard** that separates experimental sketches from trustworthy runtimes. It ensures every claim class (C1–C6) is backed by the right evidence: definitions are unambiguous, theorems are verified, invariants hold under transformation, and so on.
 
@@ -244,7 +244,7 @@ The CI configuration (e.g., `.github/workflows/duotronic-conformance.yml`) shoul
 - Replay test mismatches
 
 ### 3.8 Use the Provided Reference Implementations as a Seed
-Both DPFC v5.6 Appendix H and the Witness Contract v10.6 Appendices I & K contain **working** Python reference implementations with `run_reference_self_test()` functions. These already test the most critical behaviours:
+Both DPFC v5.8 Appendix H and the Witness Contract v10.8 Appendices I & K contain **working** Python reference implementations with `run_reference_self_test()` functions. These already test the most critical behaviours:
 
 - Hex6 evaluation, successor, encoding, conversion
 - Witness8 decode with absence vs. present‑zero

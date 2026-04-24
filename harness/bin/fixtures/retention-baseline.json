@@ -120,5 +120,7 @@
     }
   ],
   "description": "Retention metric baselines (Witness Contract App R + Retention \u00a76).\nEvery metric must be queryable, baseline-required, and frozen on bypass.\nThe reference impl seeds default baselines per-test (conftest), so\nrecord_sample under `normal` policy must accept; under any non-normal\npolicy it must reject with `frozen_on_bypass`.\n",
-  "pack_id": "retention-baseline"
+  "pack_id": "retention-baseline",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

@@ -1,3 +1,3 @@
-"""Reference implementation seeded from DPFC v5.6 and Witness Contract v10.6 appendices."""
+"""Reference implementation seeded from DPFC v5.8 and Witness Contract v10.8 appendices."""
 
 from .api import run_operation  # noqa: F401

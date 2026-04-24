@@ -33,7 +33,7 @@
             "h4"
           ],
           "family_id": "hex6",
-          "family_schema_version": "dpfc-family@v5.6"
+          "family_schema_version": "dpfc-family@v5.8"
         }
       },
       "op": "canonicalize_witness_key_bundle"

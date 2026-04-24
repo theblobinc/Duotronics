@@ -237,7 +237,7 @@
       "case_id": "canonical_storage.hex6.h1h4",
       "expect": {
         "equals": {
-          "canonical_storage": "family:hex6 schema_version:dpfc-family@v5.6 digits:1 4"
+          "canonical_storage": "family:hex6 schema_version:dpfc-family@v5.8 digits:1 4"
         }
       },
       "given": {
@@ -259,7 +259,7 @@
             4
           ],
           "family_id": "hex6",
-          "schema_version": "dpfc-family@v5.6"
+          "schema_version": "dpfc-family@v5.8"
         }
       },
       "given": {
@@ -319,5 +319,7 @@
     }
   ],
   "description": "DPFC v5.6 reference vectors covering \u03a6_F evaluation, family-successor with\nbijective carry, encode/decode round-trip, family conversion preserving\ncore magnitude, exported-nonneg arithmetic with mandatory affine\ncorrection, and the deliberately-wrong \"without correction\" path that\nmust surface a policy mismatch.\n",
-  "pack_id": "dpfc-core"
+  "pack_id": "dpfc-core",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

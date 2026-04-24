@@ -92,5 +92,7 @@
     }
   ],
   "description": "Family registry baseline (DPFC App H \u00a7H.3) and geometry registry baseline\n(App H \u00a7H.4). Resolution must be deterministic and version-pinned.\n",
-  "pack_id": "family-registry-v1"
+  "pack_id": "family-registry-v1",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

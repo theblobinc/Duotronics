@@ -17,24 +17,11 @@ from harness_lib import loader
 from harness_lib.matchers import check_expectation_errors
 
 
-def _all_fixture_cases() -> list:
-    items = []
-    for pack in loader.discover_packs():
-        for case in pack.cases:
-            marks = [getattr(pytest.mark, m) for m in case.all_markers]
-            items.append(pytest.param(case, marks=marks, id=f"{pack.pack_id}/{case.case_id}"))
-    return items
-
-
-ALL_FIXTURE_CASES = _all_fixture_cases()
-
-
 def _check(observed: Any, expect: dict[str, Any]) -> None:
     errors = check_expectation_errors(observed, expect)
     assert not errors, "; ".join(errors)
 
 
-@pytest.mark.parametrize("case", ALL_FIXTURE_CASES)
 def test_fixture_case(case: loader.Case, run_operation: Any) -> None:
     expect = case.expect
     raises = expect.get("raises")

@@ -1,4 +1,6 @@
 pack_id: migration
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   Migration & replay (Migration Guide §3-§4). A version bump on any
   identity-affecting component MUST ship with a registered migration
@@ -57,11 +59,11 @@ cases:
         expected_normal_form_hash: "def"
         transport_profile_version: "dbp-minsafe@v1"
         schema_versions: {}
-        family_registry_version: "family-registry@v1.0"
+        family_registry_version: "family-registry@v1.2"
         geometry_registry_version: "geometry-registry@v1.0"
         normalizer_versions: {}
         serializer_versions: {}
-        policy_shield_version: "policy-shield@v1.0"
+        policy_shield_version: "policy-shield@v1.2"
         retention_metric_versions: {}
         floating_point_profile: "ieee754-double"
         deterministic_seed: 0
@@ -79,11 +81,11 @@ cases:
         expected_normal_form_hash: "DRIFT"
         transport_profile_version: "dbp-minsafe@v1"
         schema_versions: {}
-        family_registry_version: "family-registry@v1.0"
+        family_registry_version: "family-registry@v1.2"
         geometry_registry_version: "geometry-registry@v1.0"
         normalizer_versions: {}
         serializer_versions: {}
-        policy_shield_version: "policy-shield@v1.0"
+        policy_shield_version: "policy-shield@v1.2"
         retention_metric_versions: {}
         floating_point_profile: "ieee754-double"
         deterministic_seed: 0
@@ -103,11 +105,11 @@ cases:
         expected_normal_form_hash: "DRIFT"
         transport_profile_version: "dbp-minsafe@v1"
         schema_versions: {}
-        family_registry_version: "family-registry@v1.0"
+        family_registry_version: "family-registry@v1.2"
         geometry_registry_version: "geometry-registry@v1.0"
         normalizer_versions: {}
         serializer_versions: {}
-        policy_shield_version: "policy-shield@v1.0"
+        policy_shield_version: "policy-shield@v1.2"
         retention_metric_versions: {}
         floating_point_profile: "ieee754-double"
         deterministic_seed: 0

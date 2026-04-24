@@ -1,6 +1,6 @@
 """Standalone SRNN-style meta runtime reference package."""
 
-RUNTIME_REF_VERSION = "runtime-ref@v0.1.0"
+RUNTIME_REF_VERSION = "runtime-ref@v0.2.0"
 
 from .api import run_meta_operation
 

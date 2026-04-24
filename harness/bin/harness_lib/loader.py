@@ -28,6 +28,8 @@ from typing import Any, Iterator
 
 import yaml
 
+from .schema_versions import normalize_fixture_schema_version
+
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures"
 
@@ -54,6 +56,8 @@ class Pack:
     description: str
     cases: list[Case] = field(default_factory=list)
     source: Path | None = None
+    schema_version: str | None = None
+    target_schema_version: str | None = None
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -65,6 +69,8 @@ def load_pack(path: Path) -> Pack:
     data = _load_yaml(path)
     pack_id = data.get("pack_id") or path.stem
     description = data.get("description", "")
+    schema_version = data.get("schema_version")
+    target_schema_version = data.get("target_schema_version")
     cases = []
     for raw in data.get("cases", []):
         cases.append(
@@ -79,19 +85,63 @@ def load_pack(path: Path) -> Pack:
                 description=raw.get("description", ""),
             )
         )
-    return Pack(pack_id=pack_id, description=description, cases=cases, source=path)
+    return Pack(
+        pack_id=pack_id,
+        description=description,
+        cases=cases,
+        source=path,
+        schema_version=(
+            normalize_fixture_schema_version(str(schema_version))
+            if schema_version is not None
+            else None
+        ),
+        target_schema_version=(
+            normalize_fixture_schema_version(str(target_schema_version))
+            if target_schema_version is not None
+            else None
+        ),
+    )
 
 
-def discover_packs(directory: Path | None = None) -> list[Pack]:
+def discover_packs(
+    directory: Path | None = None,
+    *,
+    schema_version: str | None = None,
+    target_schema_version: str | None = None,
+) -> list[Pack]:
     directory = directory or FIXTURES_DIR
+    selected_schema = (
+        normalize_fixture_schema_version(schema_version)
+        if schema_version is not None
+        else None
+    )
+    selected_target = (
+        normalize_fixture_schema_version(target_schema_version)
+        if target_schema_version is not None
+        else None
+    )
     packs = []
     for path in sorted(directory.glob("*.yaml")):
-        packs.append(load_pack(path))
+        pack = load_pack(path)
+        if selected_schema is not None and pack.schema_version not in (None, selected_schema):
+            continue
+        if selected_target is not None and pack.target_schema_version not in (None, selected_target):
+            continue
+        packs.append(pack)
     return packs
 
 
-def iter_cases(directory: Path | None = None) -> Iterator[Case]:
-    for pack in discover_packs(directory):
+def iter_cases(
+    directory: Path | None = None,
+    *,
+    schema_version: str | None = None,
+    target_schema_version: str | None = None,
+) -> Iterator[Case]:
+    for pack in discover_packs(
+        directory,
+        schema_version=schema_version,
+        target_schema_version=target_schema_version,
+    ):
         yield from pack.cases
 
 

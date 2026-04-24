@@ -1,4 +1,6 @@
 pack_id: transport-profiles-v1
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   DBP transport state machine — shape → profile → integrity → sequence →
   replay. Failures must surface explicit failure codes and never reach

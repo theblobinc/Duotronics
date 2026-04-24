@@ -228,5 +228,7 @@
     }
   ],
   "description": "Policy, replay, and architectural guardrail cases for the standalone meta runtime.",
-  "pack_id": "meta-runtime-policy"
+  "pack_id": "meta-runtime-policy",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

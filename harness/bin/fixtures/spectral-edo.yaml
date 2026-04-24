@@ -1,4 +1,6 @@
 pack_id: spectral-edo
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   Spectral / EDO reference vectors (Witness Contract App K.12).
 

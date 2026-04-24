@@ -1,4 +1,4 @@
-"""Property-based tests for DPFC core (DPFC v5.6 §28).
+"""Property-based tests for DPFC core (DPFC v5.8 §28).
 
 Verifies the algebraic properties that every implementation must satisfy.
 """

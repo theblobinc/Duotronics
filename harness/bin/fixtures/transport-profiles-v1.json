@@ -206,5 +206,7 @@
     }
   ],
   "description": "DBP transport state machine \u2014 shape \u2192 profile \u2192 integrity \u2192 sequence \u2192\nreplay. Failures must surface explicit failure codes and never reach\ntrusted memory (Transport \u00a75, \u00a77).\n",
-  "pack_id": "transport-profiles-v1"
+  "pack_id": "transport-profiles-v1",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

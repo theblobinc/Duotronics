@@ -68,7 +68,7 @@ def canonicalize_witness_key_bundle(raw_bundle: Mapping[str, Any]) -> dict[str, 
 
 def run_reference_self_test() -> None:
     ok = canonicalize_witness_key_bundle(
-        {"family_id": "hex6", "family_schema_version": "dpfc-family@v5.6", "digits": ["h1", "h4"]}
+        {"family_id": "hex6", "family_schema_version": "dpfc-family@v5.8", "digits": ["h1", "h4"]}
     )
     assert ok["core_magnitude"] == "mu_10"
     bad = canonicalize_witness_key_bundle({"family_id": "no-such", "digits": []})

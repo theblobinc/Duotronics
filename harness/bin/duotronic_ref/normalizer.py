@@ -52,7 +52,7 @@ PROFILES: dict[str, NormalizerProfile] = {
         normalizer_id="simple-bijective-word-normalizer",
         normalizer_version="simple-bijective-word-normalizer@v1",
         input_schema="family-word-raw@v1",
-        output_schema="dpfc-family-object@v5.6",
+        output_schema="dpfc-family-object@v5.8",
         ambiguity_policy="reject",
         canonical_selection_rule="ordinal_digit_sequence",
     ),
@@ -60,7 +60,7 @@ PROFILES: dict[str, NormalizerProfile] = {
         normalizer_id="reflection-path-normalizer",
         normalizer_version="reflection-path-normalizer@v1",
         input_schema="reflection-path-raw@v1",
-        output_schema="dpfc-family-object@v5.6",
+        output_schema="dpfc-family-object@v5.8",
         ambiguity_policy="select_canonical",
         canonical_selection_rule="lexicographically_smallest_reduced_path",
     ),
@@ -78,7 +78,7 @@ PROFILES: dict[str, NormalizerProfile] = {
 def normalize_family_word(
     given: Mapping[str, Any],
     *,
-    schema_version: str = "dpfc-family@v5.6",
+    schema_version: str = "dpfc-family@v5.8",
 ) -> dict[str, Any]:
     family_id = given.get("family_id")
     family = get_family(family_id)

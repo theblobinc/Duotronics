@@ -47,7 +47,7 @@ def test_no_forbidden_ledger_events_after_clean_e2e(run_operation: Any) -> None:
         {
             "bundle": {
                 "family_id": "hex6",
-                "family_schema_version": "dpfc-family@v5.6",
+                "family_schema_version": "dpfc-family@v5.8",
                 "digits": ["h1", "h4"],
             }
         },

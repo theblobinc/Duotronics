@@ -6,6 +6,8 @@
   "required": ["pack_id", "cases"],
   "properties": {
     "pack_id": {"type": "string"},
+    "schema_version": {"type": "string"},
+    "target_schema_version": {"type": "string"},
     "description": {"type": "string"},
     "cases": {
       "type": "array",

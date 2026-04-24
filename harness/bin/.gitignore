@@ -9,3 +9,5 @@ dist/
 *.coverage
 htmlcov/
 ci/coverage*/
+conformance_report.json
+.pytest-stage-report.json

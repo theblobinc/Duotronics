@@ -1,4 +1,6 @@
 pack_id: normalizer-profiles-v1
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   Normalizer Profiles v1 (Witness Contract Normalizer §7-§8). Each profile
   is deterministic and version-pinned; failures surface explicit failure
@@ -12,7 +14,7 @@ cases:
       equals:
         failure_code: null
         policy_action: normal
-        canonical_storage: "family:hex6 schema_version:dpfc-family@v5.6 digits:1 4"
+        canonical_storage: "family:hex6 schema_version:dpfc-family@v5.8 digits:1 4"
         core_magnitude: mu_10
         lookup_allowed: true
         normalizer_version: simple-bijective-word-normalizer@v1

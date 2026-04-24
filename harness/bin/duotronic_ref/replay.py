@@ -13,6 +13,8 @@ from typing import Any, Mapping
 
 import cbor2
 
+from harness_lib.schema_versions import ACTIVE_FLOATING_POINT_PROFILE, resolve_schema_snapshot
+
 from . import audit
 
 
@@ -56,19 +58,35 @@ def input_hash(obj: Any) -> str:
     return blake2b_hex(canonical_cbor(obj))
 
 
+def _active_transport_profile_version() -> str:
+    return "dbp-minsafe@v1"
+
+
+def _active_family_registry_version() -> str:
+    return resolve_schema_snapshot()["family_registry_version"]
+
+
+def _active_geometry_registry_version() -> str:
+    return resolve_schema_snapshot()["geometry_registry_version"]
+
+
+def _active_policy_shield_version() -> str:
+    return resolve_schema_snapshot()["policy_shield_version"]
+
+
 @dataclass
 class ReplayIdentity:
     input_hash: str
     expected_normal_form_hash: str
-    transport_profile_version: str = "dbp-minsafe@v1"
+    transport_profile_version: str = field(default_factory=_active_transport_profile_version)
     schema_versions: dict[str, str] = field(default_factory=dict)
-    family_registry_version: str = "family-registry@v1.0"
-    geometry_registry_version: str = "geometry-registry@v1.0"
+    family_registry_version: str = field(default_factory=_active_family_registry_version)
+    geometry_registry_version: str = field(default_factory=_active_geometry_registry_version)
     normalizer_versions: dict[str, str] = field(default_factory=dict)
     serializer_versions: dict[str, str] = field(default_factory=dict)
-    policy_shield_version: str = "policy-shield@v1.0"
+    policy_shield_version: str = field(default_factory=_active_policy_shield_version)
     retention_metric_versions: dict[str, str] = field(default_factory=dict)
-    floating_point_profile: str = "ieee754-double"
+    floating_point_profile: str = ACTIVE_FLOATING_POINT_PROFILE
     deterministic_seed: int | None = 0
 
     def to_canonical(self) -> bytes:

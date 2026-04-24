@@ -1,4 +1,6 @@
 pack_id: family-registry-v1
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   Family registry baseline (DPFC App H §H.3) and geometry registry baseline
   (App H §H.4). Resolution must be deterministic and version-pinned.

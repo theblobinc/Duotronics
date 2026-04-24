@@ -14,6 +14,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from harness_lib.schema_versions import resolve_schema_snapshot
+
 from . import audit
 
 
@@ -89,7 +91,7 @@ class PolicyShield:
     transitions per-request only; persistent escalation is the caller's
     responsibility (the shield records every transition to the ledger)."""
 
-    version: str = "policy-shield@v1.0"
+    version: str = field(default_factory=lambda: resolve_schema_snapshot()["policy_shield_version"])
     state: str = "normal"
     last_decisions: list[dict[str, Any]] = field(default_factory=list)
 
@@ -149,6 +151,7 @@ SHIELD = PolicyShield()
 
 
 def reset_shield() -> None:
+    SHIELD.version = resolve_schema_snapshot()["policy_shield_version"]
     SHIELD.state = "normal"
     SHIELD.last_decisions.clear()
 

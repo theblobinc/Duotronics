@@ -155,5 +155,7 @@
     }
   ],
   "description": "Policy Shield decision matrix (Witness Contract App L \u00a74). Each event\nmust route to the documented mode, freeze metrics, and produce a\n`bypass_transition` audit when the mode is not `normal`.\n",
-  "pack_id": "policy-shield"
+  "pack_id": "policy-shield",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }

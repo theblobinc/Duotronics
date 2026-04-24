@@ -1,4 +1,6 @@
 pack_id: meta-runtime-core
+schema_version: v1.2
+target_schema_version: v1.2
 description: Core standalone meta-runtime conformance cases.
 cases:
   - case_id: meta.normalize.deterministic_digest

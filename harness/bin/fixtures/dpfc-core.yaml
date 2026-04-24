@@ -1,4 +1,6 @@
 pack_id: dpfc-core
+schema_version: v1.2
+target_schema_version: v1.2
 description: |
   DPFC v5.6 reference vectors covering Φ_F evaluation, family-successor with
   bijective carry, encode/decode round-trip, family conversion preserving
@@ -97,7 +99,7 @@ cases:
     given: { family_id: hex6, word: [h1, h4] }
     expect:
       equals:
-        canonical_storage: "family:hex6 schema_version:dpfc-family@v5.6 digits:1 4"
+        canonical_storage: "family:hex6 schema_version:dpfc-family@v5.8 digits:1 4"
 
   - case_id: canonicalize_object.hex6.h1h4
     op: canonicalize_family_object
@@ -105,7 +107,7 @@ cases:
     expect:
       equals:
         family_id: hex6
-        schema_version: dpfc-family@v5.6
+        schema_version: dpfc-family@v5.8
         digit_ordinals: [1, 4]
         core_magnitude: mu_10
 

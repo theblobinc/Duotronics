@@ -4,7 +4,7 @@
       "case_id": "simple.hex6.h1h4",
       "expect": {
         "equals": {
-          "canonical_storage": "family:hex6 schema_version:dpfc-family@v5.6 digits:1 4",
+          "canonical_storage": "family:hex6 schema_version:dpfc-family@v5.8 digits:1 4",
           "core_magnitude": "mu_10",
           "failure_code": null,
           "lookup_allowed": true,
@@ -208,5 +208,7 @@
     }
   ],
   "description": "Normalizer Profiles v1 (Witness Contract Normalizer \u00a77-\u00a78). Each profile\nis deterministic and version-pinned; failures surface explicit failure\ncodes and a policy_action mapping into the policy shield.\n",
-  "pack_id": "normalizer-profiles-v1"
+  "pack_id": "normalizer-profiles-v1",
+  "schema_version": "v1.2",
+  "target_schema_version": "v1.2"
 }
