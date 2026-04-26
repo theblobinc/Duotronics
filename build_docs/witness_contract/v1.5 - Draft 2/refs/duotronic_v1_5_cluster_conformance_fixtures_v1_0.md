@@ -1,0 +1,634 @@
+# Duotronic v1.5 Cluster Conformance Fixtures v1.0
+
+**Status:** Reference fixture pack  
+**Version:** v1.5-cluster-conformance-fixtures@1.0  
+**Document kind:** Conformance fixture definitions and test vectors  
+**Primary purpose:** Provide concrete fixture cases for validating v1.5 distributed resource witnesses, task delegation, DBP inter-node profile behavior, node federation, staleness invalidation, policy conflict resolution, and replay identity binding.
+
+---
+
+## 1. Fixture pack ID
+
+```yaml
+FixturePack:
+  fixture_pack_id: v1.5-cluster-conformance-fixtures@1.0
+  corpus_version: v1.5-draft
+  owner_document: duotronic_v1_5_cluster_conformance_fixtures_v1_0.md
+```
+
+---
+
+## 2. Fixture A: valid resource witness for Xeon worker
+
+```yaml
+ResourceAvailabilityWitness:
+  resource_availability_witness_id: raw-node-xeon-01-20260426T120000Z
+  node_id: node-xeon-01
+  actor_scope_id: actor-scope-node-xeon-01
+  timestamp: 2026-04-26T12:00:00Z
+  source_evidence_ids:
+    - eb-resource-node-xeon-01-001
+  source_metric_record_ids:
+    - rmsr-node-xeon-01-001
+  normalizer_id: resource-availability-normalizer@1.0.0
+  schema_id: ResourceAvailabilityWitness@1.0.0
+  cpu_available_cores: 9.5
+  ram_free_bytes: 64000000000
+  gpu_free_bytes: 0
+  gpu_utilization: null
+  disk_io_bandwidth: 150000000
+  network_bandwidth: 90000000
+  containers_running: 1
+  max_containers: 4
+  normalized_components:
+    cpu_available_p: 0.79
+    ram_available_p: 0.80
+    gpu_available_p: 0.00
+    disk_io_p: 0.70
+    network_p: 0.72
+    container_headroom_p: 0.75
+    uncertainty_q: 0.08
+  effective_capacity_score: 0.59
+  stability_score: 0.88
+  confidence: 0.86
+  freshness:
+    observed_at: 2026-04-26T12:00:00Z
+    expires_at: 2026-04-26T12:00:30Z
+    max_staleness_seconds: 30
+    stale: false
+  policy:
+    policy_decision_id: pd-resource-node-xeon-01-001
+    runtime_mode: restricted
+    allowed_task_classes:
+      - run_model_inference
+      - start_profile_learning
+      - execute_search
+      - replay_trace
+  canonical_identity_hash: sha256:fixture-resource-xeon-01
+  replay_identity_ref: replay-resource-xeon-01-001
+  trust_status: canonicalized
+```
+
+Expected result:
+
+```yaml
+expected:
+  valid: true
+  schedulable_for_cpu_task: true
+  schedulable_for_gpu_task: false
+  authority: restricted
+```
+
+---
+
+## 3. Fixture B: valid GPU worker resource witness
+
+```yaml
+ResourceAvailabilityWitness:
+  resource_availability_witness_id: raw-node-gpu-5950x-01-20260426T120000Z
+  node_id: node-gpu-5950x-01
+  actor_scope_id: actor-scope-node-gpu-5950x-01
+  timestamp: 2026-04-26T12:00:00Z
+  source_evidence_ids:
+    - eb-resource-node-gpu-001
+  source_metric_record_ids:
+    - rmsr-node-gpu-001
+  normalizer_id: resource-availability-normalizer@1.0.0
+  schema_id: ResourceAvailabilityWitness@1.0.0
+  cpu_available_cores: 10.0
+  ram_free_bytes: 48000000000
+  gpu_free_bytes: 9000000000
+  gpu_utilization: 0.22
+  disk_io_bandwidth: 250000000
+  network_bandwidth: 95000000
+  containers_running: 2
+  max_containers: 6
+  normalized_components:
+    cpu_available_p: 0.63
+    ram_available_p: 0.75
+    gpu_available_p: 0.68
+    disk_io_p: 0.82
+    network_p: 0.76
+    container_headroom_p: 0.67
+    uncertainty_q: 0.07
+  effective_capacity_score: 0.65
+  stability_score: 0.91
+  confidence: 0.90
+  freshness:
+    observed_at: 2026-04-26T12:00:00Z
+    expires_at: 2026-04-26T12:00:30Z
+    max_staleness_seconds: 30
+    stale: false
+  policy:
+    policy_decision_id: pd-resource-node-gpu-001
+    runtime_mode: restricted
+    allowed_task_classes:
+      - run_model_inference
+      - execute_search
+      - replay_trace
+  canonical_identity_hash: sha256:fixture-resource-gpu-01
+  replay_identity_ref: replay-resource-gpu-001
+  trust_status: canonicalized
+```
+
+Expected result:
+
+```yaml
+expected:
+  valid: true
+  schedulable_for_gpu_task: true
+  authority: restricted
+```
+
+---
+
+## 4. Fixture C: delegated task round trip
+
+Task payload:
+
+```yaml
+TaskDelegationActionPayload:
+  task_delegation_action_payload_id: tdap-model-infer-001
+  coordinator_node_id: coordinator-01
+  target_node_id: node-gpu-5950x-01
+  target_actor_scope_id: actor-scope-node-gpu-5950x-01
+  task_type: run_model_inference
+  task_payload_ref: bulk_ref:model-inference-payload-001
+  task_payload_lane_ref: lane10:bulk_ref:model-inference-payload-001
+  required_resources:
+    cpu_cores: 4
+    ram_bytes: 16000000000
+    gpu_bytes: 4000000000
+    disk_io_bandwidth: 50000000
+    network_bandwidth: 10000000
+    containers: 1
+  expected_duration_seconds: 120
+  priority: normal
+  deadline: null
+  privacy_class: internal
+  scheduling_basis:
+    resource_availability_witness_id: raw-node-gpu-5950x-01-20260426T120000Z
+    task_queue_witness_id: tqw-node-gpu-001
+    node_self_model_snapshot_id: nsms-node-gpu-001
+    lookup_record_refs: []
+  policy:
+    required_policy_gate: policy-delegate-model-inference
+    learning_mode_required: not_applicable
+    runtime_mode_requested: restricted
+  replay:
+    replay_identity_ref: replay-delegated-task-001
+    transport_profile_id: dbp-cluster-full-duplex-v1
+    dbp_lane_layout_id: dbp-cluster-full-duplex-v1-layout-a
+```
+
+Expected policy result:
+
+```yaml
+expected:
+  action_allowed: true
+  delegated_task_record_created: true
+  command_lane: 3
+  task_result_lane: 5
+```
+
+Expected outcome:
+
+```yaml
+TaskOutcomeWitness:
+  task_outcome_witness_id: tow-model-infer-001
+  delegated_task_id: dt-model-infer-001
+  action_execution_id: aer-model-infer-001
+  target_node_id: node-gpu-5950x-01
+  task_type: run_model_inference
+  execution_status: success
+  output_refs:
+    model_witness_ids:
+      - mw-model-infer-001
+  trust_status: canonicalized
+```
+
+---
+
+## 5. Fixture D: resource staleness invalidation
+
+Input:
+
+```yaml
+last_heartbeat_time: 2026-04-26T12:00:00Z
+current_time: 2026-04-26T12:00:31Z
+heartbeat_timeout_seconds: 30
+node_id: node-xeon-02
+```
+
+Expected event:
+
+```yaml
+SelfModelInvalidationEvent:
+  trigger_kind: resource_heartbeat_timeout
+  required_action: reassign_tasks
+```
+
+Expected scheduling result:
+
+```yaml
+expected:
+  node_schedulable: false
+  resource_authority: 0
+  pending_tasks_reassigned: true
+```
+
+---
+
+## 6. Fixture E: overcommit conflict
+
+Two planners assign tasks to same node.
+
+```yaml
+TaskDelegationConflict:
+  task_delegation_conflict_id: tdc-overcommit-xeon-01
+  decision_context_id: cdc-cluster-001
+  action_candidate_ids:
+    - acw-delegate-cpu-task-001
+    - acw-delegate-cpu-task-002
+  target_node_ids:
+    - node-xeon-01
+  conflict_type: overcommit_cpu
+  detected_by: coordinator
+  default_resolution: least_loaded_node_gets_task
+  status: unresolved
+```
+
+Expected:
+
+```yaml
+expected:
+  if_alternate_node_available: reassign_lower_priority_or_second_task
+  if_no_alternate_node: queue_or_no_action
+  policy_mode: restricted
+```
+
+---
+
+## 7. Fixture F: DBP Open/S1 rejection
+
+Input frame:
+
+```yaml
+direction: downlink
+lane_id: 3
+lane_name: command
+security_mode: S1
+payload_kind: TaskDelegationActionPayload
+authority_bearing: true
+```
+
+Expected:
+
+```yaml
+expected:
+  accepted: false
+  rejection_reason: authority_bearing_s1_frame
+  action: reject_and_alarm
+```
+
+---
+
+## 8. Fixture G: NodeHello accepted
+
+```yaml
+NodeHello:
+  node_hello_id: nh-node-xeon-03-001
+  protocol_version: node-federation-protocol@v1.0
+  cluster_id: local-prototype-cluster
+  node_identity:
+    node_id: node-xeon-03
+    identity_kind: psk_bootstrap
+    image_digest: sha256:fixture-image
+    daemon_version: 1.5.0-draft
+    dbp_stack_version: 2.0.0
+  transport:
+    dbp_profile_id: dbp-cluster-full-duplex-v1
+    supported_security_modes: [S2]
+    dbp_hs1_supported: true
+    compression_supported: []
+  capabilities:
+    cpu_total_cores: 12
+    ram_total_bytes: 80000000000
+    gpu_devices: []
+    supported_task_types:
+      - run_model_inference
+      - start_profile_learning
+      - execute_search
+    container_runtime: docker
+    max_containers: 4
+```
+
+Expected:
+
+```yaml
+expected:
+  accepted: true
+  admission_status: restricted
+  lane_layout: dbp-cluster-full-duplex-v1-layout-a
+  heartbeat_timeout_seconds: 30
+```
+
+---
+
+## 9. Fixture H: NodeHello rejected for Open/S1-only support
+
+```yaml
+NodeHello:
+  node_hello_id: nh-bad-node-001
+  transport:
+    dbp_profile_id: dbp-cluster-full-duplex-v1
+    supported_security_modes: [Open, S1]
+```
+
+Expected:
+
+```yaml
+NodeReject:
+  rejection_reason: unsupported_security
+  retry_allowed: false
+```
+
+---
+
+## 10. Fixture I: replay identity includes lane direction
+
+Two otherwise identical payloads are sent in different directions.
+
+```yaml
+payload_hash: sha256:same-payload
+lane_layout_id: dbp-cluster-full-duplex-v1-layout-a
+direction_a: downlink
+direction_b: uplink
+```
+
+Expected:
+
+```yaml
+expected:
+  replay_digest_a_equals_b: false
+  reason: direction_is_identity_affecting
+```
+
+---
+
+## 11. Fixture J: cluster-wide learning mode blocks profile task
+
+Input:
+
+```yaml
+TaskDelegationActionPayload:
+  task_type: start_profile_learning
+  policy:
+    learning_mode_required: active
+ClusterPolicy:
+  cluster_learning_mode: audit_only
+```
+
+Expected:
+
+```yaml
+expected:
+  action_allowed: false
+  reason: cluster_learning_mode_insufficient
+```
+
+---
+
+## 12. Fixture K: least-loaded node selection
+
+Inputs:
+
+```yaml
+nodes:
+  - node_id: node-xeon-01
+    effective_capacity_score: 0.59
+    effective_queue_pressure: 0.25
+  - node_id: node-xeon-02
+    effective_capacity_score: 0.61
+    effective_queue_pressure: 0.70
+  - node_id: node-xeon-03
+    effective_capacity_score: 0.58
+    effective_queue_pressure: 0.10
+```
+
+Expected:
+
+```yaml
+expected_selected_node: node-xeon-03
+reason: sufficient_capacity_lowest_queue_pressure
+```
+
+---
+
+## 13. Fixture L: GPU task avoids CPU-only node
+
+```yaml
+TaskDelegationActionPayload:
+  task_type: run_model_inference
+  required_resources:
+    gpu_bytes: 4000000000
+CandidateNode:
+  node_id: node-xeon-01
+  gpu_free_bytes: 0
+```
+
+Expected:
+
+```yaml
+expected:
+  schedulable: false
+  reason: gpu_requirement_not_met
+```
+
+---
+
+## 14. Fixture M: task outcome DW-SSM authority zero on transport failure
+
+Input:
+
+```yaml
+TaskOutcomeWitness:
+  normalizer_confidence: 0.92
+  J_t: 3
+Transport:
+  dbp_s2_valid: false
+```
+
+Expected:
+
+```yaml
+expected:
+  eta_t: 0
+  authority: 0
+  reason: transport_failed
+```
+
+---
+
+## 15. Fixture N: task outcome DW-SSM authority positive
+
+Input:
+
+```yaml
+TaskOutcomeWitness:
+  normalizer_confidence: 0.92
+  J_t: 3
+  h_J_t: 0.80
+Transport:
+  dbp_s2_valid: true
+Policy:
+  l5_limit: 0.70
+```
+
+Expected:
+
+```yaml
+eta_t_before_policy: 0.736
+eta_t_after_policy: 0.70
+authority: 0.70
+```
+
+---
+
+## 16. Fixture O: node disconnect reassigns tasks
+
+Input:
+
+```yaml
+NodeDisconnectEvent:
+  node_id: node-xeon-04
+  disconnect_kind: heartbeat_timeout
+  affected_delegated_task_ids:
+    - dt-profile-learn-004
+```
+
+Expected:
+
+```yaml
+expected:
+  node_resource_authority: 0
+  task_status: reassigned
+  self_model_invalidated: true
+```
+
+---
+
+## 17. Fixture P: privacy conflict blocks delegation
+
+Input:
+
+```yaml
+TaskDelegationActionPayload:
+  privacy_class: sensitive
+TargetNodePolicy:
+  allowed_privacy_classes:
+    - public
+    - internal
+    - restricted
+```
+
+Expected:
+
+```yaml
+expected:
+  allowed: false
+  reason: privacy_class_not_allowed_on_target_node
+```
+
+---
+
+## 18. Fixture Q: valid external DBP lane layout
+
+Input:
+
+```yaml
+DBPLaneLayout:
+  dbp_lane_layout_id: dbp-cluster-full-duplex-v1-layout-a
+  lane_1: semantic_descriptor
+  lane_3_downlink: command
+  lane_4_uplink: resource
+  lane_5_uplink: task_result
+```
+
+Expected:
+
+```yaml
+expected:
+  conformance: pass
+```
+
+---
+
+## 19. Fixture R: malformed lane direction
+
+Input:
+
+```yaml
+direction: downlink
+lane_id: 4
+lane_name: resource
+payload_kind: ResourceAvailabilityWitness
+```
+
+Expected:
+
+```yaml
+expected:
+  accepted: false
+  reason: resource_lane_uplink_only
+```
+
+---
+
+## 20. Fixture S: no raw metric authority
+
+Input:
+
+```yaml
+raw_metric:
+  cpu_available_cores: 10
+  ram_free_bytes: 64000000000
+wrapped_as_evidence: false
+canonicalized: false
+```
+
+Expected:
+
+```yaml
+expected:
+  schedulable: false
+  authority: 0
+  reason: raw_metric_not_evidence_wrapped_or_canonicalized
+```
+
+---
+
+## 21. Fixture T: Docker auto-federation round trip
+
+Expected sequence:
+
+```text
+container start
+-> collect initial metrics
+-> create ResourceAvailabilityWitness
+-> open DBP S2 session
+-> send NodeHello
+-> receive NodeAccept
+-> begin heartbeat every 5 seconds
+-> receive delegate_task command
+-> emit TaskOutcomeWitness
+```
+
+Expected result:
+
+```yaml
+expected:
+  federation_complete: true
+  resource_updates_seen: true
+  task_round_trip_complete: true
+```
