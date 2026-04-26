@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "duotronic-wgrnn-prototype"
+version = "0.1.0"
+description = "Research-grade Duotronic WG-RNN prototype for v1.5 Draft 2"
+requires-python = ">=3.11"
+dependencies = [
+  "torch>=2.0",
+  "pytest>=7.4",
+]
+
+[tool.setuptools]
+packages = ["duotronic_wgrnn"]
