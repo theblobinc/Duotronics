@@ -1,0 +1,793 @@
+{
+  "schema_id": "duotronic/v1.4-draft-4/starter-objects@0.4.0",
+  "status": "starter_skeleton",
+  "notes": "Minimal required field skeletons for Draft 4. Owning markdown specs remain authoritative.",
+  "objects": {
+    "EvidenceBundle": {
+      "owner": "duotronic_witness_contract_v10_15.md",
+      "required": [
+        "evidence_id",
+        "source_type",
+        "source_ref",
+        "capture_time",
+        "capture_node_id",
+        "raw_payload_hash",
+        "payload_mime_type",
+        "modality",
+        "source_integrity",
+        "provenance",
+        "privacy_class",
+        "trust_status"
+      ]
+    },
+    "SourceEvidenceRecord": {
+      "owner": "duotronic_search_social_evidence_ingestion_v1_2.md",
+      "required": [
+        "source_record_id",
+        "platform",
+        "source_url_or_ref",
+        "retrieval_time",
+        "retrieval_node_id",
+        "connector_id",
+        "connector_version",
+        "content_hash",
+        "raw_payload_ref",
+        "evidence_bundle_id"
+      ]
+    },
+    "SourceAvailabilityEvent": {
+      "owner": "duotronic_search_social_evidence_ingestion_v1_2.md",
+      "required": [
+        "availability_event_id",
+        "source_record_id",
+        "prior_edit_status",
+        "new_edit_status",
+        "detected_at",
+        "detected_by_node_id",
+        "affected_witness_ids",
+        "required_policy_action"
+      ]
+    },
+    "ModelExecutionRecord": {
+      "owner": "duotronic_distributed_model_node_protocol_v1_2.md",
+      "required": [
+        "execution_id",
+        "node_id",
+        "model_id",
+        "model_version",
+        "model_family",
+        "input_evidence_ids",
+        "inference_settings_hash",
+        "output_hash",
+        "output_storage_ref",
+        "replay_allowed"
+      ]
+    },
+    "ModelWitness": {
+      "owner": "duotronic_witness_contract_v10_15.md",
+      "required": [
+        "model_witness_id",
+        "model_id",
+        "model_version",
+        "node_id",
+        "input_evidence_ids",
+        "inference_profile_id",
+        "output_hash",
+        "proposed_segments",
+        "proposed_symbols",
+        "proposed_relations",
+        "proposed_claims",
+        "confidence",
+        "trust_status"
+      ]
+    },
+    "NodeWitnessEvent": {
+      "owner": "duotronic_distributed_model_node_protocol_v1_2.md",
+      "required": [
+        "node_event_id",
+        "node_id",
+        "node_role",
+        "software_version",
+        "input_refs",
+        "output_refs",
+        "event_time",
+        "deterministic",
+        "local_policy_mode"
+      ]
+    },
+    "NonDeterminismRecord": {
+      "owner": "duotronic_distributed_model_node_protocol_v1_2.md",
+      "required": [
+        "node_event_id",
+        "non_determinism_sources",
+        "replay_equivalence_profile",
+        "allowed_use",
+        "promotion_blocker"
+      ]
+    },
+    "CandidateWitness": {
+      "owner": "duotronic_witness_contract_v10_15.md",
+      "required": [
+        "witness_id",
+        "candidate_kind",
+        "source_evidence_ids",
+        "model_witness_ids",
+        "proposed_object",
+        "proposed_canonicalization",
+        "confidence",
+        "status"
+      ]
+    },
+    "CanonicalWitnessFact": {
+      "owner": "duotronic_witness_contract_v10_15.md",
+      "required": [
+        "canonical_witness_fact_id",
+        "source_candidate_witness_ids",
+        "evidence_bundle_ids",
+        "profile_id",
+        "profile_version",
+        "schema_id",
+        "normalizer_id",
+        "canonical_identity_hash",
+        "replay_identity_ref",
+        "policy_decision_id",
+        "runtime_mode",
+        "authority_scope",
+        "truth_status"
+      ]
+    },
+    "AutoProfileCandidate": {
+      "owner": "duotronic_auto_profile_learning_contract_v1_2.md",
+      "required": [
+        "profile_candidate_id",
+        "proposed_profile_id",
+        "profile_version",
+        "status",
+        "origin",
+        "lineage",
+        "proposed_object_space",
+        "boundary_policies",
+        "canonicalization",
+        "bridge",
+        "conformance",
+        "policy"
+      ]
+    },
+    "RepresentationBridgeProfile": {
+      "owner": "duotronic_representation_bridge_contract_v1_1.md",
+      "required": [
+        "bridge_id",
+        "bridge_version",
+        "status",
+        "source_representation",
+        "target_representation",
+        "validation",
+        "canonicalization",
+        "bridge",
+        "preservation",
+        "policy",
+        "conformance"
+      ]
+    },
+    "BridgeResult": {
+      "owner": "duotronic_representation_bridge_contract_v1_1.md",
+      "required": [
+        "bridge_result_id",
+        "bridge_profile_id",
+        "source_canonical_hash",
+        "status",
+        "preserved_invariants",
+        "expected_loss_observed",
+        "unexpected_loss_observed",
+        "policy_decision",
+        "replay_record_id"
+      ]
+    },
+    "CandidateProfileRecord": {
+      "owner": "duotronic_profile_synthesis_registry_v1_1.md",
+      "required": [
+        "candidate_profile_id",
+        "proposed_profile_id",
+        "profile_kind",
+        "status",
+        "origin",
+        "created_at",
+        "proposed_object_space",
+        "profile_behavior",
+        "implementation_candidates",
+        "conformance",
+        "policy"
+      ]
+    },
+    "ProfilePromotionRequest": {
+      "owner": "duotronic_profile_synthesis_registry_v1_1.md",
+      "required": [
+        "promotion_request_id",
+        "candidate_profile_id",
+        "requested_target_status",
+        "rationale",
+        "evidence_summary",
+        "fixture_pack_id",
+        "replay_trace_set_id",
+        "rollback_plan_id",
+        "risk_assessment_id",
+        "policy_gate_id",
+        "approval_required"
+      ]
+    },
+    "FamilyRegistryHandoff": {
+      "owner": "duotronic_profile_synthesis_registry_v1_1.md",
+      "required": [
+        "handoff_id",
+        "promotion_request_id",
+        "candidate_profile_id",
+        "target_family_registry_entry_id",
+        "copied_constraints",
+        "policy_decision_id"
+      ]
+    },
+    "PolicyDecision": {
+      "owner": "duotronic_policy_shield_guide_v1_6.md",
+      "required": [
+        "policy_decision_id",
+        "target_ref",
+        "target_kind",
+        "input_status",
+        "decision",
+        "runtime_mode",
+        "learning_mode",
+        "reasons",
+        "policy_snapshot_id"
+      ]
+    },
+    "LearningPolicy": {
+      "owner": "duotronic_policy_shield_guide_v1_6.md",
+      "required": [
+        "learning_policy_id",
+        "learning_mode",
+        "allowed_source_types",
+        "allowed_model_ids",
+        "allowed_node_roles",
+        "max_privacy_class",
+        "outbound_model_calls_allowed",
+        "search_expansion_allowed",
+        "social_feed_expansion_allowed",
+        "profile_candidate_creation_allowed",
+        "sandbox_runtime_allowed",
+        "requires_human_review"
+      ]
+    },
+    "RetentionMetricSpec": {
+      "owner": "duotronic_retention_diagnostics_v1_4.md",
+      "required": [
+        "metric_id",
+        "metric_version",
+        "status",
+        "measures",
+        "input_profile_id",
+        "output_profile_id",
+        "extractor_id",
+        "similarity_function",
+        "baseline_suite_id",
+        "pass_rule",
+        "failure_action"
+      ]
+    },
+    "MigrationPlan": {
+      "owner": "duotronic_migration_guide_v1_3.md",
+      "required": [
+        "migration_id",
+        "source_version",
+        "target_version",
+        "affected_layers",
+        "must_preserve",
+        "expected_loss",
+        "replay_trace_set",
+        "shadow_run_required",
+        "rollback_plan",
+        "approval_required"
+      ]
+    },
+    "ShadowReplayResult": {
+      "owner": "duotronic_meta_runtime_contract_v0_4.md",
+      "required": [
+        "replay_result_id",
+        "candidate_ref",
+        "trace_set_id",
+        "candidate_profile_id",
+        "changed_outputs",
+        "preserved_invariants",
+        "unexpected_losses",
+        "policy_violations",
+        "recommendation"
+      ]
+    },
+    "CrossModelAdjudication": {
+      "owner": "duotronic_witness_contract_v10_15.md",
+      "required": [
+        "adjudication_id",
+        "target_candidate_id",
+        "compared_model_witness_ids",
+        "compared_node_ids",
+        "agreement",
+        "disagreement",
+        "source_support",
+        "decision"
+      ]
+    },
+    "VisualIdentity": {
+      "owner": "duotronic_reference_profile_glyphic_script_visual_semantic_v0_2.md",
+      "required": [
+        "raw_image_hash",
+        "perceptual_hash_alg",
+        "perceptual_hash_version",
+        "perceptual_hash_value",
+        "transform_normalization",
+        "collision_policy"
+      ]
+    },
+    "ClaimWitness": {
+      "owner": "duotronic_reference_profile_english_claim_evidence_v0_2.md",
+      "required": [
+        "claim_witness_id",
+        "source_evidence_id",
+        "normalized_claim_text",
+        "claim_hash",
+        "source_span",
+        "modality",
+        "entities",
+        "evidence_status",
+        "trust_status"
+      ]
+    },
+    "ChronologicalEvidenceStream": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "stream_id",
+        "stream_owner_ref",
+        "owner_kind",
+        "stream_kind",
+        "privacy_class",
+        "ordering_policy",
+        "evidence_bundle_ids",
+        "status"
+      ]
+    },
+    "SelfReferenceEdge": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "edge_id",
+        "from_evidence_id",
+        "to_evidence_id",
+        "relation",
+        "relation_confidence",
+        "extracted_by_model_witness_ids",
+        "trust_status"
+      ]
+    },
+    "PersonalHistorySourceRecord": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "personal_history_record_id",
+        "evidence_bundle_id",
+        "actor_ref",
+        "actor_ref_policy",
+        "platform",
+        "event_type",
+        "capture_time",
+        "content_hash",
+        "privacy_class",
+        "evidence_status"
+      ]
+    },
+    "TimelineWitness": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "timeline_witness_id",
+        "stream_id",
+        "profile_id",
+        "ordering_policy_id",
+        "canonical_event_refs",
+        "event_count",
+        "time_range",
+        "gaps",
+        "canonical_identity_hash",
+        "trust_status"
+      ]
+    },
+    "PreferenceWitness": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "preference_witness_id",
+        "stream_id",
+        "target_actor_ref",
+        "preference_domain",
+        "inferred_preference",
+        "supporting_evidence_ids",
+        "contradicting_evidence_ids",
+        "time_scope",
+        "truth_status",
+        "runtime_mode"
+      ]
+    },
+    "HabitWitness": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "habit_witness_id",
+        "stream_id",
+        "habit_description",
+        "recurrence_pattern",
+        "supporting_evidence_ids",
+        "exception_evidence_ids",
+        "time_scope",
+        "trust_status"
+      ]
+    },
+    "LikelyActionWitness": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "likely_action_witness_id",
+        "stream_id",
+        "situation_profile_id",
+        "proposed_action",
+        "based_on_patterns",
+        "supporting_evidence_ids",
+        "contradicting_evidence_ids",
+        "authority_scope",
+        "policy_decision_id"
+      ]
+    },
+    "SelfModelSnapshot": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "self_model_snapshot_id",
+        "stream_ids",
+        "actor_ref",
+        "snapshot_time",
+        "included_witness_classes",
+        "canonical_fact_refs",
+        "audit_only_fact_refs",
+        "policy_decision_id",
+        "runtime_mode",
+        "actor_scope_id",
+        "version",
+        "prior_snapshot_id",
+        "staleness_policy"
+      ]
+    },
+    "LookupMemoryRecord": {
+      "owner": "duotronic_lookup_memory_and_replay_profile_v1_1.md",
+      "required": [
+        "lookup_record_id",
+        "memory_class",
+        "key",
+        "value_ref",
+        "value_hash",
+        "profile_id",
+        "profile_version",
+        "index_profile_id",
+        "policy_decision_id",
+        "runtime_mode",
+        "created_at",
+        "invalidation_refs"
+      ]
+    },
+    "HighSpeedLoopProfile": {
+      "owner": "duotronic_lookup_memory_and_replay_profile_v1_1.md",
+      "required": [
+        "loop_profile_id",
+        "loop_type",
+        "input_memory_classes",
+        "output_witness_classes",
+        "max_privacy_class",
+        "replay_required",
+        "deterministic_required",
+        "allowed_models",
+        "allowed_actions",
+        "invalidation_policy",
+        "resource_budget",
+        "overload_policy"
+      ]
+    },
+    "LookupInvalidationEvent": {
+      "owner": "duotronic_lookup_memory_and_replay_profile_v1_1.md",
+      "required": [
+        "invalidation_event_id",
+        "trigger_kind",
+        "trigger_ref",
+        "affected_lookup_record_ids",
+        "required_action",
+        "event_time"
+      ]
+    },
+    "DecisionContext": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "decision_context_id",
+        "objective_ref",
+        "actor_ref",
+        "decision_scope",
+        "input_canonical_fact_refs",
+        "input_audit_fact_refs",
+        "uncertainty_refs",
+        "contradiction_refs",
+        "privacy_class",
+        "runtime_mode",
+        "learning_mode"
+      ]
+    },
+    "ActionCandidateWitness": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "action_candidate_id",
+        "decision_context_id",
+        "proposed_by",
+        "action_kind",
+        "expected_effect",
+        "supporting_witness_refs",
+        "contradicting_witness_refs",
+        "uncertainty_refs",
+        "reversibility",
+        "required_policy_gate",
+        "status"
+      ]
+    },
+    "ActionExecutionRecord": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "action_execution_id",
+        "action_candidate_id",
+        "policy_decision_id",
+        "execution_node_id",
+        "executed_at",
+        "execution_status",
+        "output_evidence_bundle_ids",
+        "resulting_witness_ids",
+        "rollback_ref"
+      ]
+    },
+    "ActionOutcomeWitness": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "action_outcome_witness_id",
+        "action_execution_id",
+        "expected_effect",
+        "observed_effect",
+        "success_metric_refs",
+        "unexpected_effects",
+        "source_evidence_ids",
+        "policy_followup"
+      ]
+    },
+    "DecisionSupportFact": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "fact_ref",
+        "authority_scope",
+        "truth_status",
+        "decision_relevance"
+      ]
+    },
+    "OracleRiskProfile": {
+      "owner": "duotronic_model_diversity_and_adjudication_governance_v1_0.md",
+      "required": [
+        "oracle_risk_profile_id",
+        "model_id",
+        "model_version",
+        "model_family",
+        "training_data_overlap_class",
+        "architecture_diversity_class",
+        "known_biases",
+        "known_failure_modes",
+        "allowed_authority"
+      ]
+    },
+    "ModelDiversitySet": {
+      "owner": "duotronic_model_diversity_and_adjudication_governance_v1_0.md",
+      "required": [
+        "model_diversity_set_id",
+        "purpose",
+        "model_refs",
+        "diversity_dimensions",
+        "minimum_independence_requirement",
+        "failure_policy"
+      ]
+    },
+    "ModelAdjudicationRecord": {
+      "owner": "duotronic_model_diversity_and_adjudication_governance_v1_0.md",
+      "required": [
+        "adjudication_id",
+        "target_ref",
+        "model_witness_ids",
+        "model_diversity_set_id",
+        "agreement_summary",
+        "independence_assessment",
+        "contradiction_refs",
+        "uncertainty_refs",
+        "decision",
+        "policy_decision_id"
+      ]
+    },
+    "DiversityWeightedAgreement": {
+      "owner": "duotronic_model_diversity_and_adjudication_governance_v1_0.md",
+      "required": [
+        "score_id",
+        "adjudication_id",
+        "raw_agreement_score",
+        "independence_weight",
+        "source_grounding_weight",
+        "contradiction_penalty",
+        "uncertainty_penalty",
+        "final_score",
+        "allowed_use"
+      ]
+    },
+    "ActorScope": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "actor_scope_id",
+        "actor_ref",
+        "actor_kind",
+        "actor_ref_policy",
+        "allowed_stream_ids",
+        "excluded_stream_ids",
+        "scope_purpose",
+        "privacy_class"
+      ]
+    },
+    "SelfModelInvalidationEvent": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "self_model_invalidation_event_id",
+        "self_model_snapshot_id",
+        "actor_scope_id",
+        "actor_ref",
+        "trigger_kind",
+        "trigger_refs",
+        "affected_lookup_record_ids",
+        "affected_decision_context_ids",
+        "required_action",
+        "prior_snapshot_version",
+        "next_snapshot_policy",
+        "event_time"
+      ]
+    },
+    "LikelyActionToActionLink": {
+      "owner": "duotronic_chronological_self_evidence_contract_v1_1.md",
+      "required": [
+        "link_id",
+        "likely_action_witness_id",
+        "action_candidate_id",
+        "conversion_author",
+        "conversion_reason",
+        "policy_decision_id"
+      ]
+    },
+    "LoopResourceViolationEvent": {
+      "owner": "duotronic_lookup_memory_and_replay_profile_v1_1.md",
+      "required": [
+        "loop_resource_violation_event_id",
+        "loop_profile_id",
+        "violation_kind",
+        "observed_value",
+        "limit_value",
+        "event_time",
+        "required_action"
+      ]
+    },
+    "ProfileLearningActionPayload": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "profile_learning_action_payload_id",
+        "target_unknown_pattern_refs",
+        "source_evidence_ids",
+        "source_stream_ids",
+        "proposed_profile_kind",
+        "learning_objective",
+        "requested_learning_mode",
+        "allowed_models",
+        "allowed_sources",
+        "max_privacy_class",
+        "fixture_generation_requested",
+        "promotion_requested"
+      ]
+    },
+    "PlannerTriggeredLearningRun": {
+      "owner": "duotronic_auto_profile_learning_contract_v1_2.md",
+      "required": [
+        "planner_triggered_learning_run_id",
+        "action_candidate_id",
+        "decision_context_id",
+        "profile_learning_action_payload_id",
+        "policy_decision_id",
+        "produced_candidate_profile_ids",
+        "produced_candidate_witness_ids",
+        "runtime_mode",
+        "learning_mode"
+      ]
+    },
+    "PolicyChangeProposal": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "policy_change_proposal_id",
+        "proposed_by",
+        "target_policy_ref",
+        "proposed_change_kind",
+        "prior_policy_snapshot_id",
+        "proposed_policy_snapshot_ref",
+        "rationale",
+        "supporting_witness_refs",
+        "contradicting_witness_refs",
+        "risk_assessment_ref",
+        "reversibility",
+        "required_approval",
+        "status"
+      ]
+    },
+    "ActionConflictRecord": {
+      "owner": "duotronic_internal_decision_and_planning_contract_v1_1.md",
+      "required": [
+        "action_conflict_id",
+        "decision_context_id",
+        "action_candidate_ids",
+        "conflict_type",
+        "conflict_detected_by",
+        "default_resolution",
+        "resolved_action_candidate_id",
+        "policy_decision_id",
+        "status"
+      ]
+    }
+  },
+  "canonical_status_ladder": [
+    "observed_pattern",
+    "candidate_witness",
+    "candidate_profile",
+    "research_profile",
+    "sandbox_runtime_profile",
+    "reference_profile",
+    "normative_profile",
+    "deprecated_profile",
+    "rejected_profile"
+  ],
+  "trust_status_values": [
+    "raw",
+    "candidate",
+    "canonicalized",
+    "audit_only",
+    "rejected",
+    "deprecated"
+  ],
+  "draft_3_added_objects": [
+    "ChronologicalEvidenceStream",
+    "SelfReferenceEdge",
+    "PersonalHistorySourceRecord",
+    "TimelineWitness",
+    "PreferenceWitness",
+    "HabitWitness",
+    "LikelyActionWitness",
+    "SelfModelSnapshot",
+    "LookupMemoryRecord",
+    "HighSpeedLoopProfile",
+    "LookupInvalidationEvent",
+    "DecisionContext",
+    "ActionCandidateWitness",
+    "ActionExecutionRecord",
+    "ActionOutcomeWitness",
+    "DecisionSupportFact",
+    "OracleRiskProfile",
+    "ModelDiversitySet",
+    "ModelAdjudicationRecord",
+    "DiversityWeightedAgreement"
+  ],
+  "draft_4_added_objects": [
+    "ActorScope",
+    "SelfModelInvalidationEvent",
+    "LikelyActionToActionLink",
+    "LoopResourceViolationEvent",
+    "ProfileLearningActionPayload",
+    "PlannerTriggeredLearningRun",
+    "PolicyChangeProposal",
+    "ActionConflictRecord"
+  ]
+}

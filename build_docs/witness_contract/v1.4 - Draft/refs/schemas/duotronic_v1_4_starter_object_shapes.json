@@ -1,0 +1,74 @@
+{
+  "schema_id": "duotronic/v1.4/starter-objects@0.1.0",
+  "objects": {
+    "EvidenceBundle": [
+      "evidence_id",
+      "source_type",
+      "source_ref",
+      "capture_time",
+      "capture_node_id",
+      "raw_payload_hash",
+      "payload_mime_type",
+      "modality",
+      "source_integrity",
+      "provenance",
+      "privacy_class",
+      "trust_status"
+    ],
+    "ModelWitness": [
+      "model_witness_id",
+      "model_id",
+      "model_version",
+      "node_id",
+      "input_evidence_ids",
+      "inference_profile_id",
+      "output_hash",
+      "proposed_segments",
+      "proposed_symbols",
+      "proposed_relations",
+      "proposed_claims",
+      "confidence",
+      "trust_status"
+    ],
+    "CandidateWitness": [
+      "witness_id",
+      "candidate_kind",
+      "source_evidence_ids",
+      "model_witness_ids",
+      "proposed_object",
+      "proposed_canonicalization",
+      "confidence",
+      "status"
+    ],
+    "AutoProfileCandidate": [
+      "profile_candidate_id",
+      "proposed_profile_id",
+      "kind",
+      "source_evidence_ids",
+      "model_witness_ids",
+      "candidate_witness_ids",
+      "proposed_object_space",
+      "proposed_normalizer",
+      "proposed_bridge",
+      "absence_policy",
+      "zero_policy",
+      "invalid_state_policy",
+      "conformance",
+      "policy",
+      "status"
+    ],
+    "RepresentationBridgeProfile": [
+      "bridge_id",
+      "bridge_version",
+      "status",
+      "source_representation",
+      "target_representation",
+      "validation",
+      "canonicalization",
+      "bridge",
+      "preservation",
+      "policy",
+      "conformance"
+    ]
+  }
+}

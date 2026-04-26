@@ -1,0 +1,257 @@
+{
+  "release": "Duotronic v1.4 Draft 3 Corpus",
+  "version": "v1.4-draft-3",
+  "generated_at": "2026-04-26T11:08:57.851667+00:00",
+  "document_count": 36,
+  "file_count": 39,
+  "draft_3_core_theme": "Self-informing Duotronic systems: chronological evidence, high-speed lookup memory, internal decision/action witnesses, and model-diversity governance.",
+  "draft_3_added_documents": [
+    "refs/duotronic_chronological_self_evidence_contract_v1_0.md",
+    "refs/duotronic_lookup_memory_and_replay_profile_v1_0.md",
+    "refs/duotronic_internal_decision_and_planning_contract_v1_0.md",
+    "refs/duotronic_model_diversity_and_adjudication_governance_v1_0.md"
+  ],
+  "draft_3_updated_documents": [
+    "README_v1_4_draft_3.md",
+    "duotronic_polygon_family_calculus_v5_14.md",
+    "duotronic_witness_contract_v10_14.md",
+    "refs/duotronic_meta_runtime_contract_v0_4.md",
+    "refs/duotronic_distributed_model_node_protocol_v1_2.md",
+    "refs/duotronic_search_social_evidence_ingestion_v1_2.md",
+    "refs/duotronic_policy_shield_guide_v1_5.md",
+    "refs/duotronic_schema_registry_v1_5.md",
+    "refs/duotronic_lab_evidence_registry_v1_2.md",
+    "refs/duotronic_lab_integrated_source_corpus_index_v1_8.md",
+    "refs/schemas/duotronic_v1_4_draft_3_starter_object_shapes.json"
+  ],
+  "draft_3_added_object_shapes": [
+    "ChronologicalEvidenceStream",
+    "SelfReferenceEdge",
+    "PersonalHistorySourceRecord",
+    "TimelineWitness",
+    "PreferenceWitness",
+    "HabitWitness",
+    "LikelyActionWitness",
+    "SelfModelSnapshot",
+    "LookupMemoryRecord",
+    "HighSpeedLoopProfile",
+    "LookupInvalidationEvent",
+    "DecisionContext",
+    "ActionCandidateWitness",
+    "ActionExecutionRecord",
+    "ActionOutcomeWitness",
+    "DecisionSupportFact",
+    "OracleRiskProfile",
+    "ModelDiversitySet",
+    "ModelAdjudicationRecord",
+    "DiversityWeightedAgreement"
+  ],
+  "core_documents": [
+    "README_v1_4_draft_3.md",
+    "duotronic_polygon_family_calculus_v5_14.md",
+    "duotronic_witness_contract_v10_14.md",
+    "refs/duotronic_glossary_v1_0.md",
+    "refs/duotronic_source_architecture_overview_v1_7.md",
+    "refs/duotronic_chronological_self_evidence_contract_v1_0.md",
+    "refs/duotronic_lookup_memory_and_replay_profile_v1_0.md",
+    "refs/duotronic_internal_decision_and_planning_contract_v1_0.md",
+    "refs/duotronic_model_diversity_and_adjudication_governance_v1_0.md"
+  ],
+  "files": [
+    {
+      "path": "README_v1_4_draft_3.md",
+      "sha256": "a8f772a54437da37dd6741cf6b800eb832d4aa3da1f54384f11271e32ca88de8",
+      "size": 13946
+    },
+    {
+      "path": "corpus_review_v1_3_draft_4_to_v1_4_draft.md",
+      "sha256": "d318920c14f78329cb98c9a23618bf90c11756f7817af6ba2f896c577420819b",
+      "size": 2406
+    },
+    {
+      "path": "corpus_review_v1_4_draft_2_to_v1_4_draft_3.md",
+      "sha256": "a874936354709a3e0dea9fa981a1026df914d09b8c935c21442659b76ae7994e",
+      "size": 5005
+    },
+    {
+      "path": "corpus_review_v1_4_draft_to_v1_4_draft_2.md",
+      "sha256": "2017f68fdf6f341e87d5afc3b18aa35988b81a83b9f84f5e95e17865bc98ea28",
+      "size": 2967
+    },
+    {
+      "path": "duotronic_polygon_family_calculus_v5_14.md",
+      "sha256": "44ab7a9819aaa6b62598d244ebb17a896f55c23559629b99db9902311b7fb48d",
+      "size": 15893
+    },
+    {
+      "path": "duotronic_witness_contract_v10_14.md",
+      "sha256": "8656ac3f65f08985f43fea15da2707fd7762274f4315f741920beffbe44e5de1",
+      "size": 23556
+    },
+    {
+      "path": "refs/diagrams/duotronic_v1_4_corpus_architecture_16x9.png",
+      "sha256": "5d93f114ae2822ed32a807c1c31a322b15cbf7182bbf60c498e20ef9aefd3606",
+      "size": 1655069
+    },
+    {
+      "path": "refs/duotronic_auto_profile_learning_contract_v1_1.md",
+      "sha256": "3bdc51580aee650f5bba55ffde384097f0ee6b5d3670221df5e4beaa3ff06d7a",
+      "size": 11072
+    },
+    {
+      "path": "refs/duotronic_chronological_self_evidence_contract_v1_0.md",
+      "sha256": "80924f680972247353386c816f376c113ef405a326ff660199813f350bdea4ef",
+      "size": 9764
+    },
+    {
+      "path": "refs/duotronic_distributed_model_node_protocol_v1_2.md",
+      "sha256": "0bfc3cd7661f353fc695451c28a47b952e582c5ce64aa9e3bce4abe2ba24d5a8",
+      "size": 10656
+    },
+    {
+      "path": "refs/duotronic_family_registry_v1_4.md",
+      "sha256": "9d26c7892a6b3e601c79968b1e3368c2eef58c4a6e0cc3d23563489f35f88de6",
+      "size": 7642
+    },
+    {
+      "path": "refs/duotronic_glossary_v1_0.md",
+      "sha256": "d1bba66c2aa74f9103fdb2b46ad0dca185bff845abee3118345a5e9ef175830f",
+      "size": 13543
+    },
+    {
+      "path": "refs/duotronic_internal_decision_and_planning_contract_v1_0.md",
+      "sha256": "9e90175a0f99dbb121ea120ce786f7c4fd120c821bc3a116222e48d1a16b571d",
+      "size": 7422
+    },
+    {
+      "path": "refs/duotronic_lab_evidence_registry_v1_2.md",
+      "sha256": "a04d48fced458da9516ec0b89b0ae8224bb0bbda9df9c951e5d8bd8bef57e7e4",
+      "size": 3827
+    },
+    {
+      "path": "refs/duotronic_lab_integrated_source_corpus_index_v1_8.md",
+      "sha256": "2de97179597cf417390f05c72d318273b31ac973eb4cbcb6321819fca9d0f876",
+      "size": 3660
+    },
+    {
+      "path": "refs/duotronic_lookup_memory_and_replay_profile_v1_0.md",
+      "sha256": "c2c21ba9c76dd2f097e9410e0b74d355a74548885e9d5235a53e22ab58310e7e",
+      "size": 7276
+    },
+    {
+      "path": "refs/duotronic_meta_runtime_contract_v0_4.md",
+      "sha256": "73fb695bdea94fad15f39f181d31611654e9817a9607d69ab42b75d5f8a0536b",
+      "size": 6563
+    },
+    {
+      "path": "refs/duotronic_migration_guide_v1_3.md",
+      "sha256": "1a41a1dc4492f529e7584c385a7ac935bef88cdc6abd6e20c879ff4a51cf95fc",
+      "size": 3885
+    },
+    {
+      "path": "refs/duotronic_model_diversity_and_adjudication_governance_v1_0.md",
+      "sha256": "43b9e857d313a35b0d936a0f7f576462c64431cdec02fffe89f919d520d32937",
+      "size": 5864
+    },
+    {
+      "path": "refs/duotronic_normalizer_profiles_v1_3.md",
+      "sha256": "f0e6e1f20435c3c175bd392586da81300bfb4d00b5bd1f55e29023e9d04cd81b",
+      "size": 4401
+    },
+    {
+      "path": "refs/duotronic_policy_shield_guide_v1_5.md",
+      "sha256": "e18d776a383559c948ac62a7dd5e058c2fe0ddc356ba29c272b0a163d2ba0f1b",
+      "size": 11787
+    },
+    {
+      "path": "refs/duotronic_profile_synthesis_registry_v1_1.md",
+      "sha256": "eaae6441daee47a6eb5843d8c6b347fc7a7c7aa98bdc033d4e9f31a8ea557257",
+      "size": 7040
+    },
+    {
+      "path": "refs/duotronic_representation_bridge_contract_v1_1.md",
+      "sha256": "78459de23fdeedf62018f08a61d1fe7da9a455ae13a5c6cf200801c2de6e3f0d",
+      "size": 8260
+    },
+    {
+      "path": "refs/duotronic_retention_diagnostics_v1_4.md",
+      "sha256": "e9e3ca90ed6d0f0b918ca36bcd983406d59204589c583e123de398e1d7b135f2",
+      "size": 4715
+    },
+    {
+      "path": "refs/duotronic_schema_registry_v1_5.md",
+      "sha256": "7a3002bb2f7b64acc4e8d2fd81d3259421d936ca9f4fdf14cbaced27d956bac2",
+      "size": 5823
+    },
+    {
+      "path": "refs/duotronic_search_social_evidence_ingestion_v1_2.md",
+      "sha256": "d6fa21450fb532508a1b888f1eb9ad88e2b832f2fb65ce399fe86e22c981becb",
+      "size": 9459
+    },
+    {
+      "path": "refs/duotronic_source_architecture_overview_v1_7.md",
+      "sha256": "37c414c07316fb1d28b47851d15359e85e1142102a9c37a2ce24d53869c18c75",
+      "size": 8995
+    },
+    {
+      "path": "refs/duotronic_transport_profiles_v1_3.md",
+      "sha256": "60ec56e6a36b3362d186fbc73a04e8aaae0cf816fbc050c5a3ec9993d482c054",
+      "size": 3591
+    },
+    {
+      "path": "refs/release_manifest_v1_4_draft_3.json",
+      "sha256": "285c97b5c82093971db2af637750b9b3a45524c55841e0713a518c88c01003f3",
+      "size": 9729
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_acoustics_spectral_witnesses_v1_2.md",
+      "sha256": "aa7a94fe570e58ad8c20af5b3efee15cb1ab724110a5e6944252a977cbda785e",
+      "size": 11146
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_edo_temperament_v1_2.md",
+      "sha256": "1d1070e9d4e35ebd279cba76ee036f9c84483da0a66fc7168168c05ff3432955",
+      "size": 11111
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_gcd_jump_recurrences_v1_0.md",
+      "sha256": "2ddf0fad90ed0ae9a473232e993746ed9c0cb5eaace1ee5f9f7081b8fad50339",
+      "size": 10306
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_pronic_centered_polygon_families_v1_0.md",
+      "sha256": "3e2bf6ae4ba9863cd9c831afbdfb716b149aab635444b095bde55df14e698f24",
+      "size": 20211
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_qcd_spin_correlation_analogy_v1_2.md",
+      "sha256": "e6b885f8afc5ce0828fcc5c6f8f9078b8fd334b343ded14aabc790150c9c85c1",
+      "size": 10768
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_selective_witness_state_spaces_v1_0.md",
+      "sha256": "f59e295eb7a2a856f770788a5497c467d3affe268b1f75a75733d176f91cddfe",
+      "size": 10235
+    },
+    {
+      "path": "refs/research_profiles/duotronic_reference_profile_english_claim_evidence_v0_2.md",
+      "sha256": "7fdeb1616d728c7b6b7c261041504b262efff290635f1d2019c7f391376d23ee",
+      "size": 5409
+    },
+    {
+      "path": "refs/research_profiles/duotronic_reference_profile_glyphic_script_visual_semantic_v0_2.md",
+      "sha256": "13f2e954e808f30db692e55f5a4a60c28048e4eea40d5c03358da9126f005128",
+      "size": 5969
+    },
+    {
+      "path": "refs/research_profiles/duotronic_reference_profile_roman_numerals_v0_1.md",
+      "sha256": "0f5c22a0080faa199eb0c5ccc2e1cd1ef7d0997940bbd1768fe5aba8252073d4",
+      "size": 3734
+    },
+    {
+      "path": "refs/schemas/duotronic_v1_4_draft_3_starter_object_shapes.json",
+      "sha256": "77ee2044e3bbe8df479c87fd6bfebfab01c0b29eae4cf4c9492a2cb71ee5842a",
+      "size": 17729
+    }
+  ]
+}

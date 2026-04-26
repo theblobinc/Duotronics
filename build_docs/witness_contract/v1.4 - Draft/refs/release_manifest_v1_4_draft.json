@@ -1,0 +1,177 @@
+{
+  "release": "Duotronic v1.4 Draft Corpus",
+  "version": "v1.4-draft",
+  "generated_at": "2026-04-26T10:23:04.176641+00:00",
+  "document_count": 29,
+  "files": [
+    {
+      "path": "README_v1_4_draft.md",
+      "sha256": "8c020ae772006c03a0a9f61ea871dbb501718c37af9f62bcbd55346eb416d758",
+      "size": 10578
+    },
+    {
+      "path": "corpus_review_v1_3_draft_4_to_v1_4_draft.md",
+      "sha256": "fdcbc1972c67eadc4364c211192788f31abf1c7fd2a50ba8d2f4e04336936017",
+      "size": 2406
+    },
+    {
+      "path": "duotronic_polygon_family_calculus_v5_12.md",
+      "sha256": "8bb58ab9038c90267ccb6e26943a1d6b91ee80b3152c5ce3d9b5f1d9a70ac296",
+      "size": 14203
+    },
+    {
+      "path": "duotronic_witness_contract_v10_12.md",
+      "sha256": "880ec2f43101c33c4a8fa04249be049ccb24a3ea5d70bb33da730322a904d62c",
+      "size": 16331
+    },
+    {
+      "path": "refs/diagrams/duotronic_v1_4_corpus_architecture_16x9.png",
+      "sha256": "5d93f114ae2822ed32a807c1c31a322b15cbf7182bbf60c498e20ef9aefd3606",
+      "size": 1655069
+    },
+    {
+      "path": "refs/duotronic_auto_profile_learning_contract_v1_0.md",
+      "sha256": "979bca7f8eab6025bbf7e34c84b481485ab3f87150dd67a27bd93fa8c2924340",
+      "size": 7213
+    },
+    {
+      "path": "refs/duotronic_distributed_model_node_protocol_v1_0.md",
+      "sha256": "ae081151e9e1dad8453ed95067cbb9e60e961f6ea8990ba63d4693b03632c255",
+      "size": 7148
+    },
+    {
+      "path": "refs/duotronic_family_registry_v1_3.md",
+      "sha256": "09a18547fe3d0c31882f04ba25cecff326abc6e52d33e59ee37302c1d1ffad26",
+      "size": 4198
+    },
+    {
+      "path": "refs/duotronic_lab_evidence_registry_v1_1.md",
+      "sha256": "9b0096530af958979a7e42c6902371435936310f676ff00328691af19963b9fe",
+      "size": 3161
+    },
+    {
+      "path": "refs/duotronic_lab_integrated_source_corpus_index_v1_6.md",
+      "sha256": "160e62183bef4ba4f5f6a411545b7dd8ff41f3901e1109df47210de28a81dfe2",
+      "size": 2213
+    },
+    {
+      "path": "refs/duotronic_meta_runtime_contract_v0_3.md",
+      "sha256": "30ab87dede6ad439173974f23c1a6575bd2f997b3f6f782e2299c249caa51889",
+      "size": 4642
+    },
+    {
+      "path": "refs/duotronic_migration_guide_v1_3.md",
+      "sha256": "1a41a1dc4492f529e7584c385a7ac935bef88cdc6abd6e20c879ff4a51cf95fc",
+      "size": 3885
+    },
+    {
+      "path": "refs/duotronic_normalizer_profiles_v1_3.md",
+      "sha256": "f0e6e1f20435c3c175bd392586da81300bfb4d00b5bd1f55e29023e9d04cd81b",
+      "size": 4401
+    },
+    {
+      "path": "refs/duotronic_policy_shield_guide_v1_3.md",
+      "sha256": "3907e20806230c059dfd56dd0445e769af5d05b5659d79e53446c048700dcbc8",
+      "size": 5904
+    },
+    {
+      "path": "refs/duotronic_profile_synthesis_registry_v1_0.md",
+      "sha256": "1dc783ed84180c403a504a1d893fa631e8b8c910853e5c114b1080c6dfa544c3",
+      "size": 4100
+    },
+    {
+      "path": "refs/duotronic_representation_bridge_contract_v1_0.md",
+      "sha256": "f0218caedb71f71b008b7e5f920306b870f8e5ee962d8f27498d88b5ce7ce9e7",
+      "size": 6500
+    },
+    {
+      "path": "refs/duotronic_retention_diagnostics_v1_3.md",
+      "sha256": "02e435ddc8289ed73b3cdeebd29f643e0437c6eda62fa7106ed15aa05bab593e",
+      "size": 3537
+    },
+    {
+      "path": "refs/duotronic_schema_registry_v1_3.md",
+      "sha256": "68fbe173e4e78de5a7d40e938a8493480efc6807653eb2e0032119e23b2c8616",
+      "size": 4088
+    },
+    {
+      "path": "refs/duotronic_search_social_evidence_ingestion_v1_0.md",
+      "sha256": "e3853d4fac8525a64f3c8f2264a7fc5998c59fd5f5cdd6b71bf291fe4c133466",
+      "size": 5942
+    },
+    {
+      "path": "refs/duotronic_source_architecture_overview_v1_7.md",
+      "sha256": "6778e7bc853a962f381cc50a55579d4a2bd19c2a353cfa66fa1536ad539a228d",
+      "size": 6689
+    },
+    {
+      "path": "refs/duotronic_transport_profiles_v1_3.md",
+      "sha256": "60ec56e6a36b3362d186fbc73a04e8aaae0cf816fbc050c5a3ec9993d482c054",
+      "size": 3591
+    },
+    {
+      "path": "refs/release_manifest_v1_4_draft.json",
+      "sha256": "efd84f6fe52fe227149babf795a3638b7e1c09c9051ff3282d1aeb7faef398c7",
+      "size": 6543
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_acoustics_spectral_witnesses_v1_2.md",
+      "sha256": "aa7a94fe570e58ad8c20af5b3efee15cb1ab724110a5e6944252a977cbda785e",
+      "size": 11146
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_edo_temperament_v1_2.md",
+      "sha256": "1d1070e9d4e35ebd279cba76ee036f9c84483da0a66fc7168168c05ff3432955",
+      "size": 11111
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_gcd_jump_recurrences_v1_0.md",
+      "sha256": "2ddf0fad90ed0ae9a473232e993746ed9c0cb5eaace1ee5f9f7081b8fad50339",
+      "size": 10306
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_pronic_centered_polygon_families_v1_0.md",
+      "sha256": "3e2bf6ae4ba9863cd9c831afbdfb716b149aab635444b095bde55df14e698f24",
+      "size": 20211
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_qcd_spin_correlation_analogy_v1_2.md",
+      "sha256": "e6b885f8afc5ce0828fcc5c6f8f9078b8fd334b343ded14aabc790150c9c85c1",
+      "size": 10768
+    },
+    {
+      "path": "refs/research_profiles/carried_forward/duotronic_research_profile_selective_witness_state_spaces_v1_0.md",
+      "sha256": "f59e295eb7a2a856f770788a5497c467d3affe268b1f75a75733d176f91cddfe",
+      "size": 10235
+    },
+    {
+      "path": "refs/research_profiles/duotronic_reference_profile_english_claim_evidence_v0_1.md",
+      "sha256": "4b99a9c4e189195bb420c2199866910ed1e9e8f0beff5670d290f2d2018cf82b",
+      "size": 3844
+    },
+    {
+      "path": "refs/research_profiles/duotronic_reference_profile_glyphic_script_visual_semantic_v0_1.md",
+      "sha256": "092b9867e31fbfe92aeebf6eb644ac0183bc8ae4ab890e151c4d980778e84aae",
+      "size": 3965
+    },
+    {
+      "path": "refs/research_profiles/duotronic_reference_profile_roman_numerals_v0_1.md",
+      "sha256": "0f5c22a0080faa199eb0c5ccc2e1cd1ef7d0997940bbd1768fe5aba8252073d4",
+      "size": 3734
+    },
+    {
+      "path": "refs/schemas/duotronic_v1_4_starter_object_shapes.json",
+      "sha256": "a15d1c167e2ae9de0407cd3c0b791c2dd4fceffb1024db3f16c66eca99888987",
+      "size": 1638
+    }
+  ],
+  "core_additions": [
+    "Representation Bridge Contract v1.0",
+    "Auto-Profile Learning Contract v1.0",
+    "Distributed Model Node Protocol v1.0",
+    "Search and Social Evidence Ingestion v1.0",
+    "Profile Synthesis Registry v1.0",
+    "DPFC v5.12 learned-profile boundary language",
+    "Witness Contract v10.12 model/search/node/profile-learning integration"
+  ]
+}
