@@ -718,3 +718,259 @@ task_replay_identity =
 This contract does not prescribe one scheduler algorithm, queue technology, orchestration platform, or model server.
 
 It specifies the witness, policy, replay, and trust boundaries required for resource-aware delegation.
+
+---
+
+## 20. Reference scheduler algorithm
+
+> **Status tag:** reference
+
+A conforming implementation must choose and declare a scheduling algorithm. This section defines the reference default.
+
+### 20.1 Weighted least-load selector
+
+The reference default is a **weighted least-load** selector with priority tiebreaking.
+
+```text
+scheduler_score(node) =
+  (1 - effective_queue_pressure)
+  * effective_capacity_score
+  * confidence
+```
+
+where:
+
+1. `effective_queue_pressure` is from the node's `TaskQueueWitness`;
+2. `effective_capacity_score` is from the node's `ResourceAvailabilityWitness`;
+3. `confidence` is the minimum of the capacity witness confidence and the queue witness confidence.
+
+All three values must come from fresh, policy-approved witnesses. If a witness is stale, `scheduler_score(node) = 0` and the node is ineligible.
+
+### 20.2 Capability filter
+
+Before computing scheduler scores, the scheduler must filter out nodes that:
+
+1. do not support the required `task_type`;
+2. do not have the required hardware class (e.g., GPU devices) according to their fresh resource witness;
+3. are in a runtime mode that does not permit the requested task;
+4. do not permit the task's privacy class;
+5. have `g_promote`-blocked or `audit_only` learning mode when the task requires `active` or `sandbox` learning mode.
+
+Only nodes that pass all capability filters are scored.
+
+### 20.3 Priority tiebreaking
+
+If two nodes have identical or near-identical scores (within `scheduler_score_tie_epsilon`, default `0.01`), the tiebreak order is:
+
+1. highest task priority wins on the less-loaded node;
+2. the node with the smaller pending task queue;
+3. lexicographic node ID (for determinism in tests and replay).
+
+### 20.4 Task-class affinity
+
+```yaml
+TaskClassAffinityRule:
+  task_class: run_model_inference | start_profile_learning | execute_search | replay_trace | purge_cascade | resource_probe | custom
+  preferred_node_roles: []
+  required_gpu: true | false
+  avoid_roles: []
+  fallback_allowed: true | false
+```
+
+A deployment may declare affinity rules per task class. Affinity rules are advisory unless marked `required`; if `required` and no preferred node is available, the task enters the policy queue rather than falling back.
+
+### 20.5 Scheduler profile declaration
+
+A deployment must declare its scheduler profile in its cluster policy:
+
+```yaml
+ClusterSchedulerProfile:
+  scheduler_profile_id: string
+  algorithm: weighted_least_load | custom
+  tie_epsilon: number
+  affinity_rules: []
+  fallback_policy: queue | fail | demote_to_audit | human_review
+  policy_decision_id: string
+```
+
+Custom algorithms must declare their scoring function and must produce the same conflict-resolution and authority-zeroing rules as the reference.
+
+---
+
+## 21. Transport failure semantics
+
+> **Status tag:** normative
+
+Transport failures during task delegation or execution must produce defined authority and retry behavior.
+
+### 21.1 Authority on transport failure
+
+If a DBP session fails, is interrupted, or is downgraded from S2 at any point during:
+
+1. task delegation (transmit phase);
+2. task execution (run phase);
+3. task outcome reporting (uplink phase);
+
+then:
+
+```text
+delegation_authority = 0
+task_outcome_authority = 0
+resource_witness_authority = 0
+```
+
+The affected `DelegatedTaskRecord` must be updated to `status: stale_blocked` and the `TaskOutcomeWitness` must not advance to `trust_status: canonicalized`.
+
+### 21.2 Retry rules
+
+```yaml
+DelegationRetryPolicy:
+  max_retries: integer
+  retry_delay_seconds: number
+  backoff_multiplier: number
+  max_retry_delay_seconds: number
+  retry_only_if: fresh_resource_witness_available | node_readmitted | transport_reestablished | custom
+  retry_blocked_if: node_stale | policy_changed | resource_invalidated | privacy_conflict
+```
+
+Reference defaults:
+
+```yaml
+max_retries: 3
+retry_delay_seconds: 2.0
+backoff_multiplier: 2.0
+max_retry_delay_seconds: 30.0
+retry_only_if: fresh_resource_witness_available
+```
+
+A retry must re-validate resource witnesses and policy before re-issuing the delegation. A cached resource witness from before the transport failure must not be used to justify retry delegation.
+
+### 21.3 Timeout rules
+
+```yaml
+DelegationTimeoutPolicy:
+  accept_timeout_seconds: number
+  execution_timeout_seconds: number | null
+  outcome_report_timeout_seconds: number
+  heartbeat_timeout_action: mark_stale | pause_tasks | reassign_tasks | revoke_node
+```
+
+Reference defaults:
+
+```yaml
+accept_timeout_seconds: 10
+execution_timeout_seconds: null
+outcome_report_timeout_seconds: 60
+heartbeat_timeout_action: reassign_tasks
+```
+
+If `execution_timeout_seconds` is null, a task-class-specific deadline in the `TaskDelegationActionPayload` governs. If no deadline is set, the task is not time-bounded from the coordinator's perspective; the worker may apply its own node-level policy.
+
+### 21.4 Downgrade rules
+
+If a DBP session is downgraded from S2 to S1 or Open during an active task:
+
+1. no new authority-bearing payloads may be sent on the downgraded lane;
+2. the coordinator must emit a `NodeDisconnectEvent` or trigger a `SelfModelInvalidationEvent`;
+3. existing in-flight tasks are marked `status: stale_blocked` and must be reassigned or cancelled;
+4. the node must re-authenticate at S2 before receiving new delegations.
+
+A downgrade does not automatically revoke the node, but the node's scheduling authority is zero until re-authentication.
+
+### 21.5 Node-level transport failure record
+
+```yaml
+NodeTransportFailureRecord:
+  node_transport_failure_record_id: string
+  node_id: string
+  cluster_id: string
+  dbp_session_id: string
+  failure_kind: connection_lost | auth_failed | lane_error | downgrade | timeout | custom
+  detected_at: string
+  affected_delegated_task_ids: []
+  authority_zeroed: true
+  retry_policy_id: string
+  required_action: retry | reassign | revoke | human_review | no_action
+  policy_decision_id: string
+```
+
+---
+
+## 22. Cluster-wide learning mode
+
+> **Status tag:** normative
+
+Learning mode governs which nodes and which task types are allowed to perform profile-learning, model-update, and adaptation work across the cluster.
+
+### 22.1 Learning mode values
+
+| Value | Meaning |
+|---|---|
+| `blocked` | no profile-learning or adaptation tasks may be delegated or executed cluster-wide |
+| `audit_only` | profile-learning tasks may run but all outputs are audit artifacts only; no profile promotion allowed |
+| `sandbox` | profile-learning tasks may run; outputs may be promoted to candidate profiles but not normative profiles |
+| `active` | profile-learning tasks may run; outputs may proceed through the full promotion path subject to policy |
+| `not_applicable` | node or task does not participate in learning operations |
+
+### 22.2 Cluster learning mode authority
+
+The cluster-wide learning mode is declared in the coordinator's policy snapshot. It overrides any node-level learning mode that would be more permissive.
+
+```yaml
+ClusterLearningModePolicy:
+  cluster_learning_mode_policy_id: string
+  cluster_id: string
+  learning_mode: blocked | audit_only | sandbox | active | not_applicable
+  applies_to_task_classes:
+    - start_profile_learning
+    - run_model_inference
+    - custom
+  node_override_allowed: false
+  policy_snapshot_id: string
+  policy_decision_id: string
+```
+
+`node_override_allowed: false` is the required default. A node must not self-promote its own learning mode beyond the cluster policy.
+
+### 22.3 Learning mode enforcement at delegation
+
+During policy checks at step 14 (delegation policy checks), the following must be evaluated:
+
+```text
+effective_learning_mode = min(
+  cluster_learning_mode,
+  node_learning_mode,
+  task_requested_learning_mode
+)
+```
+
+where `blocked < audit_only < sandbox < active`.
+
+If `effective_learning_mode` is insufficient for the task's `learning_mode_required`:
+
+```text
+delegation_authority = 0
+```
+
+### 22.4 Learning mode transition events
+
+A change in cluster-wide learning mode must produce an auditable record:
+
+```yaml
+ClusterLearningModeTransitionEvent:
+  event_id: string
+  cluster_id: string
+  prior_mode: blocked | audit_only | sandbox | active | not_applicable
+  new_mode: blocked | audit_only | sandbox | active | not_applicable
+  trigger: policy_change | human_operator | automated_policy | watchdog | custom
+  affected_delegated_task_ids: []
+  required_action_on_active_tasks: continue | pause | cancel | demote_to_audit
+  policy_decision_id: string
+  event_time: string
+```
+
+Active `start_profile_learning` tasks that are blocked by a mode downgrade must be paused or cancelled, not silently continued at a higher authority than the new mode allows.
+
+### 22.5 Non-claims
+
+Cluster-wide learning mode does not define when to change the mode, only how the mode affects delegation authority. Decisions about when to enable or disable cluster learning are owned by operator policy or automated watchdog policy, which must emit `PolicyChangeProposal` records subject to human review where required.

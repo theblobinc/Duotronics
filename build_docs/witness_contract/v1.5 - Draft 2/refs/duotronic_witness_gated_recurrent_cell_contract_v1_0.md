@@ -1436,7 +1436,258 @@ The cell blocks writes to affected conflicting slots until purge cascade resolve
 
 ---
 
-## 25. Non-claims
+## 25. MemorySlot canonicality criteria
+
+> **Status tag:** normative
+
+A `MemorySlot` becomes eligible to be represented as a `CanonicalWitnessFact` only after all of the following criteria are satisfied.
+
+### 25.1 Required criteria for canonicality
+
+| Criterion | Minimum requirement |
+|---|---|
+| trust_status | `stable` |
+| supporting canonical witness facts | at least one `CanonicalWitnessFact` in `canonical_witness_fact_refs` |
+| replay trace | a passing `replay_trace_set_id` in the approved `SlotPromotionRequest` |
+| retention diagnostics | at least one passing retention metric in `retention_metric_ids` |
+| contradiction score | `contradiction_score <= policy.thresholds.max_contradiction` at time of promotion |
+| purge lineage | `purge_check_refs` cleared; no outstanding purge hold |
+| human review | `human_review_decision_ids` satisfied where required by policy |
+| policy decision | `SlotPromotionRequest.status == approved` with `policy_decision_id` present |
+
+A slot that passes all criteria may be submitted to the `CanonicalWitnessFactRegistry` as a derived fact, subject to Family Registry approval if the fact crosses actor or domain scope.
+
+### 25.2 Conditions that prevent canonicality
+
+A slot is permanently blocked from canonical status if:
+
+1. `trust_status` is `tombstoned` or `deprecated`;
+2. any required purge hold is unresolved;
+3. contradiction score exceeds policy limit and no split has resolved it;
+4. human review is outstanding;
+5. underlying evidence was invalidated and no lineage rebuild was completed.
+
+### 25.3 Canonical slot record
+
+```yaml
+MemorySlotCanonicalRecord:
+  canonical_record_id: string
+  memory_slot_id: integer
+  memory_bank_id: string
+  derived_canonical_witness_fact_id: string
+  slot_promotion_request_id: string
+  canonicalization_policy_decision_id: string
+  authority_scope: internal | restricted | reference | normative
+  replay_identity: string
+  created_at: string
+  trust_status: canonicalized | deprecated | tombstoned
+```
+
+The `authority_scope` determines how the derived canonical fact may be used. It must not exceed the scope declared in the `SlotPromotionRequest` policy decision.
+
+---
+
+## 26. Purge cascade ordering
+
+> **Status tag:** normative
+
+When a purge event affects WG-RNN memory, cascade operations must execute in a defined order.
+
+### 26.1 Cascade sequence
+
+```text
+1. PurgeEvent received
+2. Identify all MemorySlots with matching provenance hashes
+3. For each affected slot:
+   a. Compute purge coverage:
+      full_purge  = all provenance_hashes are purged
+      partial_purge = some provenance_hashes are purged
+   b. Apply required action per policy
+4. Emit MemoryPurgeImpactRecord for every affected slot
+5. Block writes to conflicting slots (g_write <- 0)
+6. For slots requiring rebuild: trigger SlotPromotionRequest invalidation
+7. For slots requiring tombstone: set trust_status = tombstoned, clear content
+8. For slots requiring demote: set trust_status = candidate
+9. For slots requiring quarantine: set trust_status = quarantined
+10. After all slots are processed: lift write blocks as policy allows
+11. Emit ClusterPurgeCascadeCompletionRecord
+```
+
+### 26.2 Full-lineage purge rule
+
+If `full_purge == true`:
+
+```text
+required_action = tombstone
+g_write <- 0 (permanent until tombstone is processed)
+```
+
+The slot content vector must be cleared. The `purge_tombstone_id` must be recorded in the slot.
+
+### 26.3 Partial-lineage purge rule
+
+If `partial_purge == true`, the required action depends on the fraction of purged provenance:
+
+```yaml
+PurgeFractionThresholds:
+  high_fraction_threshold: 0.60
+  actions:
+    above_threshold: quarantine_then_rebuild_or_tombstone
+    below_threshold: demote_to_candidate
+```
+
+Reference defaults:
+
+```yaml
+high_fraction_threshold: 0.60
+above_threshold: quarantine
+below_threshold: demote_to_candidate
+```
+
+These defaults may be overridden by slot policy or actor scope policy.
+
+### 26.4 Write block duration
+
+After cascade, writes to affected slots are blocked until:
+
+```text
+purge_cascade_resolved == true
+AND
+(rebuild_complete == true OR tombstone_applied == true OR demote_applied == true)
+```
+
+The `blocked_write_until` field in `MemoryPurgeImpactRecord` must be set to a specific timestamp or `null` to indicate indefinite hold pending resolution.
+
+### 26.5 Cascade completion record
+
+```yaml
+ClusterPurgeCascadeCompletionRecord:
+  cascade_completion_record_id: string
+  purge_event_id: string
+  memory_bank_id: string
+  total_slots_affected: integer
+  tombstoned_count: integer
+  quarantined_count: integer
+  demoted_count: integer
+  rebuilt_count: integer
+  write_blocks_remaining: integer
+  completion_time: string
+  policy_decision_id: string
+```
+
+A cascade is not complete until `write_blocks_remaining == 0` or all remaining blocks are explicitly approved as indefinite holds by policy.
+
+---
+
+## 27. Contamination prevention guardrails
+
+> **Status tag:** normative
+
+The following rules guard against the corruption of the witness-governed memory model.
+
+These rules must be checked by the policy shield at every memory update cycle.
+
+### 27.1 Fast state must not become implicit truth
+
+Fast recurrent state (`h_t`, `c_t`) is computation only.
+
+```text
+PROHIBITED:
+  - treating h_t or c_t as a CanonicalWitnessFact
+  - using h_t or c_t as the sole input to a MemorySlot write
+  - promoting a MemorySlot that cites only h_t or c_t as provenance
+
+REQUIRED:
+  - persistent memory authority must trace to at least one CanonicalWitnessFact
+    or policy-approved CandidateWitness in the WitnessFeatureVector source fields
+```
+
+### 27.2 Scheduler feedback must not contaminate evidence
+
+Task outcome data may re-enter the system as evidence only through the full canonical flow:
+
+```text
+TaskOutcomeWitness
+-> EvidenceBundle
+-> CandidateWitness
+-> canonicalization
+-> CanonicalWitnessFact
+-> WitnessFeatureVector
+-> memory update
+```
+
+```text
+PROHIBITED:
+  - using raw TaskOutcomeWitness to directly increment MemorySlot content
+  - using scheduler load data or queue pressure to write MemorySlot content
+  - using node admission or heartbeat data as persistent memory input without canonicalization
+```
+
+### 27.3 Memory slots must not self-confirm beliefs
+
+A MemorySlot must not be used as its own canonicalization evidence.
+
+```text
+PROHIBITED:
+  - a MemorySlot's content_vector_ref appearing in its own canonical_witness_fact_refs
+  - a SlotPromotionRequest citing only prior MemorySlot reads as supporting evidence
+  - stable memory slot content being fed back as WitnessFeatureVector input
+    without an independent evidence bundle
+
+REQUIRED:
+  - every canonical witness fact cited in canonical_witness_fact_refs must
+    trace to an independent evidence source outside the memory bank
+```
+
+### 27.4 Policy thresholds must not drift
+
+Gate thresholds (`min_replay`, `max_contradiction`, `risk_limit`, etc.) must not adapt autonomously.
+
+```text
+PROHIBITED:
+  - any runtime mechanism that lowers promotion_threshold based on recurrence patterns
+  - any runtime mechanism that raises candidate_write_upper_bound based on scheduler load
+  - any memory update that changes WitnessGatedRecurrentCellPolicy fields
+
+REQUIRED:
+  - threshold changes require a PolicyChangeProposal with policy_decision_id
+  - threshold changes that affect existing stable memory must trigger
+    re-evaluation of affected SlotPromotionRequest records
+```
+
+### 27.5 Profile-learning tasks must not rewrite policy indirectly
+
+```text
+PROHIBITED:
+  - a start_profile_learning task that emits updates to WitnessGatedRecurrentCellPolicy
+  - a task outcome that modifies allowed_sources or local_adaptation fields
+    without a PolicyChangeProposal
+
+REQUIRED:
+  - profile-learning tasks emit CandidateProfile or evidence only
+  - policy changes require separate PolicyChangeProposal + approval
+```
+
+### 27.6 Contamination detection record
+
+If a contamination guard rule is triggered, the policy shield must emit:
+
+```yaml
+MemoryContaminationGuardRecord:
+  contamination_guard_record_id: string
+  cell_profile_id: string
+  memory_bank_id: string
+  step_id: string
+  rule_triggered: fast_state_as_truth | scheduler_feedback | self_confirmation | threshold_drift | policy_rewrite | custom
+  action_taken: no_op | quarantine_slot | block_write | escalate | human_review
+  evidence_refs: []
+  policy_decision_id: string
+  detected_at: string
+```
+
+---
+
+## 28. Non-claims
 
 WG-RNN v1.0 does not prove a new learning theory.
 
