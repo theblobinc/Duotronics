@@ -61,6 +61,8 @@ Raw machine metrics are not scheduling authority.
 Connected nodes are not trusted by default.
 Task delegation is an action candidate until policy approves it.
 DBP transport must be S2 for authority-bearing semantic use.
+Transport failure zeros delegation authority immediately.
+Cluster-wide learning mode is enforced at delegation time, not node time.
 ```
 
 ---
@@ -241,12 +243,14 @@ v1.5 adds distributed scheduling and DBP cluster federation on top of that trust
 2. Implement `NodeHello` / `NodeAccept`.
 3. Implement resource metric evidence and `ResourceAvailabilityWitness`.
 4. Implement heartbeat every 5 seconds and 30-second stale invalidation.
-5. Implement command lane `delegate_task`.
-6. Implement a no-op task and `TaskOutcomeWitness`.
-7. Implement CPU-bound model task delegation.
-8. Add GPU worker detection and GPU-specific scheduling.
-9. Add `TaskQueueWitness` and least-loaded scheduling.
-10. Run the v1.5 conformance fixtures.
+5. Implement command lane `delegate_task` with weighted least-load scheduler (§20 of delegation contract).
+6. Implement transport failure handling, retry/timeout/downgrade rules (§21 of delegation contract).
+7. Implement cluster-wide learning mode enforcement at delegation time (§22 of delegation contract).
+8. Implement a no-op task and `TaskOutcomeWitness`.
+9. Implement CPU-bound model task delegation.
+10. Add GPU worker detection and GPU-specific scheduling.
+11. Add `TaskQueueWitness` and least-loaded scheduling.
+12. Run the v1.5 conformance fixtures.
 
 
 ## Draft 2 WG-RNN memory loop
@@ -270,3 +274,15 @@ Hard boundary:
 Fast recurrent state is computation.
 Persistent memory authority requires witness features, replay, and policy.
 ```
+
+### Contamination prevention
+
+Explicit guardrails enforce this boundary:
+
+1. fast state (`h_t`, `c_t`) must never be used as a canonical witness fact or as the sole provenance of a persistent memory write;
+2. scheduler feedback (task outcomes, queue pressure, load data) re-enters the system only through the full evidence canonicalization flow;
+3. memory slots must not self-confirm their own beliefs — every canonical fact cited as promotion evidence must trace to an independent evidence source outside the memory bank;
+4. gate thresholds must not drift autonomously — all threshold changes require a `PolicyChangeProposal`;
+5. profile-learning tasks may not rewrite policy indirectly through task outcome payloads.
+
+These rules are specified in section 27 of the WG-RNN contract.
