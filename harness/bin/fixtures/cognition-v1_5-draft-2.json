@@ -1,0 +1,73 @@
+{
+  "cases": [
+    {
+      "case_id": "cognition.rho_kernel.hybrid_worker_trace",
+      "expect": {
+        "equals": {
+          "authoritative": false,
+          "status": "accepted",
+          "updates": {
+            "callback": 0.403441
+          }
+        },
+        "key_truthy": [
+          "diagnostics"
+        ]
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "config": {
+          "beta": 0.18,
+          "enabled": true,
+          "memory_mode": "hybrid",
+          "scope": "worker"
+        },
+        "deltas": {
+          "callback": 0.3
+        },
+        "trace": {
+          "family": "motif_recurrence",
+          "history": {
+            "callback": [
+              0.2,
+              0.4,
+              0.1
+            ]
+          }
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_rho_memory_kernel"
+    },
+    {
+      "case_id": "cognition.learning.tensor_programming_view",
+      "expect": {
+        "contains": {
+          "bridge_ids": "tensor_array_to_geometric",
+          "formal_guardrails": "array_representation_requires_basis_or_coordinate_choice"
+        },
+        "equals": {
+          "selected_view_id": "tensor_computational_array",
+          "status": "accepted"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "concept_id": "tensor",
+        "learner_assertion": "a tensor is just an array",
+        "learner_intent": "programming"
+      },
+      "marker": "research",
+      "op": "route_learning_view"
+    }
+  ],
+  "description": "v1.5 Draft 2 cognition research slice: rho-Padovan recurrent memory\nkernel and multi-view learning engine executable mirrors.\n",
+  "pack_id": "cognition-v1_5-draft-2",
+  "schema_version": "v1.5-draft-2",
+  "target_schema_version": "v1.5-draft-2"
+}

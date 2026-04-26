@@ -599,6 +599,154 @@ def _op_evaluate_node_disconnect_reassignment(given: Mapping[str, Any]) -> dict[
     }
 
 
+_PLASTIC_RHO = 1.324717957244746
+_RHO_INV_1 = 1.0 / _PLASTIC_RHO
+_RHO_INV_2 = _RHO_INV_1**2
+_RHO_INV_3 = _RHO_INV_1**3
+_RHO_DECAYS = {
+    "long": _RHO_INV_1,
+    "medium": _RHO_INV_2,
+    "short": _RHO_INV_3,
+    "fast": _RHO_INV_1**4,
+}
+_RHO_FAMILY_DECAYS = {
+    "callback_rich": "long",
+    "motif_recurrence": "medium",
+    "novelty": "fast",
+    "low_evidence": "fast",
+}
+
+
+def _op_evaluate_rho_memory_kernel(given: Mapping[str, Any]) -> dict[str, Any]:
+    config = given.get("config", {})
+    enabled = bool(config.get("enabled", False))
+    scope = str(config.get("scope", "worker"))
+    memory_mode = str(config.get("memory_mode", "hybrid"))
+    beta = float(config.get("beta", 0.25))
+    alpha = float(config.get("alpha", 0.85))
+    trace_depth = int(config.get("trace_depth", 3))
+    trace = given.get("trace", {})
+    family = str(trace.get("family", "motif_recurrence"))
+    decay_tier = str(given.get("decay_tier") or _RHO_FAMILY_DECAYS.get(family, "medium"))
+    decay = _RHO_DECAYS.get(decay_tier, _RHO_DECAYS["medium"])
+    reasons: list[str] = []
+    if not enabled:
+        reasons.append("rho_kernel_disabled")
+    if scope == "canonical":
+        reasons.append("canonical_scope_requires_explicit_promotion")
+    if memory_mode not in {"ema", "rho_ladder", "padovan_delayed", "hybrid"}:
+        reasons.append("unsupported_rho_memory_mode")
+    if reasons:
+        return {
+            "schema_version": "rho-memory-step-result@v1",
+            "status": "rejected",
+            "authoritative": False,
+            "updates": {},
+            "diagnostics": {},
+            "failure_reasons": reasons,
+        }
+
+    updates: dict[str, float] = {}
+    next_history: dict[str, list[float]] = {}
+    diagnostics: dict[str, dict[str, float]] = {}
+    history = trace.get("history", {})
+    for coordinate, delta_value in given.get("deltas", {}).items():
+        prior = [float(value) for value in history.get(coordinate, [])]
+        t_minus_1 = prior[-1] if len(prior) >= 1 else 0.0
+        t_minus_2 = prior[-2] if len(prior) >= 2 else 0.0
+        t_minus_3 = prior[-3] if len(prior) >= 3 else 0.0
+        delta = float(delta_value)
+        bounded_decay = min(max(decay, 0.0), _RHO_INV_1)
+        bounded_beta = min(max(beta, 0.0), 1.0 - bounded_decay)
+        if memory_mode in {"ema", "rho_ladder"}:
+            updated = bounded_decay * t_minus_1 + delta
+        elif memory_mode == "padovan_delayed":
+            updated = min(max(alpha, 0.0), 1.0) * _RHO_INV_3 * (t_minus_2 + t_minus_3) + delta
+        else:
+            updated = bounded_decay * t_minus_1 + bounded_beta * _RHO_INV_3 * (t_minus_2 + t_minus_3) + delta
+        updates[str(coordinate)] = round(updated, 6)
+        next_history[str(coordinate)] = [round(value, 6) for value in (prior + [updated])[-max(1, trace_depth):]]
+        diagnostics[str(coordinate)] = {
+            "decay": round(bounded_decay, 6),
+            "beta": round(bounded_beta, 6),
+            "t_minus_1": round(t_minus_1, 6),
+            "t_minus_2": round(t_minus_2, 6),
+            "t_minus_3": round(t_minus_3, 6),
+        }
+    return {
+        "schema_version": "rho-memory-step-result@v1",
+        "status": "accepted",
+        "authoritative": scope == "canonical",
+        "updates": updates,
+        "history": next_history,
+        "diagnostics": diagnostics,
+        "failure_reasons": [],
+    }
+
+
+def _op_route_learning_view(given: Mapping[str, Any]) -> dict[str, Any]:
+    concept_id = str(given.get("concept_id", "tensor"))
+    if concept_id != "tensor":
+        return {
+            "schema_version": "learning-route-result@v1",
+            "status": "rejected",
+            "failure_reasons": ["unknown_concept"],
+            "diagnostics": {"known_concepts": ["tensor"]},
+        }
+    purpose = str(given.get("learner_intent", given.get("purpose", "programming"))).lower()
+    if any(token in purpose for token in ("proof", "linear", "multilinear")):
+        selected_view = "tensor_functional_multilinear"
+        guardrails = ["inputs_must_be_linear_in_each_argument"]
+        operations = ["evaluate_on_vectors", "verify_multilinearity"]
+        bridge_ids: list[str] = []
+    elif any(token in purpose for token in ("geometry", "physics", "coordinate", "transform")):
+        selected_view = "tensor_geometric_transform"
+        guardrails = ["components_must_obey_transformation_rules"]
+        operations = ["change_basis", "compare_coordinate_components"]
+        bridge_ids = []
+    else:
+        selected_view = "tensor_computational_array"
+        guardrails = [
+            "array_representation_requires_basis_or_coordinate_choice",
+            "component_shape_is_not_the_full_tensor_identity",
+        ]
+        operations = ["index_components", "reshape_or_contract_axes", "track_shape_and_basis"]
+        bridge_ids = ["tensor_array_to_geometric", "tensor_array_to_multilinear"]
+    assertion = str(given.get("learner_assertion", "")).lower()
+    warnings = []
+    if "just" in assertion and "array" in assertion:
+        warnings.append("An array can represent a tensor after basis choices; it is not the whole concept.")
+    return {
+        "schema_version": "learning-route-result@v1",
+        "status": "accepted",
+        "concept_id": "tensor",
+        "canonical_name": "Tensor",
+        "selected_view_id": selected_view,
+        "selection_reason": f"matched learner_intent:{purpose}",
+        "formal_kernel": "A tensor may be represented by arrays after choosing a basis, but is not exhausted by that representation.",
+        "formal_guardrails": guardrails,
+        "operations": operations,
+        "bridge_ids": bridge_ids,
+        "misconception_warnings": warnings,
+        "diagnostics": {
+            "valid_view_count": 4,
+            "unselected_valid_views": sorted(
+                set(
+                    [
+                        "tensor_computational_array",
+                        "tensor_functional_multilinear",
+                        "tensor_geometric_transform",
+                        "tensor_abstract_product",
+                    ]
+                )
+                - {selected_view}
+            ),
+            "answer_must_declare_bridge": bool(bridge_ids),
+        },
+        "failure_reasons": [],
+    }
+
+
 # ---------------------------------------------------------------------------
 # Normalizer
 # ---------------------------------------------------------------------------
@@ -884,6 +1032,8 @@ OPERATIONS: dict[str, Callable[[Mapping[str, Any]], dict[str, Any]]] = {
     "evaluate_cluster_node_schedulability": _op_evaluate_cluster_node_schedulability,
     "evaluate_task_outcome_transport_authority": _op_evaluate_task_outcome_transport_authority,
     "evaluate_node_disconnect_reassignment": _op_evaluate_node_disconnect_reassignment,
+    "evaluate_rho_memory_kernel": _op_evaluate_rho_memory_kernel,
+    "route_learning_view": _op_route_learning_view,
     # Normalizer
     "normalize_family_word": _op_normalize_family_word,
     "normalize_reflection_path": _op_normalize_reflection_path,

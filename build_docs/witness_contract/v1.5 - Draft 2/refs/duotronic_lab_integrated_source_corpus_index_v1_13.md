@@ -197,6 +197,11 @@ v1.5 extends the v1.4 Draft 5 corpus into a distributed self-governing recurrent
 
 1. `refs/duotronic_witness_gated_recurrent_cell_contract_v1_0.md`
 
+## v1.5 Draft 2 cognition research source specs
+
+1. `refs/duotronic_rho_padovan_recurrent_memory_kernel_v0_1.md`
+2. `refs/duotronic_multi_view_learning_engine_contract_v0_1.md`
+
 ## v1.5 Draft 2 WG-RNN object classes
 
 1. `WGRNNStepInput`
@@ -220,3 +225,5 @@ v1.5 extends the v1.4 Draft 5 corpus into a distributed self-governing recurrent
 ## v1.5 Draft 2 scope statement
 
 v1.5 Draft 2 adds a research-profile Witness-Gated Recurrent Cell. WG-RNN uses canonical witness features as explicit memory-control gates and logs every persistent memory update as replayable evidence. It supports local online adaptation without global backpropagation, but all stable memory promotion remains replay-, retention-, purge-, and policy-gated. A PyTorch implementation skeleton and implementation roadmap are included.
+
+The Draft 2 cognition additions extend this research surface with an optional rho-Padovan recurrent-memory kernel and a multi-view learning engine. The rho kernel is feature-flagged memory support for branch-local and diagnostic use; it is not canonical chain truth. The learning engine preserves multiple valid explanatory views of a concept and routes learners to a declared view with formal guardrails rather than flattening views into one answer.

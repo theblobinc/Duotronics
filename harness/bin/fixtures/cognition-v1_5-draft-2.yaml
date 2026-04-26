@@ -1,0 +1,47 @@
+pack_id: cognition-v1_5-draft-2
+schema_version: v1.5-draft-2
+target_schema_version: v1.5-draft-2
+description: |
+  v1.5 Draft 2 cognition research slice: rho-Padovan recurrent memory
+  kernel and multi-view learning engine executable mirrors.
+
+cases:
+  - case_id: cognition.rho_kernel.hybrid_worker_trace
+    op: evaluate_rho_memory_kernel
+    marker: research
+    extra_markers: [policy, replay]
+    given:
+      trace:
+        family: motif_recurrence
+        history:
+          callback: [0.2, 0.4, 0.1]
+      deltas:
+        callback: 0.3
+      config:
+        enabled: true
+        scope: worker
+        memory_mode: hybrid
+        beta: 0.18
+    expect:
+      equals:
+        status: accepted
+        authoritative: false
+        updates:
+          callback: 0.403441
+      key_truthy: [diagnostics]
+
+  - case_id: cognition.learning.tensor_programming_view
+    op: route_learning_view
+    marker: research
+    extra_markers: [policy]
+    given:
+      concept_id: tensor
+      learner_intent: programming
+      learner_assertion: a tensor is just an array
+    expect:
+      equals:
+        status: accepted
+        selected_view_id: tensor_computational_array
+      contains:
+        formal_guardrails: array_representation_requires_basis_or_coordinate_choice
+        bridge_ids: tensor_array_to_geometric

@@ -8,6 +8,7 @@ from runtime_ref.architecture.state_migration import StateMigrationPlan
 from runtime_ref.meta.acceptance import accept_or_reject_meta
 from runtime_ref.meta.diagnostics import MetaDiagnostics
 from runtime_ref.meta.replay import ShadowReplaySpec
+from runtime_ref.meta.rho_kernel import RhoKernelConfig, RhoPadovanTrace
 from runtime_ref.meta.witness import MetaRecurrentWitness
 from runtime_ref.meta_objects.normalization import (
     build_meta_object_instance as _build_meta_object_instance,
@@ -16,6 +17,7 @@ from runtime_ref.meta_objects.normalization import (
     normalize_meta_object as _normalize_meta_object,
 )
 from runtime_ref.policy.constraints import PolicyShieldSnapshot
+from runtime_ref.learning import route_learning_view as _route_learning_view
 
 
 def _status(valid: bool) -> str:
@@ -267,6 +269,25 @@ def step_meta_memory_cell(given: dict[str, Any]) -> dict:
     }
 
 
+def step_rho_memory_kernel(given: dict[str, Any]) -> dict:
+    trace_payload = given.get("trace", {})
+    trace = RhoPadovanTrace(
+        family=str(trace_payload.get("family", "motif_recurrence")),
+        history={
+            key: [float(value) for value in values]
+            for key, values in trace_payload.get("history", {}).items()
+        },
+    )
+    config = RhoKernelConfig.from_dict(given.get("config", {}))
+    result = trace.step(
+        given.get("deltas", {}),
+        config,
+        decay_tier=given.get("decay_tier"),
+    )
+    result["authoritative"] = config.scope == "canonical" and result["status"] == "accepted"
+    return result
+
+
 _OPERATIONS = {
     "build_meta_object_instance": build_meta_object_instance,
     "normalize_meta_object": normalize_meta_object,
@@ -279,6 +300,8 @@ _OPERATIONS = {
     "dry_run_state_migration": dry_run_state_migration,
     "evaluate_meta_retention": evaluate_meta_retention,
     "step_meta_memory_cell": step_meta_memory_cell,
+    "step_rho_memory_kernel": step_rho_memory_kernel,
+    "route_learning_view": _route_learning_view,
 }
 
 

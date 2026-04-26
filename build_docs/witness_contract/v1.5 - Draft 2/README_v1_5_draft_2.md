@@ -48,6 +48,15 @@ It adds:
 
 WG-RNN v1.0 is research-only until promoted through benchmark evidence, replay fixtures, retention diagnostics, purge tests, and policy approval.
 
+## Draft 2 additions: Rho kernel and multi-view learning
+
+v1.5 Draft 2 also incorporates two bounded research profiles:
+
+1. `refs/duotronic_rho_padovan_recurrent_memory_kernel_v0_1.md` — an optional plastic-ratio / Padovan recurrence kernel for branch-local memory, ranking diagnostics, and canonical-shadow experiments.
+2. `refs/duotronic_multi_view_learning_engine_contract_v0_1.md` — an additive concept-routing layer that preserves multiple valid views of the same concept and exposes formal guardrails in learning explanations.
+
+Both profiles are experimental. The rho kernel must remain feature-flagged and non-canonical unless replay parity, ranking stability, diagnostics, and policy approval are present. The multi-view learning engine must not replace canonical witness extraction or synthesis; it routes and explains concepts above those layers.
+
 ## 1. What v1.5 adds
 
 v1.5 adds the distributed cluster layer.

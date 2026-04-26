@@ -337,3 +337,38 @@ refs/duotronic_witness_gated_recurrent_cell_contract_v1_0.md
 ```
 
 WG-RNN v1.0 is a research profile. Implementations must not treat it as normative memory behavior unless promoted through replay, fixtures, retention diagnostics, and policy.
+
+## 14. v1.5 Draft 2 cognition research object schemas
+
+> **Status tag:** normative research-profile registry
+
+v1.5 Draft 2 adds the following bounded cognition research schema classes.
+
+Rho-Padovan recurrent-memory kernel:
+
+1. `RhoKernelConfig`;
+2. `RhoPadovanTrace`;
+3. `RhoMemoryStepInput`;
+4. `RhoMemoryStepResult`;
+5. `RhoKernelDiagnostics`;
+6. `RhoKernelReplayIdentity`.
+
+Multi-view learning engine:
+
+1. `ConceptProfile`;
+2. `ViewProfile`;
+3. `ViewBridge`;
+4. `LearnerIntent`;
+5. `MisconceptionRecord`;
+6. `ExplanationContract`;
+7. `LearningSessionState`;
+8. `LearningRouteDiagnostics`.
+
+These schema classes are owned by:
+
+```text
+refs/duotronic_rho_padovan_recurrent_memory_kernel_v0_1.md
+refs/duotronic_multi_view_learning_engine_contract_v0_1.md
+```
+
+Both profiles are research-only. Implementations must not treat rho recurrence or learning-view routing as canonical witness authority without explicit policy approval and replay evidence.

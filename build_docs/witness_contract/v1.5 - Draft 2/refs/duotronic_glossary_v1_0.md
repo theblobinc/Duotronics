@@ -523,3 +523,47 @@ Slot promotion is the policy-approved movement of a candidate memory slot to sta
 ### 16.7 Quarantined memory
 
 Quarantined memory is memory isolated due to novelty, low confidence, contradiction, human-review requirement, risk, or purge ambiguity. It has no normal action authority.
+
+---
+
+## 17. v1.5 Draft 2 rho-kernel terms
+
+### 17.1 Rho-Padovan recurrent-memory kernel
+
+A Rho-Padovan recurrent-memory kernel is an optional research memory kernel that uses plastic-ratio ladder decays and damped Padovan delayed recurrence for branch-local witness memory, ranking diagnostics, or canonical-shadow experiments.
+
+### 17.2 Rho ladder
+
+The rho ladder is the ordered decay set `rho^-1`, `rho^-2`, `rho^-3`, and `rho^-4`, used as long, medium, short, and fast memory scales.
+
+### 17.3 Padovan delayed memory
+
+Padovan delayed memory is a bounded recurrence that uses `m_(t-2)` and `m_(t-3)` rather than the immediately previous step to detect gap-separated callback motifs.
+
+### 17.4 Canonical-shadow rho mode
+
+Canonical-shadow rho mode computes rho-derived diagnostics beside the canonical path but grants them no decision authority.
+
+---
+
+## 18. v1.5 Draft 2 multi-view learning terms
+
+### 18.1 Concept profile
+
+A concept profile is the stable identity of a concept across multiple valid views.
+
+### 18.2 View profile
+
+A view profile is one valid explanatory lens for a concept, including the purposes where it is appropriate and the formal guardrails that constrain it.
+
+### 18.3 View bridge
+
+A view bridge declares how two views connect and what conditions or losses apply when moving between them.
+
+### 18.4 Explanation contract
+
+An explanation contract is the routed learning output that names the selected view, guardrails, operations, bridges, misconception warnings, and diagnostics.
+
+### 18.5 Misconception record
+
+A misconception record captures a learner assertion that contradicts a concept guardrail or silently collapses distinct valid views.
