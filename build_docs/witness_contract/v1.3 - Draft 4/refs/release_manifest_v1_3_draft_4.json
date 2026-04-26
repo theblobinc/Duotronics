@@ -1,0 +1,31 @@
+{
+  "release_id": "duotronic-v1.3-draft-4",
+  "source_bundle": "v1.3 - Draft 3.zip",
+  "description": "Complete updated corpus that adds pronic-centered polygon families as a bounded visual-axiom geometry/witness profile while preserving Draft 3 structure.",
+  "changed_documents": {
+    "duotronic_polygon_family_calculus_v5_11.md": "Adds DPFC boundary for pronic-centered polygon families and reference bridge constraints.",
+    "duotronic_witness_contract_v10_11.md": "Adds pronic-centered polygon witnesses as optional geometry-witness section.",
+    "refs/duotronic_source_architecture_overview_v1_6.md": "Updates corpus map and explains where pronic-centered profile belongs.",
+    "refs/duotronic_lab_integrated_source_corpus_index_v1_5.md": "Updates corpus index for Draft 4.",
+    "refs/duotronic_research_profile_pronic_centered_polygon_families_v1_0.md": "New standalone visual-axiom geometry/witness profile.",
+    "README_v1_3_draft_4.md": "New bundle README.",
+    "corpus_review_v1_3_draft_3_to_draft_4.md": "Structure review and update rationale."
+  },
+  "unchanged_companion_documents": [
+    "refs/duotronic_schema_registry_v1_2.md",
+    "refs/duotronic_family_registry_v1_2.md",
+    "refs/duotronic_normalizer_profiles_v1_2.md",
+    "refs/duotronic_transport_profiles_v1_2.md",
+    "refs/duotronic_retention_diagnostics_v1_2.md",
+    "refs/duotronic_policy_shield_guide_v1_2.md",
+    "refs/duotronic_migration_guide_v1_2.md",
+    "refs/duotronic_research_profile_qcd_spin_correlation_analogy_v1_2.md",
+    "refs/duotronic_research_profile_acoustics_spectral_witnesses_v1_2.md",
+    "refs/duotronic_research_profile_edo_temperament_v1_2.md",
+    "refs/duotronic_research_profile_selective_witness_state_spaces_v1_0.md",
+    "refs/duotronic_research_profile_gcd_jump_recurrences_v1_0.md",
+    "refs/duotronic_lab_evidence_registry_v1_0.md",
+    "refs/duotronic_meta_runtime_contract_v0_2.md"
+  ],
+  "boundary_statement": "Pronic-centered polygon families are a bounded geometry/witness profile. They do not redefine DPFC arithmetic, transport validation, normalizer behavior, migration rules, policy authority, chemistry, physics, or quaternion theory."
+}
