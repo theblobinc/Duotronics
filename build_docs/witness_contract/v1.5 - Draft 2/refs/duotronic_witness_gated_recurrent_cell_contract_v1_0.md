@@ -1443,3 +1443,190 @@ WG-RNN v1.0 does not prove a new learning theory.
 It specifies a Duotronic-compatible recurrent memory component that keeps trust, provenance, contradiction, replay, purge, human review, and policy visible in the memory update path.
 
 It is a research profile until benchmarked and promoted.
+
+---
+
+## 26. Chronological self-training specification
+
+> **Status tag:** normative for WG-RNN local online adaptation
+
+The WG-RNN is designed to process evidence in chronological order and update its own persistent memory as that evidence arrives. This section specifies how that self-training loop works and what it may and may not do.
+
+### 26.1 What "self-training" means here
+
+Self-training in the WG-RNN sense means:
+
+1. the cell processes incoming canonical witness facts one step at a time in chronological order;
+2. at each step it may update candidate memory slot content through a local delta rule;
+3. it may optionally update a local fast-weight adapter through a Hebbian-style rule;
+4. every update is bounded by witness features, policy clamps, and rate limits;
+5. no global loss function, no backpropagation through time, and no optimizer state such as Adam or SGD are used.
+
+This is not pre-training on a large corpus. It is online, step-by-step memory consolidation driven by the chronological evidence stream the cell is fed.
+
+### 26.2 Chronological stream training loop
+
+At each time step `t` in the chronological evidence stream, the following sequence must occur:
+
+```text
+1. Assert canonical evidence is available for step t.
+2. Assert WitnessFeatureVector is derived from CanonicalWitnessFact, not raw input.
+3. Load policy and apply transport/canonicalization checks.
+4. Compute fast recurrence: q_t, r_t, h_t, c_t.
+5. Compute raw gate values: g_write, g_decay, g_quarantine, g_promote.
+6. Apply policy clamps (section 9). Clamped values override raw values unconditionally.
+7. Compute authority_t = min(profile_requested, w_t.confidence_score, normalizer_confidence, policy_limit).
+8. If authority_t == 0 or both g_write and g_promote are 0: record no_op MemoryUpdateRecord and skip to step 12.
+9. For each memory slot: compute attention, candidate content, per-slot write strength.
+10. Apply candidate, stable, or quarantine update per slot trust status.
+11. Optionally apply content adaptation delta (section 17.1) and fast-weight adaptation delta (section 17.2).
+12. Record MemoryUpdateRecord with all inputs, gate values before and after clamp, authority, slot impacts, and replay identity.
+13. Advance to step t+1. The prior memory bank state is the new M_t.
+```
+
+Every iteration of this loop must produce a MemoryUpdateRecord regardless of whether persistent memory was changed. A no_op record is valid and required.
+
+### 26.3 What makes this different from GPU-based training
+
+| Property | GPU-based neural training | WG-RNN self-training |
+|---|---|---|
+| Learning signal | Global gradient from a loss function | Local witness feature gate values |
+| Update granularity | Batch or mini-batch | One canonical evidence step at a time |
+| Parameter scope | All weights updated jointly | Memory slot content and optional fast-weight adapter only |
+| Gate thresholds | Learned as parameters | Fixed by policy; cannot be autonomously adjusted |
+| Memory write authority | Gradient magnitude | min(profile_requested, confidence, normalizer_confidence, policy_limit) |
+| Promotion | Implicit in loss minimization | Explicit SlotPromotionRequest with replay, retention, and policy checks |
+| Auditability | None required by architecture | Every update is a replayable MemoryUpdateRecord |
+| Purge support | Not defined | Memory slots carry lineage hashes and cascade on purge |
+
+### 26.4 What the cell may update autonomously
+
+Within a single step, the cell may:
+
+1. update candidate memory slot content by the content adaptation delta (section 17.1);
+2. update a local fast-weight adapter by the Hebbian delta (section 17.2), if `fast_weight_adaptation_enabled == true`;
+3. decay stable and candidate slot content by `g_decay`;
+4. allocate a new candidate or quarantined slot;
+5. split a slot whose contradiction score exceeds threshold.
+
+### 26.5 What the cell may not update autonomously
+
+The cell must not:
+
+1. directly promote a candidate slot to stable without a `SlotPromotionRequest` and policy approval;
+2. modify any policy threshold including `min_replay`, `max_contradiction`, `risk_limit`, or `candidate_write_upper_bound`;
+3. modify its own replay identity binding;
+4. write a canonical witness fact on its own behalf without the standard evidence → witness → canonicalization pipeline;
+5. self-confirm a memory slot by referencing only prior outputs of the same cell;
+6. override a policy clamp based on gate value magnitude;
+7. bypass human review when `human_review_required == true`;
+8. write to stable slots directly without a promotion record.
+
+### 26.6 Chronological ordering requirement
+
+Evidence must be presented to the cell in chronological order as determined by the `ChronologicalEvidenceStream` contract.
+
+Out-of-order evidence is permitted only in:
+
+1. replay traces, where the target step is explicitly declared;
+2. fixtures, where the ordering is fixed and documented;
+3. audit-only diagnostic runs that do not affect persistent memory.
+
+Processing out-of-order evidence as live chronological input must be flagged and may be quarantined or rejected depending on policy.
+
+---
+
+## 27. Architectural barriers against unbounded self-modification
+
+> **Status tag:** normative
+
+This section explicitly answers the question: what prevents the WG-RNN from modifying its own memory cells without limit?
+
+### 27.1 Barrier summary
+
+| Barrier | Enforcement point | Effect |
+|---|---|---|
+| Write gate requires witness features | Gate computation uses `w_t` | Raw input alone cannot produce a valid write signal |
+| Policy clamps override all gate values | Applied after gate computation | Policy decision is always the ceiling |
+| Gate thresholds are policy-only | Cannot be modified by the cell | The cell cannot lower its own barriers |
+| Authority ceiling | `min(profile, confidence, normalizer, policy_limit)` | Authority is bounded to the weakest approved factor |
+| Rate limits | `max_updates_per_minute`, `max_promotions_per_hour` | Prevents high-frequency unreviewed self-modification |
+| Stable write requires promotion | `SlotPromotionRequest` + policy | The cell cannot write to stable memory directly |
+| Contradiction causes quarantine | Clamp 9.3 | Contradictory content is isolated, not written to candidate memory |
+| High novelty causes quarantine | Clamp 9.3 | Unknown patterns are isolated until reviewed |
+| Human review blocks promotion | Clamp 9.4 | Promotion is frozen when a human decision is pending |
+| Purge blocks conflicting writes | Section 20 clamp | Content derived from purged evidence cannot be rewritten |
+| Fast state is not persistent truth | Section 6 authority boundary | `h_t` and `c_t` cannot become canonical facts without extraction, replay, and policy |
+| Memory self-confirmation forbidden | Section 27.2 | A slot cannot raise its own stability score using only its own prior content |
+
+### 27.2 Self-confirmation prohibition
+
+A memory slot must not be used as the sole evidence for its own continued stability or promotion.
+
+A slot's `canonical_witness_fact_refs` must refer to externally sourced canonical witness facts, not to MemoryUpdateRecords that themselves only reference the same slot.
+
+Self-referential promotion chains are rejected by the policy shield.
+
+### 27.3 Gate threshold lock
+
+The following thresholds are read from policy at each step and must not be overwritten by the cell at runtime:
+
+1. `threshold_invalidate`
+2. `min_replay`
+3. `max_contradiction`
+4. `high_novelty_threshold`
+5. `low_confidence_threshold`
+6. `risk_limit`
+7. `candidate_write_upper_bound`
+8. `promotion_threshold`
+9. `split_contradiction_threshold`
+10. `prune_stale_after_seconds`
+
+Changing any threshold requires a `PolicyChangeProposal` through the standard policy path. The cell may not propose or approve its own policy changes.
+
+### 27.4 Fast state authority boundary
+
+`h_t` and `c_t` are temporary computation artifacts.
+
+They may be used for:
+
+1. gate queries;
+2. memory read attention;
+3. candidate content computation;
+4. diagnostic signals;
+5. fast-weight adapter updates.
+
+They may not be used to:
+
+1. directly construct a `CanonicalWitnessFact`;
+2. override a policy clamp;
+3. set a slot trust status;
+4. produce a `SlotPromotionRequest` without external evidence review;
+5. write to a stable memory slot.
+
+### 27.5 Scheduler feedback isolation
+
+When WG-RNN cells run in a distributed cluster, scheduler feedback such as task outcomes, resource witness values, and queue pressure must not be fed directly to the cell as `x_t` without being wrapped as canonical witness evidence first.
+
+Scheduler feedback entering the cell as raw embeddings is forbidden for persistent memory updates. It must be wrapped as:
+
+```text
+TaskOutcomeWitness
+-> EvidenceBundle
+-> CandidateWitness
+-> canonicalization
+-> CanonicalWitnessFact
+-> WitnessFeatureVector
+```
+
+before it may drive memory gates.
+
+### 27.6 What the barriers collectively enforce
+
+Together, the barriers ensure:
+
+1. the cell cannot continuously write to itself unless the incoming evidence stream consistently produces high-authority witness features;
+2. the cell cannot lower its own trust thresholds to inflate its own authority;
+3. the cell cannot promote its own memory to stable status without external validation;
+4. the cell cannot contaminate its trusted memory with raw sensor data, raw model outputs, or scheduler feedback that has not been through the full evidence pipeline;
+5. every change to persistent memory is auditable, replayable, and reversible through purge or demotion.

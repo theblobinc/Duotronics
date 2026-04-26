@@ -270,3 +270,32 @@ Hard boundary:
 Fast recurrent state is computation.
 Persistent memory authority requires witness features, replay, and policy.
 ```
+
+## Draft 2 WG-RNN self-training and guardrails
+
+The WG-RNN processes chronological evidence one step at a time and may update its own persistent memory slots locally at each step, without GPU backpropagation or global loss functions.
+
+See `refs/duotronic_witness_gated_recurrent_cell_contract_v1_0.md`:
+
+- **Section 26** specifies the chronological self-training loop, what the cell may update per step, what it must not update, and how this differs from GPU training.
+- **Section 27** specifies the architectural barriers preventing unbounded self-modification: write gate requires witness features, policy clamps override all gate values, gate thresholds are locked by policy, stable memory requires explicit promotion, and fast state cannot become canonical truth.
+
+Key rule:
+
+```text
+The cell may continuously update candidate memory from incoming chronological evidence.
+It may not continuously promote that memory to stable status without replay, retention
+diagnostics, contradiction checks, purge lineage validation, and policy approval.
+Self-confirmation is forbidden.
+```
+
+## Draft 2 distributed scheduling additions
+
+See `refs/duotronic_distributed_task_delegation_and_resource_witness_contract_v1_0.md`:
+
+- **Section 20** defines the reference capability-filtered least-loaded-first scheduler, cluster-wide learning mode semantics, and conflict resolution precedence table.
+- **Section 21** defines retry and exponential backoff on transport failure, lease timeout handling, node downgrade thresholds, resource normalization formulas, and node identity/authentication requirements.
+
+See `duotronic_v1_5_distributed_self_governing_recurrent_network_addendum.md`:
+
+- **Section 9** states the normative recurrent-memory guardrails for the distributed case: fast state is computation only, memory cannot self-confirm, scheduler feedback must not contaminate evidence quality, task outcomes cannot rewrite policy autonomously.

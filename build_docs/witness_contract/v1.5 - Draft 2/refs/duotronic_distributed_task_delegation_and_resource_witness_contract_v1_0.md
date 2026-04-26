@@ -718,3 +718,229 @@ task_replay_identity =
 This contract does not prescribe one scheduler algorithm, queue technology, orchestration platform, or model server.
 
 It specifies the witness, policy, replay, and trust boundaries required for resource-aware delegation.
+
+---
+
+## 20. Reference scheduling algorithm
+
+> **Status tag:** reference
+
+This section defines the reference scheduling strategy for the six-machine prototype. Deployments may substitute a different algorithm if it satisfies the trust and freshness requirements of this contract.
+
+### 20.1 Reference strategy: capability-filtered least-loaded-first
+
+The reference scheduler selects a target node using the following ordered steps.
+
+**Step 1: Build the eligible node set.**
+
+Include a node in the eligible set only if all of the following are true:
+
+1. node identity `trust_status` is `admitted`;
+2. DBP session is authenticated at S2 or better;
+3. `ResourceAvailabilityWitness` for the node is not stale (age < `max_staleness_seconds`);
+4. `NodeSelfModelSnapshot` is not stale;
+5. `resource_availability_witness.effective_capacity_score` > 0 after uncertainty penalty;
+6. node `runtime_mode` permits the requested task class;
+7. node `learning_mode` permits the requested task class;
+8. privacy class of the task can be processed by the node per policy;
+9. no active purge or legal hold blocks the task on that node;
+10. reserving the task's required resources would not cause the node to exceed `max_containers`.
+
+**Step 2: Score eligible nodes.**
+
+For each eligible node, compute:
+
+```text
+capacity_score   = ResourceAvailabilityWitness.effective_capacity_score
+queue_score      = clamp01(1 - TaskQueueWitness.effective_queue_pressure)
+combined_score   = w_cap * capacity_score + w_queue * queue_score
+```
+
+Reference defaults:
+
+```yaml
+w_cap: 0.60
+w_queue: 0.40
+```
+
+If a `TaskQueueWitness` is absent and policy permits missing queue data, treat `queue_score` as `0.5` with a recorded assumption note.
+
+**Step 3: Select the highest-scoring eligible node.**
+
+If multiple nodes have the same combined score, select deterministically by ascending `node_id` string ordering.
+
+**Step 4: Handle GPU-required tasks.**
+
+If the task's `required_resources.gpu_bytes > 0`:
+
+1. restrict the eligible set to nodes where `ResourceAvailabilityWitness.gpu_free_bytes >= required_resources.gpu_bytes`;
+2. apply the same scoring and selection logic.
+
+If no GPU-capable node is eligible, the task must wait, be queued at the coordinator, or escalate per policy.
+
+**Step 5: Emit action candidate.**
+
+The scheduler emits `ActionCandidateWitness(action_kind=delegate_task)` with a `TaskDelegationActionPayload` referencing the selected node's resource witness, queue witness, and self-model snapshot.
+
+The `scheduling_basis` fields in `TaskDelegationActionPayload` must be populated with the exact witness IDs used for scoring.
+
+### 20.2 Scheduler evidence freshness requirement
+
+Before emitting a delegation candidate, the scheduler must verify:
+
+```text
+now - ResourceAvailabilityWitness.freshness.observed_at < max_staleness_seconds
+```
+
+If the witness is stale, the scheduler must not delegate to that node and must either wait for a fresh heartbeat or exclude the node from the eligible set.
+
+The default `max_staleness_seconds` is `30`.
+
+### 20.3 Cluster-wide learning mode semantics
+
+The cluster-wide learning mode is a policy-level switch that controls whether nodes may accept profile-learning tasks.
+
+| Learning mode | Allowed task classes | Notes |
+|---|---|---|
+| `blocked` | None requiring learning | Profile-learning tasks are rejected |
+| `audit_only` | Audit/sandbox learning only | Outputs may not promote or affect authority |
+| `sandbox` | Sandbox learning tasks | Outputs are candidate-only, replay-required |
+| `active` | All learning tasks per node policy | Node learning mode also checked |
+
+The cluster-wide mode takes precedence. A node may have a stricter mode than the cluster but not a more permissive one.
+
+Changes to cluster-wide learning mode require:
+
+1. coordinator policy decision;
+2. broadcast to all admitted nodes over the alarm/control lane;
+3. nodes acknowledge and record the learning mode transition in their self-model snapshot.
+
+### 20.4 Conflict resolution precedence
+
+When a `TaskDelegationConflict` is detected, the following resolution precedence applies:
+
+| Priority | Conflict type | Resolution |
+|---:|---|---|
+| 1 | Privacy conflict | `most_restrictive_policy_wins`; no override |
+| 2 | Policy conflict | `most_restrictive_policy_wins` |
+| 3 | Purge or legal hold conflict | Block task; human review if policy requires |
+| 4 | Overcommit (CPU/RAM/GPU) | `least_loaded_node_gets_task` if nodes are policy-equivalent |
+| 5 | Queue overload | Reschedule to next eligible node or queue at coordinator |
+| 6 | Duplicate task | Deduplicate by `task_payload_ref`; discard lower-priority duplicate |
+| 7 | Priority tie or uncertainty | `no_action` or `human_review` per policy |
+
+A conflict record must be created and referenced in the resolved or rejected `ActionCandidateWitness`.
+
+---
+
+## 21. Scheduler retry, timeout, and downgrade semantics
+
+> **Status tag:** normative
+
+### 21.1 Transport failure
+
+If a DBP command lane send fails after the task is delegated:
+
+1. mark `DelegatedTaskRecord.status` as `stale_blocked`;
+2. attempt retransmission up to `max_transport_retries` times with exponential backoff starting at `retry_backoff_initial_seconds`;
+3. if all retries fail, cancel the task and emit a `TaskOutcomeWitness` with `execution_status: failed` and `retryable: true`;
+4. reassign the task to the next eligible node if policy permits reassignment.
+
+Reference defaults:
+
+```yaml
+max_transport_retries: 3
+retry_backoff_initial_seconds: 2
+retry_backoff_multiplier: 2.0
+retry_backoff_max_seconds: 30
+```
+
+### 21.2 Lease timeout and heartbeat failure
+
+Each delegated task carries a lease with a `lease_expires_at` timestamp and a `heartbeat_required_seconds` interval.
+
+If the worker node does not send a heartbeat update within `heartbeat_required_seconds`:
+
+1. the coordinator checks for a fresh `ResourceAvailabilityWitness` from that node;
+2. if no fresh witness arrives within `max_staleness_seconds`, the node self-model is invalidated;
+3. pending tasks on that node are marked `stale_blocked`;
+4. the coordinator attempts reassignment after creating a `TaskDelegationConflict` record.
+
+If the lease expires before the task completes:
+
+1. the coordinator emits a `TaskOutcomeWitness` with `execution_status: timed_out`;
+2. the task is eligible for reassignment or human review per policy;
+3. any partial output must remain in audit-only status until the outcome is resolved.
+
+### 21.3 Node downgrade semantics
+
+If a node fails tasks repeatedly or becomes unreliable, the coordinator may demote its trust status.
+
+Demotion thresholds are policy-configurable. Reference behavior:
+
+| Condition | Demotion action |
+|---|---|
+| Transport failure after max retries | Mark node as `restricted`; require fresh registry handshake to restore |
+| Missed heartbeat without reconnect after `node_disconnect_timeout_seconds` | Mark node as `revoked`; remove from eligible set |
+| Repeated task failure (`failed_tasks_window` / task_window > `failure_rate_limit`) | Demote to `audit_only`; block new delegations until review |
+| Policy violation on task execution | Immediate revocation; emit alarm to alarm/control lane |
+
+Reference defaults:
+
+```yaml
+node_disconnect_timeout_seconds: 120
+failure_rate_limit: 0.50
+failure_window_tasks: 10
+```
+
+Demotion decisions are recorded as `PolicyDecision` objects and broadcast over the alarm/control lane.
+
+### 21.4 Resource normalization rules
+
+Raw metric values must be normalized before use in scheduling decisions.
+
+```text
+cpu_available_p = clamp01(cpu_available_cores / cpu_total_cores)
+
+ram_available_p = clamp01(ram_free_bytes / ram_total_bytes)
+
+gpu_available_p = clamp01(
+  sum(gpu_free_bytes) / max(1, sum(gpu_total_bytes))
+)
+
+disk_io_p = clamp01(
+  disk_io_bandwidth_bytes_per_sec / reference_disk_io_max_bytes_per_sec
+)
+
+network_p = clamp01(
+  network_bandwidth_bytes_per_sec / reference_network_max_bytes_per_sec
+)
+
+container_headroom_p = clamp01(
+  (max_containers - containers_running) / max(1, max_containers)
+)
+```
+
+If a metric is null or unavailable, its normalized component defaults to `0.5` (uncertain) unless policy sets a different default. The `uncertainty_q` component is raised when any metric is missing.
+
+Reference values for the six-machine prototype:
+
+```yaml
+reference_disk_io_max_bytes_per_sec: 500000000   # 500 MB/s
+reference_network_max_bytes_per_sec: 125000000   # 1 Gbps = 125 MB/s
+```
+
+### 21.5 Node identity and authentication implementation expectations
+
+Node identity must be established before any authority-bearing traffic.
+
+Minimum requirements for a prototype cluster:
+
+1. each node has a stable `node_id` that does not change across restarts unless the node is re-provisioned;
+2. the coordinator holds a registry of admitted node IDs and their public key hashes or pre-shared secrets;
+3. `NodeHello` must include the node's identity kind and a verifiable credential matching the registry;
+4. the coordinator must reject any `NodeHello` whose identity cannot be verified against the registry;
+5. unauthenticated or S1-only nodes may only participate as `audit_only` non-scheduling observers;
+6. a node's DBP session ID must be revalidated if the node disconnects and reconnects.
+
+In the prototype, acceptable identity kinds include `psk_bootstrap` and `self_signed` for candidate admission, with `mtls` or `coordinator_signed` required for normal scheduling authority.
