@@ -2,12 +2,14 @@
   "release": "Duotronic v1.5 Draft 2 Corpus",
   "version": "v1.5-draft-2",
   "generated_at": "2026-04-26T12:43:19.743726+00:00",
-  "document_count": 50,
-  "file_count": 53,
+  "document_count": 52,
+  "file_count": 55,
   "core_theme": "Distributed self-governing recurrent network plus Witness-Gated Recurrent Cell research profile for witness-conditioned persistent memory.",
   "new_draft_2_documents": [
     "refs/duotronic_witness_gated_recurrent_cell_contract_v1_0.md",
-    "corpus_review_v1_5_draft_to_v1_5_draft_2.md"
+    "corpus_review_v1_5_draft_to_v1_5_draft_2.md",
+    "refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md",
+    "v1_5_draft_2_next_steps.md"
   ],
   "updated_draft_2_documents": [
     "README_v1_5_draft_2.md",
@@ -46,8 +48,8 @@
   "files": [
     {
       "path": "README_v1_5_draft_2.md",
-      "sha256": "8b3b5d125fd86f043a47941695b4752fa03ce3639a02d1c3d0ba29ef626e4983",
-      "size": 7559
+      "sha256": "34d2f21eef5592ea7d3ec6e26a09f66612e762028ae0a25c85baef3242031ea9",
+      "size": 7728
     },
     {
       "path": "corpus_review_v1_3_draft_4_to_v1_4_draft.md",
@@ -166,8 +168,8 @@
     },
     {
       "path": "refs/duotronic_lab_integrated_source_corpus_index_v1_13.md",
-      "sha256": "e712e52bcb8827260e5bc41bd52428da1d53d9bc316f725d5733ec039465d815",
-      "size": 8437
+      "sha256": "e4935a373afec6c6e82c13b42f4b2f079b0a228966dbda0fac124d6eb233437f",
+      "size": 8653
     },
     {
       "path": "refs/duotronic_lookup_memory_and_replay_profile_v1_2.md",
@@ -308,6 +310,16 @@
       "path": "refs/schemas/duotronic_v1_5_draft_2_starter_object_shapes.json",
       "sha256": "6c232f77430d6b15c128b35f300eaf4f11d738d68ab998961a29044378a04aaa",
       "size": 53511
+    },
+    {
+      "path": "refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md",
+      "sha256": "8a6cd9244d51ae9c941a8c6ee0176d32400f563e495575ba23f275e18fe976c9",
+      "size": 29724
+    },
+    {
+      "path": "v1_5_draft_2_next_steps.md",
+      "sha256": "ab99df6e476b15e3166f523c3ecc3c7ed94e4808454bd5afb4eba1457a22c10e",
+      "size": 9761
     }
   ]
 }
