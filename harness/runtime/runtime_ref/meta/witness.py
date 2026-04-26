@@ -58,6 +58,8 @@ class MetaRecurrentWitness:
     callback_logit: float = 0.0
     meta_momentum: dict[str, float] = field(default_factory=dict)
     memory_cell_state: dict[str, float] = field(default_factory=dict)
+    memory_slots: dict[str, dict[str, float]] = field(default_factory=dict)
+    active_memory_slot_id: str = "default"
     regime_posterior: dict[str, float] = field(
         default_factory=lambda: {
             "stable": 0.25,
@@ -166,7 +168,18 @@ class MetaRecurrentWitness:
             return False
         if any(abs(value) > 1e-9 for value in self.memory_cell_state.values()):
             return False
+        for slot_state in self.memory_slots.values():
+            if any(abs(value) > 1e-9 for value in slot_state.values()):
+                return False
         return abs(self.callback_logit) <= 1e-9
+
+    def _memory_slots_with_default(self) -> dict[str, dict[str, float]]:
+        slots = {slot_id: dict(slot_state) for slot_id, slot_state in self.memory_slots.items()}
+        if "default" not in slots:
+            slots["default"] = dict(self.memory_cell_state)
+        elif self.memory_cell_state:
+            slots["default"] = dict(self.memory_cell_state)
+        return slots
 
     def step_memory_cell(
         self,
@@ -174,9 +187,17 @@ class MetaRecurrentWitness:
         witness_features: dict[str, float] | None = None,
         policy: dict | None = None,
         learning_rate: float = 1.0,
+        slot_id: str | None = None,
     ) -> tuple["MetaRecurrentWitness", dict[str, float | bool | list[str]]]:
         witness_features = witness_features or {}
         policy = policy or {}
+        selected_slot_id = str(
+            slot_id
+            or witness_features.get("memory_slot_id")
+            or witness_features.get("slot_id")
+            or policy.get("memory_slot_id")
+            or "default"
+        )
         confidence_score = float(witness_features.get("confidence_score", self.controller_confidence))
         replayability_score = float(witness_features.get("replayability_score", 1.0))
         policy_allow_write = bool(witness_features.get("policy_allow_write", True))
@@ -202,18 +223,24 @@ class MetaRecurrentWitness:
             )
 
         candidate = copy.deepcopy(self)
+        candidate.memory_slots = candidate._memory_slots_with_default()
+        slot_state = dict(candidate.memory_slots.get(selected_slot_id, {}))
         updated_coordinates: list[str] = []
         if gate > 0.0:
             for coordinate, observed_value in observation.items():
-                previous = candidate.memory_cell_state.get(coordinate, 0.0)
+                previous = slot_state.get(coordinate, 0.0)
                 raw_delta = gate * (float(observed_value) - previous)
                 delta = _clip(raw_delta, -max_step, max_step)
-                candidate.memory_cell_state[coordinate] = previous + delta
+                slot_state[coordinate] = previous + delta
                 updated_coordinates.append(coordinate)
+        candidate.memory_slots[selected_slot_id] = slot_state
+        candidate.active_memory_slot_id = selected_slot_id
+        candidate.memory_cell_state = dict(candidate.memory_slots.get("default", {}))
         candidate.epoch_step_count = self.epoch_step_count + 1
         return candidate, {
             "write_gate": round(gate, 6),
             "learning_applied": gate > 0.0,
+            "selected_slot_id": selected_slot_id,
             "updated_coordinates": updated_coordinates,
             "failure_reasons": reasons,
         }
@@ -229,6 +256,11 @@ class MetaRecurrentWitness:
             "callback_logit": round(self.callback_logit, 6),
             "meta_momentum": {key: round(value, 6) for key, value in self.meta_momentum.items()},
             "memory_cell_state": {key: round(value, 6) for key, value in self.memory_cell_state.items()},
+            "memory_slots": {
+                slot_id: {key: round(value, 6) for key, value in slot_state.items()}
+                for slot_id, slot_state in self._memory_slots_with_default().items()
+            },
+            "active_memory_slot_id": self.active_memory_slot_id,
             "regime_posterior": {key: round(value, 4) for key, value in self.regime_posterior.items()},
             "shadow_objective_ema": round(self.shadow_objective_ema, 6),
             "prediction_error_ema": round(self.prediction_error_ema, 6),
@@ -247,6 +279,11 @@ class MetaRecurrentWitness:
             callback_logit=float(payload.get("callback_logit", 0.0)),
             meta_momentum={key: float(value) for key, value in payload.get("meta_momentum", {}).items()},
             memory_cell_state={key: float(value) for key, value in payload.get("memory_cell_state", {}).items()},
+            memory_slots={
+                slot_id: {key: float(value) for key, value in slot_state.items()}
+                for slot_id, slot_state in payload.get("memory_slots", {}).items()
+            },
+            active_memory_slot_id=str(payload.get("active_memory_slot_id", "default")),
             regime_posterior={key: float(value) for key, value in payload.get("regime_posterior", {}).items()},
             shadow_objective_ema=float(payload.get("shadow_objective_ema", 0.0)),
             prediction_error_ema=float(payload.get("prediction_error_ema", 0.0)),

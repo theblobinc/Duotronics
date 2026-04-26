@@ -6,7 +6,7 @@ description: |
   delegated task routing, stale-heartbeat invalidation, conflict
   handling, replay-direction binding, learning-mode gating,
   scheduling, node-level schedulability, task-outcome authority,
-  and federation admission checks.
+  disconnect reassignment, and federation admission checks.
 
 cases:
   - case_id: cluster.resource.xeon.valid
@@ -386,3 +386,38 @@ cases:
         eta_t: 0.0
         authority: 0.0
         reason: transport_failed
+
+  - case_id: cluster.task_outcome.transport_valid_positive_authority
+    op: evaluate_task_outcome_transport_authority
+    marker: research
+    extra_markers: [policy, replay]
+    given:
+      task_outcome_witness:
+        normalizer_confidence: 0.92
+        J_t: 3
+        h_J_t: 0.80
+      transport:
+        dbp_s2_valid: true
+      policy:
+        l5_limit: 0.70
+    expect:
+      equals:
+        eta_t_before_policy: 0.736
+        eta_t_after_policy: 0.7
+        authority: 0.7
+
+  - case_id: cluster.node_disconnect.reassigns_tasks
+    op: evaluate_node_disconnect_reassignment
+    marker: research
+    extra_markers: [policy]
+    given:
+      node_disconnect_event:
+        node_id: node-xeon-04
+        disconnect_kind: heartbeat_timeout
+        affected_delegated_task_ids:
+          - dt-profile-learn-004
+    expect:
+      equals:
+        node_resource_authority: 0
+        task_status: reassigned
+        self_model_invalidated: true

@@ -57,3 +57,21 @@ def test_transport_valid_task_outcome_respects_l5_limit(run_operation: Any) -> N
     assert observed["eta_t_before_policy"] == 0.736
     assert observed["eta_t_after_policy"] == 0.7
     assert observed["authority"] == 0.7
+
+
+@pytest.mark.research
+@pytest.mark.policy
+def test_node_disconnect_reassigns_tasks_and_invalidates_self_model(run_operation: Any) -> None:
+    observed = run_operation(
+        "evaluate_node_disconnect_reassignment",
+        {
+            "node_disconnect_event": {
+                "node_id": "node-xeon-04",
+                "disconnect_kind": "heartbeat_timeout",
+                "affected_delegated_task_ids": ["dt-profile-learn-004"],
+            }
+        },
+    )
+    assert observed["node_resource_authority"] == 0
+    assert observed["task_status"] == "reassigned"
+    assert observed["self_model_invalidated"] is True

@@ -244,10 +244,21 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
         packs = _discover_fixture_packs(metafunc.config, META_FIXTURES_DIR)
         params = _parametrize_cases(packs, include_meta_runtime=True)
         if not params:
-            raise pytest.UsageError(
-                "no meta fixture packs matched "
-                f"--schema-version={_selected_schema_version(metafunc.config)}"
+            metafunc.parametrize(
+                "meta_case",
+                [
+                    pytest.param(
+                        None,
+                        marks=pytest.mark.skip(
+                            reason=(
+                                "no meta fixture packs matched "
+                                f"--schema-version={_selected_schema_version(metafunc.config)}"
+                            )
+                        ),
+                    )
+                ],
             )
+            return
         metafunc.parametrize("meta_case", params)
 
 

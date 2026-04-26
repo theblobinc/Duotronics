@@ -518,9 +518,62 @@
       },
       "marker": "research",
       "op": "evaluate_task_outcome_transport_authority"
+    },
+    {
+      "case_id": "cluster.task_outcome.transport_valid_positive_authority",
+      "expect": {
+        "equals": {
+          "authority": 0.7,
+          "eta_t_after_policy": 0.7,
+          "eta_t_before_policy": 0.736
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "policy": {
+          "l5_limit": 0.7
+        },
+        "task_outcome_witness": {
+          "J_t": 3,
+          "h_J_t": 0.8,
+          "normalizer_confidence": 0.92
+        },
+        "transport": {
+          "dbp_s2_valid": true
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_task_outcome_transport_authority"
+    },
+    {
+      "case_id": "cluster.node_disconnect.reassigns_tasks",
+      "expect": {
+        "equals": {
+          "node_resource_authority": 0,
+          "self_model_invalidated": true,
+          "task_status": "reassigned"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "node_disconnect_event": {
+          "affected_delegated_task_ids": [
+            "dt-profile-learn-004"
+          ],
+          "disconnect_kind": "heartbeat_timeout",
+          "node_id": "node-xeon-04"
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_node_disconnect_reassignment"
     }
   ],
-  "description": "v1.5 Draft 2 distributed-cluster research slice: resource witnesses,\ndelegated task routing, stale-heartbeat invalidation, conflict\nhandling, replay-direction binding, learning-mode gating,\nscheduling, node-level schedulability, task-outcome authority,\nand federation admission checks.\n",
+  "description": "v1.5 Draft 2 distributed-cluster research slice: resource witnesses,\ndelegated task routing, stale-heartbeat invalidation, conflict\nhandling, replay-direction binding, learning-mode gating,\nscheduling, node-level schedulability, task-outcome authority,\ndisconnect reassignment, and federation admission checks.\n",
   "pack_id": "cluster-v1_5-draft-2",
   "schema_version": "v1.5-draft-2",
   "target_schema_version": "v1.5-draft-2"

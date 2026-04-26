@@ -585,6 +585,20 @@ def _op_evaluate_task_outcome_transport_authority(given: Mapping[str, Any]) -> d
     }
 
 
+def _op_evaluate_node_disconnect_reassignment(given: Mapping[str, Any]) -> dict[str, Any]:
+    disconnect_event = given.get("node_disconnect_event", {})
+    affected_tasks = list(disconnect_event.get("affected_delegated_task_ids", []))
+    disconnect_kind = disconnect_event.get("disconnect_kind")
+    reassigned = bool(affected_tasks) and disconnect_kind == "heartbeat_timeout"
+    return {
+        "node_id": disconnect_event.get("node_id"),
+        "node_resource_authority": 0,
+        "task_status": "reassigned" if reassigned else "unchanged",
+        "self_model_invalidated": True,
+        "affected_task_count": len(affected_tasks),
+    }
+
+
 # ---------------------------------------------------------------------------
 # Normalizer
 # ---------------------------------------------------------------------------
@@ -869,6 +883,7 @@ OPERATIONS: dict[str, Callable[[Mapping[str, Any]], dict[str, Any]]] = {
     "select_cluster_node_for_task": _op_select_cluster_node_for_task,
     "evaluate_cluster_node_schedulability": _op_evaluate_cluster_node_schedulability,
     "evaluate_task_outcome_transport_authority": _op_evaluate_task_outcome_transport_authority,
+    "evaluate_node_disconnect_reassignment": _op_evaluate_node_disconnect_reassignment,
     # Normalizer
     "normalize_family_word": _op_normalize_family_word,
     "normalize_reflection_path": _op_normalize_reflection_path,

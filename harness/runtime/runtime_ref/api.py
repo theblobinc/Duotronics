@@ -255,6 +255,7 @@ def step_meta_memory_cell(given: dict[str, Any]) -> dict:
         witness_features=given.get("witness_features", {}),
         policy=given.get("policy", {}),
         learning_rate=float(given.get("learning_rate", 1.0)),
+        slot_id=given.get("slot_id"),
     )
     accepted = bool(diagnostics["learning_applied"])
     return {

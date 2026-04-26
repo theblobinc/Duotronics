@@ -46,3 +46,37 @@ def test_meta_memory_cell_step_blocks_learning_when_transport_fails() -> None:
     assert result["status"] == "rejected"
     assert "transport_not_validated" in result["failure_reasons"]
     assert result["witness"]["memory_cell_state"]["tempo"] == 0.2
+
+
+def test_meta_memory_cell_step_tracks_independent_slots() -> None:
+    previous = MetaRecurrentWitness(
+        controller_confidence=0.8,
+        memory_cell_state={"tempo": 0.2},
+        memory_slots={
+            "default": {"tempo": 0.2},
+            "artist:alpha": {"tempo": 0.1},
+        },
+    )
+
+    result = run_meta_operation(
+        "step_meta_memory_cell",
+        {
+            "previous_witness": previous.to_dict(),
+            "slot_id": "artist:alpha",
+            "observation": {"tempo": 0.7, "energy": 0.5},
+            "witness_features": {
+                "confidence_score": 0.9,
+                "replayability_score": 0.95,
+                "policy_allow_write": True,
+                "transport_validated": True,
+            },
+            "policy": {"min_confidence": 0.3, "max_memory_cell_step": 0.25},
+        },
+    )
+
+    assert result["status"] == "accepted"
+    assert result["diagnostics"]["selected_slot_id"] == "artist:alpha"
+    assert result["witness"]["memory_slots"]["default"]["tempo"] == 0.2
+    assert result["witness"]["memory_slots"]["artist:alpha"]["tempo"] == 0.35
+    assert result["witness"]["memory_slots"]["artist:alpha"]["energy"] == 0.25
+    assert result["witness"]["active_memory_slot_id"] == "artist:alpha"
