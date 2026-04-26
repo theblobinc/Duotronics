@@ -29,6 +29,8 @@ It adds:
 8. hard policy clamps for write, decay, quarantine, and promotion gates
 9. replayable local online adaptation without global backpropagation
 10. fixtures and a worked music-preference memory example
+11. a PyTorch implementation skeleton (`refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md`)
+12. a closure and implementation roadmap (`v1_5_draft_2_next_steps.md`)
 
 WG-RNN v1.0 is research-only until promoted through benchmark evidence, replay fixtures, retention diagnostics, purge tests, and policy approval.
 

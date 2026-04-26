@@ -207,6 +207,11 @@ v1.5 extends the v1.4 Draft 5 corpus into a distributed self-governing recurrent
 11. `WGRNNReplayIdentity`
 12. `MemoryPurgeImpactRecord`
 
+## v1.5 Draft 2 examples and closure documents
+
+1. `refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md`
+2. `v1_5_draft_2_next_steps.md`
+
 ## v1.5 Draft 2 scope statement
 
-v1.5 Draft 2 adds a research-profile Witness-Gated Recurrent Cell. WG-RNN uses canonical witness features as explicit memory-control gates and logs every persistent memory update as replayable evidence. It supports local online adaptation without global backpropagation, but all stable memory promotion remains replay-, retention-, purge-, and policy-gated.
+v1.5 Draft 2 adds a research-profile Witness-Gated Recurrent Cell. WG-RNN uses canonical witness features as explicit memory-control gates and logs every persistent memory update as replayable evidence. It supports local online adaptation without global backpropagation, but all stable memory promotion remains replay-, retention-, purge-, and policy-gated. A PyTorch implementation skeleton and implementation roadmap are included.
