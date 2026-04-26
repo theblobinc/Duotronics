@@ -57,6 +57,7 @@ class MetaRecurrentWitness:
     log_decay_offset: dict[str, float] = field(default_factory=dict)
     callback_logit: float = 0.0
     meta_momentum: dict[str, float] = field(default_factory=dict)
+    memory_cell_state: dict[str, float] = field(default_factory=dict)
     regime_posterior: dict[str, float] = field(
         default_factory=lambda: {
             "stable": 0.25,
@@ -163,7 +164,59 @@ class MetaRecurrentWitness:
             return False
         if any(abs(value) > 1e-9 for value in self.log_decay_offset.values()):
             return False
+        if any(abs(value) > 1e-9 for value in self.memory_cell_state.values()):
+            return False
         return abs(self.callback_logit) <= 1e-9
+
+    def step_memory_cell(
+        self,
+        observation: dict[str, float],
+        witness_features: dict[str, float] | None = None,
+        policy: dict | None = None,
+        learning_rate: float = 1.0,
+    ) -> tuple["MetaRecurrentWitness", dict[str, float | bool | list[str]]]:
+        witness_features = witness_features or {}
+        policy = policy or {}
+        confidence_score = float(witness_features.get("confidence_score", self.controller_confidence))
+        replayability_score = float(witness_features.get("replayability_score", 1.0))
+        policy_allow_write = bool(witness_features.get("policy_allow_write", True))
+        transport_validated = bool(witness_features.get("transport_validated", True))
+        min_confidence = float(policy.get("min_confidence", 0.3))
+        max_step = float(policy.get("max_memory_cell_step", 0.25))
+        gate = 0.0
+        reasons: list[str] = []
+
+        if not policy_allow_write:
+            reasons.append("policy_write_blocked")
+        if not transport_validated:
+            reasons.append("transport_not_validated")
+        if confidence_score < min_confidence:
+            reasons.append("confidence_below_threshold")
+
+        if not reasons:
+            gate = _clip(
+                min(confidence_score, replayability_score, max(self.controller_confidence, confidence_score))
+                * learning_rate,
+                0.0,
+                1.0,
+            )
+
+        candidate = copy.deepcopy(self)
+        updated_coordinates: list[str] = []
+        if gate > 0.0:
+            for coordinate, observed_value in observation.items():
+                previous = candidate.memory_cell_state.get(coordinate, 0.0)
+                raw_delta = gate * (float(observed_value) - previous)
+                delta = _clip(raw_delta, -max_step, max_step)
+                candidate.memory_cell_state[coordinate] = previous + delta
+                updated_coordinates.append(coordinate)
+        candidate.epoch_step_count = self.epoch_step_count + 1
+        return candidate, {
+            "write_gate": round(gate, 6),
+            "learning_applied": gate > 0.0,
+            "updated_coordinates": updated_coordinates,
+            "failure_reasons": reasons,
+        }
 
     def to_theta(self) -> dict[str, float]:
         theta = dict(self.log_decay_offset)
@@ -175,6 +228,7 @@ class MetaRecurrentWitness:
             "log_decay_offset": {key: round(value, 6) for key, value in self.log_decay_offset.items()},
             "callback_logit": round(self.callback_logit, 6),
             "meta_momentum": {key: round(value, 6) for key, value in self.meta_momentum.items()},
+            "memory_cell_state": {key: round(value, 6) for key, value in self.memory_cell_state.items()},
             "regime_posterior": {key: round(value, 4) for key, value in self.regime_posterior.items()},
             "shadow_objective_ema": round(self.shadow_objective_ema, 6),
             "prediction_error_ema": round(self.prediction_error_ema, 6),
@@ -192,6 +246,7 @@ class MetaRecurrentWitness:
             log_decay_offset={key: float(value) for key, value in payload.get("log_decay_offset", {}).items()},
             callback_logit=float(payload.get("callback_logit", 0.0)),
             meta_momentum={key: float(value) for key, value in payload.get("meta_momentum", {}).items()},
+            memory_cell_state={key: float(value) for key, value in payload.get("memory_cell_state", {}).items()},
             regime_posterior={key: float(value) for key, value in payload.get("regime_posterior", {}).items()},
             shadow_objective_ema=float(payload.get("shadow_objective_ema", 0.0)),
             prediction_error_ema=float(payload.get("prediction_error_ema", 0.0)),

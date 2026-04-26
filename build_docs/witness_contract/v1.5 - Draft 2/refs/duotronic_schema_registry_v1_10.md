@@ -107,9 +107,9 @@ SchemaRegistryEntry:
 
 ---
 
-## 5. v1.4 new registered classes
+## 5. Carried-forward profile-learning registered classes
 
-v1.4 introduces these major schema classes:
+The carried-forward profile-learning baseline introduces these major schema classes:
 
 1. `EvidenceBundle`;
 2. `SourceEvidenceRecord`;

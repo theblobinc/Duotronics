@@ -1,0 +1,527 @@
+{
+  "cases": [
+    {
+      "case_id": "cluster.resource.xeon.valid",
+      "expect": {
+        "equals": {
+          "authority": "restricted",
+          "schedulable_for_cpu_task": true,
+          "schedulable_for_gpu_task": false,
+          "valid": true
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "resource_witness": {
+          "actor_scope_id": "actor-scope-node-xeon-01",
+          "canonical_identity_hash": "sha256:fixture-resource-xeon-01",
+          "confidence": 0.86,
+          "containers_running": 1,
+          "cpu_available_cores": 9.5,
+          "disk_io_bandwidth": 150000000,
+          "effective_capacity_score": 0.59,
+          "freshness": {
+            "expires_at": "2026-04-26T12:00:30Z",
+            "max_staleness_seconds": 30,
+            "observed_at": "2026-04-26T12:00:00Z",
+            "stale": false
+          },
+          "gpu_free_bytes": 0,
+          "gpu_utilization": null,
+          "max_containers": 4,
+          "network_bandwidth": 90000000,
+          "node_id": "node-xeon-01",
+          "normalized_components": {
+            "container_headroom_p": 0.75,
+            "cpu_available_p": 0.79,
+            "disk_io_p": 0.7,
+            "gpu_available_p": 0.0,
+            "network_p": 0.72,
+            "ram_available_p": 0.8,
+            "uncertainty_q": 0.08
+          },
+          "normalizer_id": "resource-availability-normalizer@1.0.0",
+          "policy": {
+            "allowed_task_classes": [
+              "run_model_inference",
+              "start_profile_learning",
+              "execute_search",
+              "replay_trace"
+            ],
+            "policy_decision_id": "pd-resource-node-xeon-01-001",
+            "runtime_mode": "restricted"
+          },
+          "ram_free_bytes": 64000000000,
+          "replay_identity_ref": "replay-resource-xeon-01-001",
+          "resource_availability_witness_id": "raw-node-xeon-01-20260426T120000Z",
+          "schema_id": "ResourceAvailabilityWitness@1.0.0",
+          "source_evidence_ids": [
+            "eb-resource-node-xeon-01-001"
+          ],
+          "source_metric_record_ids": [
+            "rmsr-node-xeon-01-001"
+          ],
+          "stability_score": 0.88,
+          "timestamp": "2026-04-26T12:00:00Z",
+          "trust_status": "canonicalized"
+        }
+      },
+      "marker": "research",
+      "op": "validate_resource_availability_witness"
+    },
+    {
+      "case_id": "cluster.resource.gpu.valid",
+      "expect": {
+        "equals": {
+          "authority": "restricted",
+          "schedulable_for_gpu_task": true,
+          "valid": true
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "resource_witness": {
+          "actor_scope_id": "actor-scope-node-gpu-5950x-01",
+          "canonical_identity_hash": "sha256:fixture-resource-gpu-01",
+          "confidence": 0.9,
+          "containers_running": 2,
+          "cpu_available_cores": 10.0,
+          "disk_io_bandwidth": 250000000,
+          "effective_capacity_score": 0.65,
+          "freshness": {
+            "expires_at": "2026-04-26T12:00:30Z",
+            "max_staleness_seconds": 30,
+            "observed_at": "2026-04-26T12:00:00Z",
+            "stale": false
+          },
+          "gpu_free_bytes": 9000000000,
+          "gpu_utilization": 0.22,
+          "max_containers": 6,
+          "network_bandwidth": 95000000,
+          "node_id": "node-gpu-5950x-01",
+          "normalized_components": {
+            "container_headroom_p": 0.67,
+            "cpu_available_p": 0.63,
+            "disk_io_p": 0.82,
+            "gpu_available_p": 0.68,
+            "network_p": 0.76,
+            "ram_available_p": 0.75,
+            "uncertainty_q": 0.07
+          },
+          "normalizer_id": "resource-availability-normalizer@1.0.0",
+          "policy": {
+            "allowed_task_classes": [
+              "run_model_inference",
+              "execute_search",
+              "replay_trace"
+            ],
+            "policy_decision_id": "pd-resource-node-gpu-001",
+            "runtime_mode": "restricted"
+          },
+          "ram_free_bytes": 48000000000,
+          "replay_identity_ref": "replay-resource-gpu-001",
+          "resource_availability_witness_id": "raw-node-gpu-5950x-01-20260426T120000Z",
+          "schema_id": "ResourceAvailabilityWitness@1.0.0",
+          "source_evidence_ids": [
+            "eb-resource-node-gpu-001"
+          ],
+          "source_metric_record_ids": [
+            "rmsr-node-gpu-001"
+          ],
+          "stability_score": 0.91,
+          "timestamp": "2026-04-26T12:00:00Z",
+          "trust_status": "canonicalized"
+        }
+      },
+      "marker": "research",
+      "op": "validate_resource_availability_witness"
+    },
+    {
+      "case_id": "cluster.delegation.round_trip",
+      "expect": {
+        "equals": {
+          "action_allowed": true,
+          "command_lane": 3,
+          "delegated_task_record_created": true,
+          "task_result_lane": 5
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "resource_witness": {
+          "actor_scope_id": "actor-scope-node-gpu-5950x-01",
+          "confidence": 0.9,
+          "containers_running": 2,
+          "cpu_available_cores": 10.0,
+          "disk_io_bandwidth": 250000000,
+          "effective_capacity_score": 0.65,
+          "freshness": {
+            "expires_at": "2026-04-26T12:00:30Z",
+            "max_staleness_seconds": 30,
+            "observed_at": "2026-04-26T12:00:00Z",
+            "stale": false
+          },
+          "gpu_free_bytes": 9000000000,
+          "gpu_utilization": 0.22,
+          "max_containers": 6,
+          "network_bandwidth": 95000000,
+          "node_id": "node-gpu-5950x-01",
+          "policy": {
+            "allowed_task_classes": [
+              "run_model_inference",
+              "execute_search",
+              "replay_trace"
+            ],
+            "policy_decision_id": "pd-resource-node-gpu-001",
+            "runtime_mode": "restricted"
+          },
+          "ram_free_bytes": 48000000000,
+          "resource_availability_witness_id": "raw-node-gpu-5950x-01-20260426T120000Z",
+          "timestamp": "2026-04-26T12:00:00Z",
+          "trust_status": "canonicalized"
+        },
+        "task_payload": {
+          "coordinator_node_id": "coordinator-01",
+          "deadline": null,
+          "expected_duration_seconds": 120,
+          "policy": {
+            "learning_mode_required": "not_applicable",
+            "required_policy_gate": "policy-delegate-model-inference",
+            "runtime_mode_requested": "restricted"
+          },
+          "priority": "normal",
+          "privacy_class": "internal",
+          "replay": {
+            "dbp_lane_layout_id": "dbp-cluster-full-duplex-v1-layout-a",
+            "replay_identity_ref": "replay-delegated-task-001",
+            "transport_profile_id": "dbp-cluster-full-duplex-v1"
+          },
+          "required_resources": {
+            "containers": 1,
+            "cpu_cores": 4,
+            "disk_io_bandwidth": 50000000,
+            "gpu_bytes": 4000000000,
+            "network_bandwidth": 10000000,
+            "ram_bytes": 16000000000
+          },
+          "scheduling_basis": {
+            "lookup_record_refs": [],
+            "node_self_model_snapshot_id": "nsms-node-gpu-001",
+            "resource_availability_witness_id": "raw-node-gpu-5950x-01-20260426T120000Z",
+            "task_queue_witness_id": "tqw-node-gpu-001"
+          },
+          "target_actor_scope_id": "actor-scope-node-gpu-5950x-01",
+          "target_node_id": "node-gpu-5950x-01",
+          "task_delegation_action_payload_id": "tdap-model-infer-001",
+          "task_payload_lane_ref": "lane10:bulk_ref:model-inference-payload-001",
+          "task_payload_ref": "bulk_ref:model-inference-payload-001",
+          "task_type": "run_model_inference"
+        }
+      },
+      "marker": "research",
+      "op": "validate_cluster_task_delegation"
+    },
+    {
+      "case_id": "cluster.resource.staleness_invalidation",
+      "expect": {
+        "equals": {
+          "node_schedulable": false,
+          "pending_tasks_reassigned": true,
+          "required_action": "reassign_tasks",
+          "resource_authority": 0,
+          "trigger_kind": "resource_heartbeat_timeout"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "current_time": "2026-04-26T12:00:31Z",
+        "heartbeat_timeout_seconds": 30,
+        "last_heartbeat_time": "2026-04-26T12:00:00Z",
+        "node_id": "node-xeon-02"
+      },
+      "marker": "research",
+      "op": "invalidate_stale_resource_heartbeat"
+    },
+    {
+      "case_id": "cluster.conflict.overcommit_cpu",
+      "expect": {
+        "equals": {
+          "if_alternate_node_available": "reassign_lower_priority_or_second_task",
+          "if_no_alternate_node": "queue_or_no_action",
+          "policy_mode": "restricted"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "task_delegation_conflict": {
+          "action_candidate_ids": [
+            "acw-delegate-cpu-task-001",
+            "acw-delegate-cpu-task-002"
+          ],
+          "conflict_type": "overcommit_cpu",
+          "decision_context_id": "cdc-cluster-001",
+          "default_resolution": "least_loaded_node_gets_task",
+          "detected_by": "coordinator",
+          "status": "unresolved",
+          "target_node_ids": [
+            "node-xeon-01"
+          ],
+          "task_delegation_conflict_id": "tdc-overcommit-xeon-01"
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_cluster_task_conflict"
+    },
+    {
+      "case_id": "cluster.federation.authority_frame_rejects_s1",
+      "expect": {
+        "equals": {
+          "accepted": false,
+          "action": "reject_and_alarm",
+          "rejection_reason": "authority_bearing_s1_frame"
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "frame": {
+          "authority_bearing": true,
+          "direction": "downlink",
+          "lane_id": 3,
+          "lane_name": "command",
+          "payload_kind": "TaskDelegationActionPayload",
+          "security_mode": "S1"
+        }
+      },
+      "marker": "research",
+      "op": "validate_cluster_authority_frame"
+    },
+    {
+      "case_id": "cluster.federation.node_hello_accepted",
+      "expect": {
+        "equals": {
+          "accepted": true,
+          "admission_status": "restricted",
+          "heartbeat_timeout_seconds": 30,
+          "lane_layout": "dbp-cluster-full-duplex-v1-layout-a"
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "node_hello": {
+          "capabilities": {
+            "container_runtime": "docker",
+            "cpu_total_cores": 12,
+            "gpu_devices": [],
+            "max_containers": 4,
+            "ram_total_bytes": 80000000000,
+            "supported_task_types": [
+              "run_model_inference",
+              "start_profile_learning",
+              "execute_search"
+            ]
+          },
+          "cluster_id": "local-prototype-cluster",
+          "node_hello_id": "nh-node-xeon-03-001",
+          "node_identity": {
+            "daemon_version": "1.5.0-draft",
+            "dbp_stack_version": "2.0.0",
+            "identity_kind": "psk_bootstrap",
+            "image_digest": "sha256:fixture-image",
+            "node_id": "node-xeon-03"
+          },
+          "protocol_version": "node-federation-protocol@v1.0",
+          "transport": {
+            "compression_supported": [],
+            "dbp_hs1_supported": true,
+            "dbp_profile_id": "dbp-cluster-full-duplex-v1",
+            "supported_security_modes": [
+              "S2"
+            ]
+          }
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_node_hello"
+    },
+    {
+      "case_id": "cluster.federation.node_hello_rejected_security",
+      "expect": {
+        "equals": {
+          "accepted": false,
+          "rejection_reason": "unsupported_security",
+          "retry_allowed": false
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "node_hello": {
+          "node_hello_id": "nh-bad-node-001",
+          "node_identity": {
+            "node_id": "bad-node-001"
+          },
+          "transport": {
+            "dbp_profile_id": "dbp-cluster-full-duplex-v1",
+            "supported_security_modes": [
+              "Open",
+              "S1"
+            ]
+          }
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_node_hello"
+    },
+    {
+      "case_id": "cluster.replay.direction_affects_identity",
+      "expect": {
+        "equals": {
+          "reason": "direction_is_identity_affecting",
+          "replay_digest_a_equals_b": false
+        }
+      },
+      "extra_markers": [
+        "replay"
+      ],
+      "given": {
+        "direction_a": "downlink",
+        "direction_b": "uplink",
+        "lane_layout_id": "dbp-cluster-full-duplex-v1-layout-a",
+        "payload_hash": "sha256:same-payload"
+      },
+      "marker": "research",
+      "op": "evaluate_cluster_replay_direction_binding"
+    },
+    {
+      "case_id": "cluster.learning_mode.blocks_profile_task",
+      "expect": {
+        "equals": {
+          "action_allowed": false,
+          "reason": "cluster_learning_mode_insufficient"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "cluster_policy": {
+          "cluster_learning_mode": "audit_only"
+        },
+        "task_payload": {
+          "policy": {
+            "learning_mode_required": "active"
+          },
+          "task_type": "start_profile_learning"
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_cluster_learning_mode_gate"
+    },
+    {
+      "case_id": "cluster.scheduling.least_loaded_node",
+      "expect": {
+        "equals": {
+          "expected_selected_node": "node-xeon-03",
+          "reason": "sufficient_capacity_lowest_queue_pressure"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "nodes": [
+          {
+            "effective_capacity_score": 0.59,
+            "effective_queue_pressure": 0.25,
+            "node_id": "node-xeon-01"
+          },
+          {
+            "effective_capacity_score": 0.61,
+            "effective_queue_pressure": 0.7,
+            "node_id": "node-xeon-02"
+          },
+          {
+            "effective_capacity_score": 0.58,
+            "effective_queue_pressure": 0.1,
+            "node_id": "node-xeon-03"
+          }
+        ]
+      },
+      "marker": "research",
+      "op": "select_cluster_node_for_task"
+    },
+    {
+      "case_id": "cluster.scheduling.gpu_task_avoids_cpu_only_node",
+      "expect": {
+        "equals": {
+          "reason": "gpu_requirement_not_met",
+          "schedulable": false
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "candidate_node": {
+          "gpu_free_bytes": 0,
+          "node_id": "node-xeon-01"
+        },
+        "task_payload": {
+          "required_resources": {
+            "gpu_bytes": 4000000000
+          },
+          "task_type": "run_model_inference"
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_cluster_node_schedulability"
+    },
+    {
+      "case_id": "cluster.task_outcome.transport_failure_zeroes_authority",
+      "expect": {
+        "equals": {
+          "authority": 0.0,
+          "eta_t": 0.0,
+          "reason": "transport_failed"
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "task_outcome_witness": {
+          "J_t": 3,
+          "normalizer_confidence": 0.92
+        },
+        "transport": {
+          "dbp_s2_valid": false
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_task_outcome_transport_authority"
+    }
+  ],
+  "description": "v1.5 Draft 2 distributed-cluster research slice: resource witnesses,\ndelegated task routing, stale-heartbeat invalidation, conflict\nhandling, replay-direction binding, learning-mode gating,\nscheduling, node-level schedulability, task-outcome authority,\nand federation admission checks.\n",
+  "pack_id": "cluster-v1_5-draft-2",
+  "schema_version": "v1.5-draft-2",
+  "target_schema_version": "v1.5-draft-2"
+}

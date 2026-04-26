@@ -19,6 +19,10 @@ fixture_pack: conformance-fixtures@v1.2
 meta_runtime: meta-runtime-contract@v0.2
 ```
 
+The default acceptance line remains `v1.2`.
+
+A separate selectable research slice can be exercised with `--schema-version v1.5-draft-2`. That line is for v1.5 Draft 2 cluster and WG-RNN conformance work and is not part of the default merge gate.
+
 ## Quick start
 
 ```sh
@@ -28,6 +32,7 @@ pip install -e .
 pytest -m normative --strict-markers --schema-version v1.2
 pytest --schema-version v1.2
 bash ci/acceptance.sh                     # full CI gate
+pytest --schema-version v1.5-draft-2 -m research
 ```
 
 ## Layout

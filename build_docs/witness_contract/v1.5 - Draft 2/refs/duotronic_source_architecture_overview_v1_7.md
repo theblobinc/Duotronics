@@ -3,13 +3,17 @@
 **Status:** Internal source architecture draft  
 **Version:** 1.7-source-overview  
 **Document kind:** Reference architecture and reading guide  
-**Primary purpose:** Explain the current v1.4 Duotronic source-spec stack, including DPFC, the Witness Contract, representation bridges, auto-profile learning, distributed model nodes, search/social evidence ingestion, and policy-gated profile promotion.
+**Primary purpose:** Explain the current v1.5 Duotronic source-spec stack, including DPFC, the Witness Contract, representation bridges, auto-profile learning, distributed model nodes, search/social evidence ingestion, policy-gated profile promotion, the v1.5 distributed self-governing recurrent network, and the WG-RNN witness-gated recurrent cell.
+
+> **Versioning note.** This overview was originally written against v1.4 and was carried forward into the v1.5 Draft 2 corpus. The architecture map and ownership boundaries remained valid, so the file kept its `v1.7-source-overview` identifier rather than being renumbered. Sections 1–7 below are the v1.4 baseline. Section 8 is the Draft 2 architecture clarification. Section 9 is the v1.4 Draft 3 self-informing extension. The v1.5 distributed cluster layer and the WG-RNN profile are owned by `duotronic_v1_5_distributed_self_governing_recurrent_network_addendum.md` and `duotronic_witness_gated_recurrent_cell_contract_v1_0.md` respectively; this overview defers to them.
 
 ---
 
-## 1. What Duotronics is in v1.4
+## 1. What Duotronics is
 
 Duotronics is a presence-first, witness-gated, representation-bridging and profile-learning framework.
+
+From v1.5 onward it is also a **distributed self-governing recurrent network**: nodes auto-federate over DBP v2 S2 full-duplex transport, publish computational resources as canonical witnesses, and accept policy-gated task delegation. The single-node trust path defined in the rest of this overview is the foundation; the distributed addendum extends it without redefining it.
 
 It is designed to take many forms of information, including mathematical notation, scripts, language, images, documents, social feeds, search results, and machine-learning model outputs, and route them through explicit witness and canonicalization paths.
 
@@ -182,7 +186,7 @@ The two flows are intentionally separate. The first flow uses approved profiles.
 
 ## 6. Minimal implementation shape
 
-A minimal v1.4 implementation should include:
+A minimal Duotronic implementation (v1.4 single-node baseline) should include:
 
 ```text
 EvidenceBundleStore

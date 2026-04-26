@@ -107,9 +107,11 @@ Until promotion, the WG-RNN may only be used in:
 
 Start with `refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md`.
 
+> **Implementation-target note.** The canonical implementation target is currently undecided. See `duotronic_canonical_implementation_target_v0_1.md`. Until a target is recorded, the skeleton runs as a research prototype, not as a normative reference runtime.
+
 Actions:
 
-1. Copy the skeleton to your implementation repo.
+1. Copy the skeleton into a research prototype repository or working directory consistent with the canonical-target status note.
 2. Run `run_prototype_v1_loop()` with the four sample events.
 3. Confirm fixture behaviors A, B, C, and G from the WG-RNN contract:
    - Fixture A: valid candidate write;

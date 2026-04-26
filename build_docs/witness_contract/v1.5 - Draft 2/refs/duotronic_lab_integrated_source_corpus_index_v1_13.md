@@ -3,20 +3,25 @@
 **Status:** Source-corpus index  
 **Version:** extracted-doc-index@v1.13  
 **Document kind:** Current corpus index  
-**Primary purpose:** List the v1.4 Draft corpus, including core documents, implementation source specs, new auto-learning specs, and reference profiles.
+**Primary purpose:** List the active v1.5 Draft 2 corpus (v1.4 Draft 5 baseline plus the v1.5 distributed cluster layer and the v1.5 Draft 2 WG-RNN research profile), including core documents, implementation source specs, auto-learning specs, distributed-cluster specs, and reference profiles.
+
+> **Read alongside:** `duotronic_program_charter_v1_0.md`, `v1_5_draft_2_reading_guide.md`, and `duotronic_canonical_implementation_target_v0_1.md` in the v1.5 Draft 2 root.
 
 ---
 
 ## Core documents
 
 1. `README_v1_5_draft_2.md`
-2. `duotronic_polygon_family_calculus_v5_15.md`
-3. `duotronic_witness_contract_v10_16.md`
-4. `refs/duotronic_source_architecture_overview_v1_7.md`
-5. `refs/duotronic_meta_runtime_contract_v0_5.md`
-6. `refs/duotronic_glossary_v1_0.md`
+2. `duotronic_program_charter_v1_0.md`
+3. `v1_5_draft_2_reading_guide.md`
+4. `duotronic_canonical_implementation_target_v0_1.md`
+5. `duotronic_polygon_family_calculus_v5_15.md`
+6. `duotronic_witness_contract_v10_16.md`
+7. `refs/duotronic_source_architecture_overview_v1_7.md`
+8. `refs/duotronic_meta_runtime_contract_v0_5.md`
+9. `refs/duotronic_glossary_v1_0.md`
 
-## New v1.4 source specs
+## Carried-forward profile-learning source specs
 
 1. `refs/duotronic_representation_bridge_contract_v1_1.md`
 2. `refs/duotronic_auto_profile_learning_contract_v1_3.md`
@@ -52,11 +57,11 @@ The v1.3 research profiles remain bounded and compatible:
 5. GCD-jump recurrences
 6. pronic-centered polygon families
 
-They should be treated as research inputs unless promoted under the v1.4 Profile Synthesis Registry and Policy Shield.
+They should be treated as research inputs unless promoted under the carried-forward Profile Synthesis Registry and Policy Shield path used by the active corpus.
 
-## v1.4 scope statement
+## Carried-forward profile-learning scope statement
 
-v1.4 adds the machinery for profiles to be born automatically. It does not automatically promote profiles. It specifies how profile candidates are created, tested, staged, and governed.
+The carried-forward profile-learning baseline adds the machinery for profiles to be born automatically. It does not automatically promote profiles. It specifies how profile candidates are created, tested, staged, and governed.
 
 
 ## Draft 2 adjustment set

@@ -248,6 +248,24 @@ def evaluate_meta_retention(given: dict[str, Any]) -> dict:
     }
 
 
+def step_meta_memory_cell(given: dict[str, Any]) -> dict:
+    witness = MetaRecurrentWitness.from_dict(given.get("previous_witness"))
+    candidate, diagnostics = witness.step_memory_cell(
+        given.get("observation", {}),
+        witness_features=given.get("witness_features", {}),
+        policy=given.get("policy", {}),
+        learning_rate=float(given.get("learning_rate", 1.0)),
+    )
+    accepted = bool(diagnostics["learning_applied"])
+    return {
+        "schema_version": "meta-memory-cell-step@v1",
+        "status": _status(accepted),
+        "witness": candidate.to_dict(),
+        "diagnostics": diagnostics,
+        "failure_reasons": list(diagnostics["failure_reasons"]),
+    }
+
+
 _OPERATIONS = {
     "build_meta_object_instance": build_meta_object_instance,
     "normalize_meta_object": normalize_meta_object,
@@ -259,6 +277,7 @@ _OPERATIONS = {
     "propose_architectural_change": propose_architectural_change,
     "dry_run_state_migration": dry_run_state_migration,
     "evaluate_meta_retention": evaluate_meta_retention,
+    "step_meta_memory_cell": step_meta_memory_cell,
 }
 
 

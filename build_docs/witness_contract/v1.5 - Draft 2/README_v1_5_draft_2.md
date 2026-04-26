@@ -7,6 +7,20 @@
 
 ---
 
+## 0. Program-level entry points
+
+Before reading the v1.5 release notes below, new readers should anchor on:
+
+1. `duotronic_program_charter_v1_0.md` — program scope, separation rule, and relationship to the legacy chapter material.
+2. `v1_5_draft_2_reading_guide.md` — corpus map and reading order by role.
+3. `duotronic_canonical_implementation_target_v0_1.md` — canonical implementation target status (currently TBD).
+4. `refs/duotronic_source_architecture_overview_v1_7.md` — architecture map.
+5. `refs/duotronic_glossary_v1_0.md` — terminology authority.
+
+The rest of this README focuses on what v1.5 Draft 2 *adds* on top of the v1.4 Draft 5 corpus.
+
+---
+
 ## Draft 2 addition: Witness-Gated Recurrent Cell
 
 v1.5 Draft 2 adds the WG-RNN research profile:

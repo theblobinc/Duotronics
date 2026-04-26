@@ -1,254 +1,113 @@
-# Duotronics Roadmap
+# Duotronics Program Roadmap
 
-## Vision
-Build a rigorous, falsifiable, and implementation-ready Duotronics stack that:
-1. runs on classical binary hardware first,
-2. maps cleanly to quantum-compatible execution models,
-3. preserves Duotronic semantics (`empty`, `unknown`, `zero`) and provenance,
-4. eventually informs purpose-built Duotronic hardware.
+This roadmap tracks the **Duotronics program** (witness-runtime + distributed-systems specification stack), not any one runtime implementation.
 
-This roadmap treats Duotronics as a **semantic + operator + validation architecture** first, then a hardware architecture.
+The phases below replace earlier polygon-only "binary engine → quantum compatibility → cross-backend → hardware" framing. That framing is preserved as a **long-horizon research track** (track L) but is no longer the spine of the program.
+
+For program scope and authority, see `build_docs/witness_contract/v1.5 - Draft 2/duotronic_program_charter_v1_0.md`. For corpus reading order, see `v1_5_draft_2_reading_guide.md`. For the implementation-target decision (currently TBD), see `duotronic_canonical_implementation_target_v0_1.md`.
 
 ---
 
-## North-star outcomes
+## Status legend
 
-### Outcome A — Semantic correctness
-- No silent coercion of `unknown` to numeric values.
-- Every derived quantity carries provenance (`depends_on`, assumptions, confidence).
-- Mapping policy changes (including offset conventions) are versioned and migration-safe.
-
-### Outcome B — Cross-platform executability
-- Identical reference workloads execute under:
-  - a binary backend,
-  - a quantum-simulation backend,
-  - selected real quantum hardware targets (when practical).
-- Cross-backend agreement is measured by witness suites with explicit tolerances.
-
-### Outcome C — Unified representational layer
-- Polygon packaging supports both digital and analogue-like observables through a common schema.
-- Heterogeneous data (symbolic, numeric, sampled signals, constrained physical values) map to a single coherent state model.
-
-### Outcome D — Hardware readiness
-- By the time hardware design begins, the methodology has stable operator contracts, benchmark suites, and migration protocols.
+- **Done** — owned document is documentation-complete for its declared scope.
+- **In progress** — partial coverage, active editing or active prototyping.
+- **Planned** — committed for the active corpus, not yet started.
+- **Deferred** — recorded in the corpus but blocked on the canonical-target decision.
 
 ---
 
-## Guiding principles
-1. **Gate-first development**: no feature without at least one corresponding witness gate.
-2. **Version everything**: schemas, policies, operators, and benchmark suites.
-3. **Backend neutrality**: define semantics independent of execution substrate.
-4. **Reproducibility over novelty**: prioritize replayable runs and falsification.
-5. **Hardware-last discipline**: defer custom hardware until software semantics are stable.
+## Phase A — Specification finalization (active corpus)
+
+**Goal:** Bring the v1.5 Draft 2 corpus to internal consistency and review-ready quality.
+
+- [x] DPFC v5.15 documentation-complete.
+- [x] Witness Contract v10.16 documentation-complete.
+- [x] Distributed self-governing recurrent network addendum v1.5 documentation-complete.
+- [x] WG-RNN contract v1.0 documentation-complete.
+- [x] Auto-profile learning contract v1.3, profile synthesis registry v1.2, normalizer profiles v1.3, representation bridge contract v1.1, schema registry v1.10, family registry v1.4 documentation-complete.
+- [x] Policy shield guide v1.8, evidence purge contract v1.0, human review and escalation protocol v1.0, model diversity adjudication v1.1, migration guide v1.3, retention diagnostics v1.4 documentation-complete.
+- [x] Program charter v1.0, canonical-target decision note v0.1, and reading guide added.
+- [ ] Source architecture overview v1.7 → v1.8 renumber (when the next material rewrite happens).
+- [ ] Corpus index v1.13 → next minor revision after the next set of edits.
+
+**Exit:** A reviewer can read `duotronic_program_charter_v1_0.md` → `v1_5_draft_2_reading_guide.md` → core three documents and arrive at an unambiguous architectural picture without consulting external context.
+
+## Phase B — Conformance harness
+
+**Goal:** Make the corpus testable end-to-end with deterministic, replayable fixtures.
+
+- [x] Cluster conformance fixtures (`refs/duotronic_v1_5_cluster_conformance_fixtures_v1_0.md`) documented.
+- [ ] Harness skeleton committed (`harness/` already scaffolded).
+- [ ] Replay harness for `MemoryUpdateRecord`, `MetaDiagnostics`, `TaskOutcomeWitness`.
+- [ ] WG-RNN replay-identity vectors committed under `refs/examples/`.
+- [ ] Schema-registry conformance suite (versioned IDs, compatibility checks).
+
+**Exit:** A research-prototype implementation can run the corpus's conformance fixtures and report pass/fail per spec.
+
+## Phase C — WG-RNN research prototype
+
+**Goal:** A research prototype of the witness-gated recurrent cell suitable for replay-identity validation.
+
+- [x] PyTorch skeleton (`refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md`) authored.
+- [ ] Skeleton runs `run_prototype_v1_loop()` against committed sample events.
+- [ ] Slot lifecycle (write / decay / quarantine / promote) instrumented with replay records.
+- [ ] Policy clamp veto path validated against shield runtime stub.
+- [ ] Replay-identity stability test against fixture vectors.
+
+**Status note:** Prototype runs as research code only until the canonical implementation target is decided.
+
+## Phase D — Distributed cluster prototype
+
+**Goal:** A six-machine distributed prototype matching `duotronic_v1_5_distributed_self_governing_recurrent_network_addendum.md` and `refs/duotronic_v1_5_cluster_conformance_fixtures_v1_0.md`.
+
+- [ ] DBP v2 S2 full-duplex inter-node lanes operational.
+- [ ] `NodeHello` / `NodeAccept` / heartbeat / revocation cycle observed end-to-end.
+- [ ] Canonical resource witnesses published and consumed.
+- [ ] Policy-gated task delegation with `TaskOutcomeWitness` emission.
+- [ ] Container/Docker node lifecycle validated against `refs/duotronic_container_deployment_and_node_lifecycle_reference_v1_0.md`.
+
+**Status note:** Substrate (Docker + SSH + Redis bus vs dedicated DBP daemon vs gRPC/QUIC framing) is one of the open canonical-target decisions.
+
+## Phase E — Canonical implementation-target decision
+
+**Goal:** Record the canonical implementation target.
+
+- [ ] Open decisions in `duotronic_canonical_implementation_target_v0_1.md` settled (language, storage, federation substrate, public surface, operator).
+- [ ] Decision recorded as `## 8. Decision record` in that document.
+- [ ] Corpus review note explaining the choice.
+- [ ] Repository-level documents updated to reference the chosen target.
+
+**Exit:** The program has a named, owned, versioned reference runtime.
+
+## Phase F — Production-grade runtime
+
+**Goal:** First production deployment of the canonical implementation target.
+
+- [ ] Reference runtime ships under the chosen target with versioned releases pinned to numbered Witness Contract / DPFC / WG-RNN revisions.
+- [ ] Audit log export, identity and key management, rate-limiting, and quota model committed.
+- [ ] Operator response procedures (revocation, purge attestation, human-review escalation) operational.
+- [ ] Migration runner deployed.
+
+**Status note:** Phase F cannot start until Phase E is complete.
+
+## Track L — Long-horizon research
+
+These tracks remain on the program but are no longer the spine. Each maps to a bounded research profile and may be promoted to a normative spec only via the auto-profile learning + profile synthesis registry lifecycle.
+
+- L1 **Polygon atomic-model workbook** — Chapters 1–23 material; informs the polygon family research profile. Source files at the repository root.
+- L2 **Quantum-compatible representation surface** — historical "Phase 3" target; remains a research interest but is gated on a bounded research profile, not part of the active spine.
+- L3 **Cross-backend representation portability** — historical "Phase 4" target; folded into the bridge contract and DPFC export/import policy.
+- L4 **Hardware acceleration / specialized backends** — historical "Phase 5" target; deferred until at least Phase F is operational.
 
 ---
 
-## Phased roadmap
+## Change management
 
-## Phase 0 (0–2 months): Foundation hardening
-**Goal:** convert current workbook guidance into enforceable implementation contracts.
+Roadmap changes that re-order phases or move items between Phase A–F and Track L require:
 
-### Deliverables
-- Canonical schema package (`state`, `polygon`, `catalog_entry`, `witness_result`).
-- Formal status lattice for values:
-  - `known`,
-  - `unknown`,
-  - `conditional`,
-  - `structurally_absent`.
-- Offset-policy registry with explicit policy IDs and migration notes.
-- Minimal “truth procedure” spec (what counts as supported claim vs unsupported claim).
+1. a corpus review note in `build_docs/witness_contract/v1.5 - Draft 2/`;
+2. an updated entry in this file;
+3. consistency check against the program charter.
 
-### Exit criteria
-- CI can validate schema conformance and reject unknown-coercing operators.
-- At least 3 hard witnesses:
-  - unknown-propagation witness,
-  - offset-consistency witness,
-  - canonicalization idempotence witness.
-
----
-
-## Phase 1 (2–5 months): Binary reference engine (authoritative implementation)
-**Goal:** establish the classical baseline where correctness is easiest to debug.
-
-### Deliverables
-- Reference runtime in a stable systems language (or mixed stack) with:
-  - operator interface contracts,
-  - deterministic execution mode,
-  - structured provenance capture.
-- Catalog generation and replay tooling.
-- Scorecard engine with gate-first ranking.
-- Benchmark packs:
-  - tiny sanity,
-  - medium regression,
-  - stress/invalidation.
-
-### Truth-procedure implementation (v1)
-Define machine-checkable truth states for any claim:
-- `validated`: passes required witnesses under declared regime/tolerance,
-- `conditionally_valid`: passes under explicit assumptions,
-- `falsified`: fails any hard gate,
-- `unresolved`: insufficient evidence.
-
-### Exit criteria
-- Full deterministic replay from config + seed + version hash.
-- All v1 claims machine-labeled by truth state.
-- Regression suite stable for 4 consecutive weeks.
-
----
-
-## Phase 2 (5–9 months): Dual-mode representation (digital + analogue inputs)
-**Goal:** make polygon packaging truly multimodal while preserving semantic rigor.
-
-### Deliverables
-- Encoding spec for heterogeneous measurements into polygon/state fields:
-  - discrete symbols,
-  - sampled continuous signals,
-  - uncertainty intervals/distributions,
-  - physical constraints.
-- Quantization/normalization policies with reversible transforms where possible.
-- Information-density diagnostics (how much uncertainty/compression each encoding adds).
-
-### Core method
-Represent each embedded datum as:
-- value representation,
-- uncertainty representation,
-- provenance representation,
-- transform-chain representation.
-
-This preserves the “infinite complexity in principle, bounded by quantifiable information in practice” idea without overclaiming physical infinity.
-
-### Exit criteria
-- Mixed-input benchmark suite runs end-to-end.
-- Witness shows no loss of unknown/conditional semantics through encoding pipeline.
-
----
-
-## Phase 3 (9–14 months): Quantum compatibility layer
-**Goal:** run Duotronic operators on quantum-compatible abstractions while preserving semantics.
-
-### Deliverables
-- Intermediate Representation (IR) for operators and state transforms, backend-agnostic.
-- Binary backend adapter (reference) + quantum-simulation adapter.
-- Mapping guide from Duotronic operators to quantum primitives:
-  - unitary-compatible pieces,
-  - variational workflows,
-  - measurement/post-processing semantics.
-- Noise-aware witness extensions for quantum runs.
-
-### Hard problem policy
-If a semantic cannot be represented natively in quantum execution (e.g., unknown/conditional provenance), it must be handled by explicit side-channel metadata rather than silently dropped.
-
-### Exit criteria
-- Agreement reports between binary and quantum-sim backends across shared suites.
-- Published tolerance envelopes for expected divergence under noise.
-
----
-
-## Phase 4 (14–20 months): Cross-backend verification and scale
-**Goal:** prove that the method is substrate-portable and operationally useful.
-
-### Deliverables
-- Cross-backend conformance suite:
-  - binary,
-  - quantum simulator,
-  - optional real-QPU test lane.
-- Pareto dashboards for accuracy/stability/cost/runtime.
-- Drift and migration tooling for long-lived catalog epochs.
-
-### Exit criteria
-- Stable cross-backend trend reports.
-- Automated invalidation sweep when policies/operators change.
-- Clear “best variant by workload class” selections.
-
----
-
-## Phase 5 (20+ months): Duotronic hardware architecture program
-**Goal:** begin hardware co-design only after semantic and operator stability is demonstrated.
-
-### Workstreams
-1. **Requirements extraction**
-   - operator kernels most worth acceleration,
-   - memory/provenance access patterns,
-   - precision and noise budgets.
-2. **Candidate substrates**
-   - multi-level cell / analogue-mixed architectures,
-   - photonic or memristive concepts,
-   - hybrid control planes.
-3. **Compiler/runtime co-design**
-   - map IR to hardware instructions,
-   - preserve provenance and truth-state outputs.
-
-### Exit criteria
-- Hardware feasibility document tied to measured software bottlenecks.
-- Prototype emulation layer demonstrating speed/energy hypotheses before fabrication.
-
----
-
-## Truth-framework architecture (concise)
-
-Each claim must specify:
-- regime,
-- observable,
-- tolerance,
-- required witnesses,
-- backend context.
-
-Evaluation pipeline:
-1. Parse claim spec.
-2. Execute required witnesses.
-3. Aggregate evidence with gate-first logic.
-4. Emit truth state + counterexamples + provenance bundle.
-
-This is the formal mechanism for “logical procedures for determining truth.”
-
----
-
-## Minimum tooling plan
-
-- `duo-schema`: schema + versioning tools.
-- `duo-catalog`: polygon catalog generation + canonicalization.
-- `duo-ops`: operator library and IR exporters.
-- `duo-runner`: backend execution harness.
-- `duo-witness`: witness engine.
-- `duo-score`: ranking/pareto/trend reports.
-- `duo-migrate`: schema/policy/epoch migration assistant.
-
----
-
-## Risks and mitigations
-
-### Risk: semantic drift
-- **Mitigation:** mandatory migration witnesses and policy IDs.
-
-### Risk: “infinite complexity” interpreted as unbounded precision claims
-- **Mitigation:** separate representational richness from measurable information bounds.
-
-### Risk: backend mismatch (binary vs quantum)
-- **Mitigation:** IR-first architecture and explicit tolerance envelopes.
-
-### Risk: premature hardware focus
-- **Mitigation:** enforce Phase 5 entry gate requiring stable software evidence.
-
----
-
-## First 6 execution sprints (2 weeks each)
-
-1. **Sprint 1:** finalize schema v0 + status lattice + validation CLI.
-2. **Sprint 2:** implement unknown-propagation and offset witnesses.
-3. **Sprint 3:** deterministic binary runner + provenance output.
-4. **Sprint 4:** scorecard and truth-state classifier (`validated`, `conditional`, `falsified`, `unresolved`).
-5. **Sprint 5:** mixed digital/analogue encoding prototype + diagnostics.
-6. **Sprint 6:** operator IR draft + binary adapter proof-of-concept.
-
-At Sprint 6 close, hold a roadmap review with hard go/no-go gates for quantum layer start.
-
----
-
-## Definition of success (program level)
-
-You are “moving in the right direction” when:
-- the same claim can be replayed and independently re-verified,
-- uncertainty is represented explicitly instead of erased,
-- variants are compared by evidence, not narrative,
-- backend differences are quantified rather than ignored,
-- hardware decisions are derived from measured bottlenecks and stable semantics.
+Roadmap changes that only update the status of an existing checkbox do not require a corpus review note.

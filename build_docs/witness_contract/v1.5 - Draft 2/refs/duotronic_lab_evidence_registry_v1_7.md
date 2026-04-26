@@ -68,9 +68,9 @@ A lab artifact cannot directly become:
 
 ---
 
-## 3. v1.4 lab classes
+## 3. Carried-forward lab classes
 
-v1.4 adds lab classes for:
+The carried-forward profile-learning baseline adds lab classes for:
 
 1. auto-profile learning runs;
 2. Roman numeral profile synthesis;

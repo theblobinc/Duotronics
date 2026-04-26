@@ -26,7 +26,7 @@ It becomes trusted only after declared validation, canonicalization,
 replay-stable identity checks, and policy gating.
 ```
 
-v10.12 extends the contract to support automatic profile learning across multiple models, multiple nodes, internal search, external search, social feeds, video transcripts, documents, glyphic or visual inputs, and natural-language streams.
+Beginning with v10.12 and carried forward through v10.16, the contract supports automatic profile learning across multiple models, multiple nodes, internal search, external search, social feeds, video transcripts, documents, glyphic or visual inputs, and natural-language streams.
 
 The new rule is:
 
@@ -125,7 +125,7 @@ Documents and examples should use these values consistently unless a profile dec
 
 > **Status tag:** normative
 
-The witness system is organized into five runtime levels plus one memory layer and two v1.4 learning overlays.
+The witness system is organized into five runtime levels plus one memory layer and two carried-forward profile-learning overlays.
 
 | Layer | Symbolic role | Object family | Update cadence | Primary role |
 |---|---|---|---|---|

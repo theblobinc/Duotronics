@@ -9,7 +9,7 @@
 
 ## 1. Scope
 
-This glossary defines terms used across the v1.4 Draft 2 corpus.
+This glossary defines terms used across the active v1.5 Draft 2 corpus, including the carried-forward baseline documents it incorporates.
 
 A document may repeat a short definition locally for readability, but if the local definition conflicts with this glossary, the glossary controls unless the local document explicitly declares a narrower profile-specific meaning.
 
@@ -270,7 +270,7 @@ A source reliability diagnostic is a measured or assessed signal about a sourceâ
 
 ## 10. Status names
 
-The canonical v1.4 Draft 2 status ladder is:
+The canonical carried-forward status ladder used in the v1.5 Draft 2 corpus is:
 
 ```text
 observed_pattern

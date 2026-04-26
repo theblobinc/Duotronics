@@ -44,5 +44,12 @@ TRANSPORT_REGISTRY = TransportRegistry(
             requires_replay_key=True,
             notes="Strict Duotronic Bus Profile (declares numeric zero).",
         ),
+        TransportProfile(
+            profile_id="dbp-cluster-full-duplex-v1",
+            version="v1",
+            declares_numeric_zero=False,
+            requires_replay_key=True,
+            notes="v1.5 cluster full-duplex inter-node profile.",
+        ),
     ]
 )

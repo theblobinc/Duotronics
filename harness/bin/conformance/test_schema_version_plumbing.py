@@ -14,6 +14,7 @@ from harness_lib.schema_versions import (
     CURRENT_FIXTURE_SCHEMA_VERSION,
     fixture_pack_id_for,
     resolve_schema_snapshot,
+    spec_target_for,
 )
 
 
@@ -38,6 +39,7 @@ def test_policy_shield_reset_tracks_selected_schema_version(schema_version: str)
 
 @pytest.mark.normative
 def test_public_metadata_matches_active_spec_target() -> None:
+    assert ACTIVE_SPEC_TARGET == spec_target_for(CURRENT_FIXTURE_SCHEMA_VERSION)
     assert ACTIVE_SPEC_TARGET["dpfc"] == "dpfc-core@v5.8"
     assert ACTIVE_SPEC_TARGET["witness"] == "witness-contract@v10.8"
     assert ACTIVE_SPEC_TARGET["source_architecture"] == "source-architecture@v1.3"
@@ -48,6 +50,7 @@ def test_public_metadata_matches_active_spec_target() -> None:
     assert "DPFC v5.8" in readme
     assert "Witness Contract v10.8" in readme
     assert "conformance-fixtures@v1.2" in readme
+    assert "v1.5-draft-2" in readme
 
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     assert "DPFC v5.8" in pyproject
@@ -55,11 +58,34 @@ def test_public_metadata_matches_active_spec_target() -> None:
 
 
 @pytest.mark.normative
+def test_v1_5_research_spec_target_snapshot_is_available() -> None:
+    assert spec_target_for("v1.5-draft-2") == {
+        "dpfc": "dpfc-core@v5.15",
+        "witness": "witness-contract@v10.16",
+        "source_architecture": "source-architecture@v1.7",
+        "fixture_pack": "conformance-fixtures@v1.5-draft-2",
+        "meta_runtime": "meta-runtime-contract@v0.5",
+    }
+    assert resolve_schema_snapshot("v1.5-draft-2") == {
+        "family_registry_version": "family-registry@v1.4",
+        "geometry_registry_version": "geometry-registry@v1.0",
+        "policy_shield_version": "policy-shield@v1.8",
+    }
+
+
+@pytest.mark.normative
 def test_fixture_manifest_matches_loader_selection(
     schema_version: str,
     target_schema_version: str | None,
 ) -> None:
-    expected_sources = {path.name for path in (ROOT / "fixtures").glob("*.yaml")}
+    expected_sources = {
+        pack.source.name
+        for pack in loader.discover_packs(
+            schema_version=schema_version,
+            target_schema_version=target_schema_version,
+        )
+        if pack.source is not None
+    }
     observed_packs = loader.discover_packs(
         schema_version=schema_version,
         target_schema_version=target_schema_version,
@@ -77,7 +103,15 @@ def test_meta_fixture_packs_declare_explicit_schema_metadata(
     schema_version: str,
     target_schema_version: str | None,
 ) -> None:
-    expected_sources = {path.name for path in (ROOT / "meta_fixtures").glob("*.yaml")}
+    expected_sources = {
+        pack.source.name
+        for pack in loader.discover_packs(
+            ROOT / "meta_fixtures",
+            schema_version=schema_version,
+            target_schema_version=target_schema_version,
+        )
+        if pack.source is not None
+    }
     observed_packs = loader.discover_packs(
         ROOT / "meta_fixtures",
         schema_version=schema_version,

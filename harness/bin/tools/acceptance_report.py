@@ -17,18 +17,31 @@ META_GOLDEN_TRACES_DIR = ROOT / "meta_golden_traces"
 
 sys.path.insert(0, str(ROOT))
 
-from harness_lib.schema_versions import ACTIVE_SPEC_TARGET, resolve_schema_snapshot
+from harness_lib import loader
+from harness_lib.schema_versions import resolve_schema_snapshot, spec_target_for
 
 
 def _timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _artifact_counts() -> dict[str, int]:
+def _artifact_counts(schema_version: str, target_schema_version: str | None) -> dict[str, int]:
     return {
-        "fixture_packs": len(list(FIXTURES_DIR.glob("*.yaml"))),
+        "fixture_packs": len(
+            loader.discover_packs(
+                FIXTURES_DIR,
+                schema_version=schema_version,
+                target_schema_version=target_schema_version,
+            )
+        ),
         "golden_traces": len(list(GOLDEN_TRACES_DIR.glob("*.yaml"))),
-        "meta_fixture_packs": len(list(META_FIXTURES_DIR.glob("*.yaml"))),
+        "meta_fixture_packs": len(
+            loader.discover_packs(
+                META_FIXTURES_DIR,
+                schema_version=schema_version,
+                target_schema_version=target_schema_version,
+            )
+        ),
         "meta_golden_traces": len(list(META_GOLDEN_TRACES_DIR.glob("*.yaml"))),
     }
 
@@ -94,9 +107,9 @@ def command_init(args: argparse.Namespace) -> int:
             "schema_version": args.schema_version,
             "target_schema_version": target_schema_version,
         },
-        "spec_target": dict(ACTIVE_SPEC_TARGET),
+        "spec_target": spec_target_for(args.schema_version),
         "registry_snapshot": resolve_schema_snapshot(args.schema_version),
-        "artifact_counts": _artifact_counts(),
+        "artifact_counts": _artifact_counts(args.schema_version, target_schema_version),
         "stages": {},
     }
     _recompute_summary(report)

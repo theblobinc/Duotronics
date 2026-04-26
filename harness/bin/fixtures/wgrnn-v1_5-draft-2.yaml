@@ -1,0 +1,173 @@
+pack_id: wgrnn-v1_5-draft-2
+schema_version: v1.5-draft-2
+target_schema_version: v1.5-draft-2
+description: |
+  v1.5 Draft 2 Witness-Gated Recurrent Cell research slice: fixture A,
+  fixture B, fixture C, fixture D, fixture E, fixture F, fixture G,
+  and fixture H from the contract.
+
+cases:
+  - case_id: wgrnn.fixture_a.valid_candidate_write
+    op: evaluate_wgrnn_policy_gates
+    marker: research
+    extra_markers: [policy, replay]
+    given:
+      witness_feature_vector:
+        confidence_score: 0.92
+        contradiction_score: 0.05
+        novelty_score: 0.3
+        recurrence_score: 0.8
+        replayability_score: 0.95
+        policy_allow_write: true
+        policy_allow_promote: false
+        invalidation_score: 0.0
+        human_review_required: false
+        action_risk: 0.1
+        authority_inputs:
+          profile_requested_authority: 0.8
+          normalizer_confidence: 0.9
+          policy_limit: 0.7
+          transport_validated: true
+          canonicalization_validated: true
+      policy:
+        threshold_invalidate: 0.5
+        high_novelty_threshold: 0.8
+        low_confidence_threshold: 0.5
+        candidate_write_upper_bound: 0.1
+    expect:
+      equals:
+        authority_t: 0.7
+        update_kind: candidate_write
+        persistent_memory_changed: true
+        stable_write_allowed: false
+      key_truthy: [g_write_after_clamp]
+
+  - case_id: wgrnn.fixture_b.blocked_by_invalidation
+    op: evaluate_wgrnn_policy_gates
+    marker: research
+    extra_markers: [policy]
+    given:
+      witness_feature_vector:
+        policy_allow_write: true
+        invalidation_score: 0.95
+      policy:
+        threshold_invalidate: 0.5
+    expect:
+      equals:
+        g_write_after_clamp: 0.0
+        persistent_memory_changed: false
+        update_kind: no_op
+
+  - case_id: wgrnn.fixture_c.quarantine_high_novelty_low_confidence
+    op: evaluate_wgrnn_policy_gates
+    marker: research
+    extra_markers: [policy]
+    given:
+      witness_feature_vector:
+        policy_allow_write: true
+        novelty_score: 0.94
+        confidence_score: 0.31
+      policy:
+        high_novelty_threshold: 0.8
+        low_confidence_threshold: 0.5
+    expect:
+      equals:
+        g_quarantine_after_clamp: 1.0
+        slot_status: quarantined
+        promotion_allowed: false
+        update_kind: quarantine_write
+
+  - case_id: wgrnn.fixture_g.transport_failure_zeroes_authority
+    op: evaluate_wgrnn_policy_gates
+    marker: research
+    extra_markers: [policy, replay]
+    given:
+      witness_feature_vector:
+        confidence_score: 0.99
+        policy_allow_write: true
+        authority_inputs:
+          transport_validated: false
+          canonicalization_validated: true
+      policy:
+        threshold_invalidate: 0.5
+    expect:
+      equals:
+        authority_t: 0.0
+        g_write_after_clamp: 0.0
+        g_promote_after_clamp: 0.0
+        update_kind: no_op
+
+  - case_id: wgrnn.fixture_h.human_review_required
+    op: evaluate_wgrnn_policy_gates
+    marker: research
+    extra_markers: [policy]
+    given:
+      witness_feature_vector:
+        confidence_score: 0.93
+        policy_allow_write: true
+        policy_allow_promote: true
+        human_review_required: true
+      policy:
+        candidate_write_upper_bound: 0.1
+    expect:
+      equals:
+        g_promote_after_clamp: 0.0
+        g_write_after_clamp: 0.1
+        stable_write_allowed: false
+
+  - case_id: wgrnn.fixture_d.promotion_after_stable_recurrence
+    op: evaluate_wgrnn_slot_promotion
+    marker: research
+    extra_markers: [policy, replay]
+    given:
+      slot_promotion_request:
+        promotion_gate_value: 0.91
+        promotion_threshold: 0.85
+        replay_trace_set_id: replay-wgrnn-pref-001
+        retention_metric_ids:
+          - retention-pref-stability-001
+        contradiction_review_refs: []
+        purge_check_refs:
+          - purge-lineage-clear-001
+      policy_decision:
+        decision: allow
+    expect:
+      equals:
+        slot_status_after: stable
+        canonical_witness_fact_created: true
+
+  - case_id: wgrnn.fixture_e.contradiction_split
+    op: evaluate_wgrnn_contradiction_split
+    marker: research
+    extra_markers: [policy]
+    given:
+      memory_slot:
+        slot_id: 7
+        contradiction_score: 0.88
+      policy:
+        split_contradiction_threshold: 0.75
+    expect:
+      equals:
+        SlotSplitRecord_created: true
+        original_slot_unchanged: true
+        new_slot_status: candidate
+
+  - case_id: wgrnn.fixture_f.purge_cascade_memory_slot
+    op: evaluate_wgrnn_purge_cascade
+    marker: research
+    extra_markers: [policy, replay]
+    given:
+      evidence_purge_event:
+        purge_event_id: epe-song-history-0042
+        purged_provenance_hashes:
+          - hash-of-purged-evidence
+      memory_slot:
+        slot_id: 12
+        provenance_hashes:
+          - hash-of-purged-evidence
+        trust_status: stable
+    expect:
+      equals:
+        MemoryPurgeImpactRecord_created: true
+        slot_status_after: tombstoned
+        stable_authority_after: 0

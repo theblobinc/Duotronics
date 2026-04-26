@@ -75,7 +75,7 @@ RetentionMetricSpec:
 
 ---
 
-## 4. v1.4 metric classes
+## 4. Carried-forward metric classes
 
 | Metric class | Question |
 |---|---|

@@ -151,11 +151,11 @@ def _coverage_matrix(config: pytest.Config) -> dict[str, Any]:
     return serializable
 
 
-def _artifact_counts() -> dict[str, int]:
+def _artifact_counts(config: pytest.Config) -> dict[str, int]:
     return {
-        "fixture_packs": len(list(loader.FIXTURES_DIR.glob("*.yaml"))),
+        "fixture_packs": len(_discover_fixture_packs(config)),
         "golden_traces": len(list(GOLDEN_TRACES_DIR.glob("*.yaml"))),
-        "meta_fixture_packs": len(list(META_FIXTURES_DIR.glob("*.yaml"))),
+        "meta_fixture_packs": len(_discover_fixture_packs(config, META_FIXTURES_DIR)),
         "meta_golden_traces": len(list(META_GOLDEN_TRACES_DIR.glob("*.yaml"))),
     }
 
@@ -254,14 +254,15 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
 def pytest_report_header(config: pytest.Config) -> list[str]:
     schema_version = _selected_schema_version(config)
     target_schema_version = _selected_target_schema_version_or_current(config)
+    spec_target = schema_versions.spec_target_for(schema_version)
     return [
         (
             "spec target: "
-            f"{schema_versions.ACTIVE_SPEC_TARGET['dpfc']} | "
-            f"{schema_versions.ACTIVE_SPEC_TARGET['witness']} | "
-            f"{schema_versions.ACTIVE_SPEC_TARGET['source_architecture']} | "
-            f"{schema_versions.ACTIVE_SPEC_TARGET['fixture_pack']} | "
-            f"{schema_versions.ACTIVE_SPEC_TARGET['meta_runtime']}"
+            f"{spec_target['dpfc']} | "
+            f"{spec_target['witness']} | "
+            f"{spec_target['source_architecture']} | "
+            f"{spec_target['fixture_pack']} | "
+            f"{spec_target['meta_runtime']}"
         ),
         (
             "schema selection: "
@@ -311,8 +312,8 @@ def pytest_terminal_summary(
             "impl": config.getoption("--impl") or os.environ.get("DUOTRONIC_IMPL", "duotronic_ref.api"),
             "meta_impl": config.getoption("--meta-impl") or os.environ.get("DUOTRONIC_META_IMPL", "runtime_ref.api"),
         },
-        "spec_target": dict(schema_versions.ACTIVE_SPEC_TARGET),
-        "artifact_counts": _artifact_counts(),
+        "spec_target": schema_versions.spec_target_for(_selected_schema_version(config)),
+        "artifact_counts": _artifact_counts(config),
         "coverage_matrix": _coverage_matrix(config),
         "summary": summary,
     }

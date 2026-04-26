@@ -1,0 +1,249 @@
+{
+  "cases": [
+    {
+      "case_id": "wgrnn.fixture_a.valid_candidate_write",
+      "expect": {
+        "equals": {
+          "authority_t": 0.7,
+          "persistent_memory_changed": true,
+          "stable_write_allowed": false,
+          "update_kind": "candidate_write"
+        },
+        "key_truthy": [
+          "g_write_after_clamp"
+        ]
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "policy": {
+          "candidate_write_upper_bound": 0.1,
+          "high_novelty_threshold": 0.8,
+          "low_confidence_threshold": 0.5,
+          "threshold_invalidate": 0.5
+        },
+        "witness_feature_vector": {
+          "action_risk": 0.1,
+          "authority_inputs": {
+            "canonicalization_validated": true,
+            "normalizer_confidence": 0.9,
+            "policy_limit": 0.7,
+            "profile_requested_authority": 0.8,
+            "transport_validated": true
+          },
+          "confidence_score": 0.92,
+          "contradiction_score": 0.05,
+          "human_review_required": false,
+          "invalidation_score": 0.0,
+          "novelty_score": 0.3,
+          "policy_allow_promote": false,
+          "policy_allow_write": true,
+          "recurrence_score": 0.8,
+          "replayability_score": 0.95
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_policy_gates"
+    },
+    {
+      "case_id": "wgrnn.fixture_b.blocked_by_invalidation",
+      "expect": {
+        "equals": {
+          "g_write_after_clamp": 0.0,
+          "persistent_memory_changed": false,
+          "update_kind": "no_op"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "policy": {
+          "threshold_invalidate": 0.5
+        },
+        "witness_feature_vector": {
+          "invalidation_score": 0.95,
+          "policy_allow_write": true
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_policy_gates"
+    },
+    {
+      "case_id": "wgrnn.fixture_c.quarantine_high_novelty_low_confidence",
+      "expect": {
+        "equals": {
+          "g_quarantine_after_clamp": 1.0,
+          "promotion_allowed": false,
+          "slot_status": "quarantined",
+          "update_kind": "quarantine_write"
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "policy": {
+          "high_novelty_threshold": 0.8,
+          "low_confidence_threshold": 0.5
+        },
+        "witness_feature_vector": {
+          "confidence_score": 0.31,
+          "novelty_score": 0.94,
+          "policy_allow_write": true
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_policy_gates"
+    },
+    {
+      "case_id": "wgrnn.fixture_g.transport_failure_zeroes_authority",
+      "expect": {
+        "equals": {
+          "authority_t": 0.0,
+          "g_promote_after_clamp": 0.0,
+          "g_write_after_clamp": 0.0,
+          "update_kind": "no_op"
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "policy": {
+          "threshold_invalidate": 0.5
+        },
+        "witness_feature_vector": {
+          "authority_inputs": {
+            "canonicalization_validated": true,
+            "transport_validated": false
+          },
+          "confidence_score": 0.99,
+          "policy_allow_write": true
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_policy_gates"
+    },
+    {
+      "case_id": "wgrnn.fixture_h.human_review_required",
+      "expect": {
+        "equals": {
+          "g_promote_after_clamp": 0.0,
+          "g_write_after_clamp": 0.1,
+          "stable_write_allowed": false
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "policy": {
+          "candidate_write_upper_bound": 0.1
+        },
+        "witness_feature_vector": {
+          "confidence_score": 0.93,
+          "human_review_required": true,
+          "policy_allow_promote": true,
+          "policy_allow_write": true
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_policy_gates"
+    },
+    {
+      "case_id": "wgrnn.fixture_d.promotion_after_stable_recurrence",
+      "expect": {
+        "equals": {
+          "canonical_witness_fact_created": true,
+          "slot_status_after": "stable"
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "policy_decision": {
+          "decision": "allow"
+        },
+        "slot_promotion_request": {
+          "contradiction_review_refs": [],
+          "promotion_gate_value": 0.91,
+          "promotion_threshold": 0.85,
+          "purge_check_refs": [
+            "purge-lineage-clear-001"
+          ],
+          "replay_trace_set_id": "replay-wgrnn-pref-001",
+          "retention_metric_ids": [
+            "retention-pref-stability-001"
+          ]
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_slot_promotion"
+    },
+    {
+      "case_id": "wgrnn.fixture_e.contradiction_split",
+      "expect": {
+        "equals": {
+          "SlotSplitRecord_created": true,
+          "new_slot_status": "candidate",
+          "original_slot_unchanged": true
+        }
+      },
+      "extra_markers": [
+        "policy"
+      ],
+      "given": {
+        "memory_slot": {
+          "contradiction_score": 0.88,
+          "slot_id": 7
+        },
+        "policy": {
+          "split_contradiction_threshold": 0.75
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_contradiction_split"
+    },
+    {
+      "case_id": "wgrnn.fixture_f.purge_cascade_memory_slot",
+      "expect": {
+        "equals": {
+          "MemoryPurgeImpactRecord_created": true,
+          "slot_status_after": "tombstoned",
+          "stable_authority_after": 0
+        }
+      },
+      "extra_markers": [
+        "policy",
+        "replay"
+      ],
+      "given": {
+        "evidence_purge_event": {
+          "purge_event_id": "epe-song-history-0042",
+          "purged_provenance_hashes": [
+            "hash-of-purged-evidence"
+          ]
+        },
+        "memory_slot": {
+          "provenance_hashes": [
+            "hash-of-purged-evidence"
+          ],
+          "slot_id": 12,
+          "trust_status": "stable"
+        }
+      },
+      "marker": "research",
+      "op": "evaluate_wgrnn_purge_cascade"
+    }
+  ],
+  "description": "v1.5 Draft 2 Witness-Gated Recurrent Cell research slice: fixture A,\nfixture B, fixture C, fixture D, fixture E, fixture F, fixture G,\nand fixture H from the contract.\n",
+  "pack_id": "wgrnn-v1_5-draft-2",
+  "schema_version": "v1.5-draft-2",
+  "target_schema_version": "v1.5-draft-2"
+}
