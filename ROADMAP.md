@@ -38,7 +38,7 @@ For program scope and authority, see `build_docs/witness_contract/v1.5 - Draft 2
 **Goal:** Make the corpus testable end-to-end with deterministic, replayable fixtures.
 
 - [x] Cluster conformance fixtures (`refs/duotronic_v1_5_cluster_conformance_fixtures_v1_0.md`) documented.
-- [ ] Harness skeleton committed (`harness/` already scaffolded).
+- [x] Harness skeleton committed (`harness/bin/` — 175 conformance tests passing; includes OpenAPI artifact validation).
 - [ ] Replay harness for `MemoryUpdateRecord`, `MetaDiagnostics`, `TaskOutcomeWitness`.
 - [ ] WG-RNN replay-identity vectors committed under `refs/examples/`.
 - [ ] Schema-registry conformance suite (versioned IDs, compatibility checks).
@@ -50,7 +50,7 @@ For program scope and authority, see `build_docs/witness_contract/v1.5 - Draft 2
 **Goal:** A research prototype of the witness-gated recurrent cell suitable for replay-identity validation.
 
 - [x] PyTorch skeleton (`refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md`) authored.
-- [ ] Skeleton runs `run_prototype_v1_loop()` against committed sample events.
+- [x] Skeleton runs `run_sample_loop()` against committed `SAMPLE_EVENTS` fixtures (`prototypes/wgrnn/` — 27 tests passing).
 - [ ] Slot lifecycle (write / decay / quarantine / promote) instrumented with replay records.
 - [ ] Policy clamp veto path validated against shield runtime stub.
 - [ ] Replay-identity stability test against fixture vectors.
