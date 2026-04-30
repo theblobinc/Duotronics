@@ -1,0 +1,109 @@
+# Multimodal Witness Runtime Profile v1.1
+
+**Status:** Draft 2 runtime profile  
+**Purpose:** Specify current video/audio/image/CV/sensor/fused witness ingestion based on SRNN multimodal pipeline and MCP tools.
+
+---
+
+## 1. Ingest path
+
+```text
+RTSP/WebRTC/CV worker
+-> multimodal ingest service
+-> schema validation
+-> temporal delta enrichment
+-> MCP minecraft_ingest_multimodal_witness
+-> SRNN world/oracle job queue
+-> WG-RNN witness event
+```
+
+---
+
+## 2. Frame witness schema
+
+```yaml
+FrameWitness:
+  schema: xavi.multimodal.frame_witness.v1
+  stream:
+    stream_id: string
+    transport: rtsp | webrtc | other
+    source_uri: string
+    modality: video | audio | image | cv | sensor | fused
+  frame:
+    frame_id: string
+    ts_ms: integer
+    width: integer
+    height: integer
+    coordinate_space: pixel | normalized
+  objects:
+    - label: string
+      confidence: number
+      track_id: string | null
+      bbox:
+        x: number
+        y: number
+        w: number
+        h: number
+      temporal:
+        dx_px: number
+        dy_px: number
+        speed_px_s: number
+        area_delta_px2: number
+        dt_ms: integer
+```
+
+---
+
+## 3. Required validation
+
+1. modality in allowlist;
+2. positive frame dimensions;
+3. confidence between 0 and 1;
+4. bbox width/height positive;
+5. detection count bounded;
+6. source stream registered or auto-registered with audit flag;
+7. payload JSON parseable;
+8. MCP tool result recorded.
+
+---
+
+## 4. Authority rule
+
+Multimodal observations are raw or candidate witnesses by default.
+
+They may support:
+
+1. object tracking;
+2. temporal action inference;
+3. audio-visual sync;
+4. speech-action binding;
+5. world-state support;
+6. prediction-error updates.
+
+They may not prove mathematical facts or truth claims without profile-specific bridge rules.
+
+---
+
+## 5. Temporal identity
+
+Temporal identity must include:
+
+```text
+stream_id
+frame_id
+ts_ms
+track_id where present
+source_uri hash
+model/oracle id
+```
+
+---
+
+## 6. Current implementation notes
+
+Draft 2 reflects:
+
+1. FastAPI service endpoints: `/health`, `/schema`, `/streams/register`, `/streams`, `/streams/{stream_id}/ingest`, `/ingest/frame`;
+2. NVENC/NVDEC deployment blueprint for GPU VM;
+3. temporal enrichment fields;
+4. MCP forwarding to `minecraft_ingest_multimodal_witness`.
