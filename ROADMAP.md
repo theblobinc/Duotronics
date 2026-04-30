@@ -51,9 +51,9 @@ For program scope and authority, see `build_docs/witness_contract/v1.5 - Draft 2
 
 - [x] PyTorch skeleton (`refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md`) authored.
 - [x] Skeleton runs `run_sample_loop()` against committed `SAMPLE_EVENTS` fixtures (`prototypes/wgrnn/` — 27 tests passing).
-- [ ] Slot lifecycle (write / decay / quarantine / promote) instrumented with replay records.
-- [ ] Policy clamp veto path validated against shield runtime stub.
-- [ ] Replay-identity stability test against fixture vectors.
+- [x] Slot lifecycle (write / decay / quarantine / promote) instrumented with replay records (`cell.py`: `apply_stable_decay`, `apply_slot_promotion`; 19 new tests).
+- [x] Policy clamp veto path validated against shield runtime stub (`test_policy_shield_stub.py` — 12 parametrized conformance tests).
+- [x] Replay-identity stability test against fixture vectors (`test_replay_identity_fixtures.py` — 6 pinned regression tests; `replay.py`: `hash_memory_bank` excludes timestamps for determinism).
 
 **Status note:** Prototype runs as research code only until the canonical implementation target is decided.
 

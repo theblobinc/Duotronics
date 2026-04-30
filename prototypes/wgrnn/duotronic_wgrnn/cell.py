@@ -291,6 +291,91 @@ class WGRNNCell(nn.Module):
             None,
         )
 
+    def apply_stable_decay(
+        self,
+        slot_id: int,
+        decay_rate: float,
+        witness: WitnessFeatureVector,
+        policy: WGRNNPolicy,
+    ) -> MemoryUpdateRecord:
+        """Apply exponential decay to a slot's content matrix row.
+
+        Emits a MemoryUpdateRecord with update_kind='stable_decay'.
+        This is an out-of-band lifecycle operation, not gated by write gates.
+        """
+        if decay_rate < 0.0 or decay_rate > 1.0:
+            raise ValueError(f"decay_rate must be in [0, 1], got {decay_rate}")
+        slot = self.memory_bank.slots[slot_id]
+        record_id = self._next_record_id(witness)
+        replay_identity = build_replay_identity(
+            replay_identity_id=f"replay-decay-{witness.witness_feature_vector_id}",
+            cell_profile_id=self.cell_profile_id,
+            cell_profile_hash=self._cell_profile_hash(),
+            memory_bank=self.memory_bank,
+            witness=witness,
+            policy=policy,
+        )
+        with torch.no_grad():
+            self.memory_bank.content_matrix[slot_id] *= (1.0 - decay_rate)
+            slot.stability_score = max(0.0, slot.stability_score - decay_rate * 0.1)
+        gates = {"g_write": 0.0, "g_decay": round(decay_rate, 6), "g_quarantine": 0.0, "g_promote": 0.0}
+        return self._create_memory_update_record(
+            record_id,
+            witness,
+            gates,
+            gates,
+            witness.compute_authority(),
+            [slot_id],
+            "stable_decay",
+            slot.trust_status,
+            replay_identity.digest,
+        )
+
+    def apply_slot_promotion(
+        self,
+        slot_id: int,
+        witness: WitnessFeatureVector,
+        policy: WGRNNPolicy,
+    ) -> MemoryUpdateRecord:
+        """Promote a candidate or quarantined slot to stable if stability threshold is met.
+
+        Emits a MemoryUpdateRecord with update_kind='promotion_write' on success,
+        or 'no_op' if the threshold is not met or promotion is blocked by policy.
+        """
+        slot = self.memory_bank.slots[slot_id]
+        record_id = self._next_record_id(witness)
+        replay_identity = build_replay_identity(
+            replay_identity_id=f"replay-promote-{witness.witness_feature_vector_id}",
+            cell_profile_id=self.cell_profile_id,
+            cell_profile_hash=self._cell_profile_hash(),
+            memory_bank=self.memory_bank,
+            witness=witness,
+            policy=policy,
+        )
+        authority = witness.compute_authority()
+        zero_gates = {"g_write": 0.0, "g_decay": 0.0, "g_quarantine": 0.0, "g_promote": 0.0}
+        if slot.trust_status not in {"candidate", "quarantined"}:
+            return self._create_memory_update_record(
+                record_id, witness, zero_gates, zero_gates, authority,
+                [], "no_op", slot.trust_status, replay_identity.digest,
+            )
+        if slot.stability_score < policy.promotion_threshold:
+            return self._create_memory_update_record(
+                record_id, witness, zero_gates, zero_gates, authority,
+                [], "no_op", slot.trust_status, replay_identity.digest,
+            )
+        if not witness.policy_allow_promote:
+            return self._create_memory_update_record(
+                record_id, witness, zero_gates, zero_gates, authority,
+                [], "no_op", slot.trust_status, replay_identity.digest,
+            )
+        slot.trust_status = "stable"
+        promote_gates = {**zero_gates, "g_promote": 1.0}
+        return self._create_memory_update_record(
+            record_id, witness, zero_gates, promote_gates, authority,
+            [slot_id], "promotion_write", "stable", replay_identity.digest,
+        )
+
     def _next_record_id(self, witness: WitnessFeatureVector) -> str:
         return f"mur-{witness.witness_feature_vector_id}-{next(self._record_counter):04d}"
 

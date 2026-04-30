@@ -29,7 +29,32 @@ def hash_tensor(tensor: torch.Tensor) -> str:
 
 
 def hash_memory_bank(memory_bank: MemoryBank) -> str:
-    return _canonical_hash(memory_bank.to_json_dict())
+    """Hash the stable content of a memory bank, excluding wall-clock timestamps.
+
+    Timestamps (created_at, last_written_at) are excluded so that the hash
+    is deterministic for replay-identity purposes.
+    """
+    content = {
+        "bank_id": memory_bank.bank_id,
+        "num_slots": memory_bank.num_slots,
+        "slot_dim": memory_bank.slot_dim,
+        "content_matrix": memory_bank.content_matrix.detach().cpu().tolist(),
+        "slots": [
+            {
+                "slot_id": slot.slot_id,
+                "trust_status": slot.trust_status,
+                "stability_score": slot.stability_score,
+                "contradiction_score": slot.contradiction_score,
+                "novelty_score": slot.novelty_score,
+                "recurrence_score": slot.recurrence_score,
+                "canonical_witness_fact_refs": slot.canonical_witness_fact_refs,
+                "memory_update_record_refs": slot.memory_update_record_refs,
+                "replay_identity": slot.replay_identity,
+            }
+            for slot in memory_bank.slots
+        ],
+    }
+    return _canonical_hash(content)
 
 
 def hash_witness(witness: WitnessFeatureVector) -> str:
