@@ -40,8 +40,8 @@ For program scope and authority, see `build_docs/witness_contract/v1.5 - Draft 2
 - [x] Cluster conformance fixtures (`refs/duotronic_v1_5_cluster_conformance_fixtures_v1_0.md`) documented.
 - [x] Harness skeleton committed (`harness/bin/` — 175 conformance tests passing; includes OpenAPI artifact validation).
 - [x] Replay harness for `MemoryUpdateRecord`, `MetaDiagnostics`, `TaskOutcomeWitness` (`harness/bin/conformance/test_replay_memory_and_witness.py` — 22 normative tests, 197 total passing).
-- [ ] WG-RNN replay-identity vectors committed under `refs/examples/`.
-- [ ] Schema-registry conformance suite (versioned IDs, compatibility checks).
+- [x] WG-RNN replay-identity vectors committed under `refs/examples/`.
+- [x] Schema-registry conformance suite (versioned IDs, compatibility checks).
 
 **Exit:** A research-prototype implementation can run the corpus's conformance fixtures and report pass/fail per spec.
 
