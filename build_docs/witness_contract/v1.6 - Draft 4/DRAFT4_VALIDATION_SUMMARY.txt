@@ -1,0 +1,9 @@
+Draft 4 generated: 2026-05-08
+Base copied from: /mnt/data/v1.6 - Draft 3.zip
+Baseline files copied: 205
+Baseline Markdown copied: 199
+Final files: 230
+Final Markdown files: 223
+Final uncompressed bytes: 929903
+Primary manifest: refs/manifest/MANIFEST_v1_6_draft_4_complete.md
+Checksums: refs/manifest/CHECKSUMS_v1_6_draft_4.sha256
