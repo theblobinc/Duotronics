@@ -1,0 +1,3 @@
+Draft 4 validation summary retained as compatibility file.
+This package has been regenerated as Duotronic v1.6 Draft 4.1.
+See DRAFT4_1_VALIDATION_SUMMARY.txt and refs/manifest/MANIFEST_v1_6_draft_4_1_complete.md.
