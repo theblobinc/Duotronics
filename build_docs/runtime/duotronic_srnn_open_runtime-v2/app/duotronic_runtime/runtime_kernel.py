@@ -14,6 +14,7 @@ from .module_registry import ModuleRegistry
 from .nla import NLAWitnessFactory
 from .policy import PolicyEngine
 from .providers import ModelProvider
+from .response_grounding import ground_response
 from .self_development import SelfDevelopmentController
 from .wgrnn import WGRNNRuntime
 
@@ -77,7 +78,11 @@ class RuntimeKernel:
 
     async def run_cognition(self, *, prompt: str, steps: int = 1, requested_action: str = "observe", model_name: str | None = None, evidence_quality: float = 0.72) -> dict[str, Any]:
         completion = await self.model_provider.complete(prompt=prompt, model_name=model_name)
-        response_text = completion["response_text"]
+        raw_response_text = completion["response_text"]
+        response_text, grounding = ground_response(prompt, raw_response_text)
+        completion["raw_response_text"] = raw_response_text
+        completion["response_text"] = response_text
+        completion["grounding"] = grounding
         provider = completion.get("model", {}).get("provider", completion.get("provider_status", "unknown"))
         model_name_value = completion.get("model", {}).get("model") or completion.get("model", {}).get("name") or "unknown"
         model_witness = self.evidence.model_output_witness(provider=str(provider), model=str(model_name_value), prompt=prompt, response_text=response_text)
@@ -112,7 +117,9 @@ class RuntimeKernel:
         run_payload = {
             "prompt_digest": sha256_ref(prompt),
             "response_digest": sha256_ref(response_text),
+            "raw_response_digest": sha256_ref(raw_response_text),
             "requested_action": requested_action,
+            "grounding": grounding,
             "model": completion["model"],
             "wgrnn_update": wg_update,
             "nla_witness_id": nla.witness_id,
@@ -143,6 +150,7 @@ class RuntimeKernel:
         result["evidence"] = {
             "model_output_witness": model_witness,
             "nla_activation_witness_v1": nla_contract_v1,
+            "response_grounding": grounding,
             "non_collapse_gate": collapse_check,
         }
         self.store.insert_run_bundle(result)
