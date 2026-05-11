@@ -37,3 +37,12 @@ def test_dev_bundle_schema_has_single_bundle_shape():
     content = (ROOT / "app" / "duotronic_runtime" / "dev_bundle_mcp.py").read_text()
     for token in ["patch", "message", "push", "rebuild", "cleanup", "test_timeout_seconds"]:
         assert token in content
+
+
+def test_dev_bundle_does_not_rebuild_inline():
+    content = (ROOT / "app" / "duotronic_runtime" / "dev_bundle_mcp.py").read_text()
+    assert "rebuilds are intentionally deferred" in content
+    assert "rebuild_required" in content
+    assert "rebuild_tool" in content
+    assert 'await self._maybe_ops("ops.runtime_rebuild_models"' not in content
+    assert 'await self._maybe_ops("ops.runtime_rebuild"' not in content

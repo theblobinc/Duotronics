@@ -20,7 +20,7 @@ def dev_tool_manifest() -> list[dict[str, Any]]:
             "name": "dev.apply_change_bundle",
             "description": (
                 "Apply a full development change bundle in one call: create worktree, apply patch, run tests, "
-                "commit, integrate into local main, optionally push, optionally rebuild runtime, and clean up."
+                "commit, integrate into local main, optionally push, report rebuild intent, and clean up."
             ),
             "read_only": False,
             "input_schema": {
@@ -36,7 +36,7 @@ def dev_tool_manifest() -> list[dict[str, Any]]:
                     "test_command": {"type": "string", "enum": ["runtime_pytest"], "default": "runtime_pytest"},
                     "test_timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 900, "default": 300},
                     "push": {"type": "boolean", "default": False},
-                    "rebuild": {"type": "boolean", "default": False},
+                    "rebuild": {"type": "boolean", "default": False, "description": "Request a separate rebuild recommendation. Rebuild is not executed inline."},
                     "rebuild_models": {"type": "boolean", "default": True},
                     "cleanup": {"type": "boolean", "default": True},
                 },
@@ -172,11 +172,26 @@ class XaviDevBundleTools:
             results["new_head"] = integration_result.get("new_head")
 
             await self._maybe_ops("ops.git_push", do_push, steps)
+
+            # Never rebuild the runtime from inside this MCP request.
+            # Rebuilding the same container that is serving the request cuts off
+            # the HTTP connection and appears to ChatGPT as a 502/hang.
+            # Return an explicit next action instead.
+            rebuild_tool = "ops.runtime_rebuild_models" if rebuild_models else "ops.runtime_rebuild"
+            results["rebuild_required"] = do_rebuild
+            results["rebuild_tool"] = rebuild_tool if do_rebuild else None
+
             if do_rebuild:
-                await self._maybe_ops("ops.runtime_rebuild_models" if rebuild_models else "ops.runtime_rebuild", True, steps)
-                await self._maybe_ops("ops.runtime_health", True, steps)
+                steps["ops.runtime_rebuild"] = {
+                    "skipped": True,
+                    "reason": "rebuilds are intentionally deferred outside dev.apply_change_bundle",
+                    "next_tool": rebuild_tool,
+                }
             else:
-                steps["ops.runtime_rebuild"] = {"skipped": True}
+                steps["ops.runtime_rebuild"] = {
+                    "skipped": True,
+                    "reason": "not requested",
+                }
 
             return results
         finally:
