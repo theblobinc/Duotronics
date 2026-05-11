@@ -6,6 +6,7 @@ const state = {
   lastRepoResult: null,
   lastCommitApproval: null,
   lastIntegrationApproval: null,
+  chatTurn: 0,
 };
 
 function getKey() {
@@ -42,6 +43,35 @@ function pretty(value) {
 function short(value, n = 96) {
   const s = String(value ?? "");
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+function appendChatMessage(role, text, meta = null) {
+  const log = $("xavi-chat-log");
+  if (!log || !text) return;
+
+  const article = document.createElement("article");
+  article.className = `chat-message ${role}`;
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = role === "user" ? "You" : "AI";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+
+  if (meta) {
+    const metaEl = document.createElement("div");
+    metaEl.className = "message-meta";
+    metaEl.textContent = meta;
+    bubble.appendChild(metaEl);
+  }
+
+  const body = document.createElement("p");
+  body.textContent = text;
+  bubble.appendChild(body);
+  article.append(avatar, bubble);
+  log.appendChild(article);
+  log.scrollTop = log.scrollHeight;
 }
 
 function card(label, value, kind = "") {
@@ -142,6 +172,11 @@ function renderRun(result) {
     policy_decision: result.policy_decision,
     non_collapse_gate: result.evidence?.non_collapse_gate,
   });
+  if ($("chat-run-output")) $("chat-run-output").textContent = pretty({
+    run_id: result.run_id,
+    model: result.model,
+    requested_action: result.requested_action,
+  });
   $("witness-output").textContent = pretty({
     run_id: result.run_id,
     model: result.model,
@@ -154,6 +189,9 @@ function renderRun(result) {
     { label: "h", values: snapshot.h || result.wg_rnn?.activation_vector || [] },
     { label: "c", values: snapshot.c || [] },
   ]);
+
+  state.chatTurn += 1;
+  appendChatMessage("assistant", result.response_text || "No response text returned.", `runtime response ${state.chatTurn}`);
 }
 
 async function refreshAll() {
@@ -205,8 +243,9 @@ async function refreshAll() {
 }
 
 async function runInference() {
+  const promptText = $("prompt").value;
   const body = {
-    prompt: $("prompt").value,
+    prompt: promptText,
     requested_action: $("action").value,
     steps: Number($("steps").value || 1),
     evidence_quality: Number($("quality").value || 0.72),
@@ -215,6 +254,7 @@ async function runInference() {
   if (modelName) body.model_name = modelName;
 
   $("run-btn").disabled = true;
+  appendChatMessage("user", promptText, "you");
   $("run-btn").textContent = "Running…";
   try {
     const result = await api("/v1/run", {
@@ -232,6 +272,139 @@ async function runInference() {
   }
 }
 
+
+function makePanel(className) {
+  const panel = document.createElement("section");
+  panel.className = `panel ${className}`;
+  return panel;
+}
+
+function bindInferenceChatUi() {
+  const prompt = $("prompt");
+  const runButton = $("run-btn");
+  const modelOutput = $("model-output");
+  const policyOutput = $("policy-output");
+
+  if (!prompt || !runButton || !modelOutput || !policyOutput || $("xavi-chat-log")) return;
+
+  const inferencePanels = Array.from(document.querySelectorAll('[data-tab-panel="inference"]'));
+  if (inferencePanels.length < 2) return;
+
+  const originalControls = inferencePanels[0];
+  const originalOutputs = inferencePanels[1];
+
+  const shell = document.createElement("section");
+  shell.className = "inference-chat-shell";
+  shell.dataset.tabPanel = "inference";
+
+  const sidebar = makePanel("inference-chat-sidebar");
+  sidebar.innerHTML = `
+    <div>
+      <div class="eyebrow">Inference session</div>
+      <h2>Local model chat</h2>
+      <p>Chat against the active runtime while the witness layer, WG-RNN state, and policy gate stay visible.</p>
+    </div>
+  `;
+
+  const tokenBox = originalControls.querySelector(".token-box");
+  const formStack = originalControls.querySelector(".form-stack");
+
+  if (tokenBox) {
+    tokenBox.classList.add("chat-token-box");
+    sidebar.appendChild(tokenBox);
+  }
+
+  if (formStack) sidebar.appendChild(formStack);
+
+  const quickPrompts = document.createElement("div");
+  quickPrompts.className = "quick-prompts";
+  quickPrompts.innerHTML = `
+    <button type="button" data-prompt="Explain Duotronic non-collapse in one precise paragraph.">Non-collapse</button>
+    <button type="button" data-prompt="Summarize the latest runtime witnesses and what they imply.">Witness summary</button>
+    <button type="button" data-prompt="Run a careful reasoning pass about whether this runtime should write memory.">Memory policy</button>
+  `;
+  sidebar.appendChild(quickPrompts);
+
+  const main = makePanel("inference-chat-main");
+  main.innerHTML = `
+    <div class="inference-chat-head">
+      <div>
+        <div class="eyebrow">Conversation</div>
+        <h2>Xavi Runtime Chat</h2>
+      </div>
+      <span class="pill muted">evidence-gated</span>
+    </div>
+    <div id="xavi-chat-log" class="inference-chat-log">
+      <article class="chat-message assistant">
+        <div class="avatar">X</div>
+        <div class="bubble">
+          <div class="message-meta">Xavi runtime</div>
+          <p>Ask the local runtime anything. Responses flow through the active model provider, WG-RNN state, witness generation, and policy gate.</p>
+        </div>
+      </article>
+    </div>
+  `;
+
+  const latest = document.createElement("article");
+  latest.className = "chat-message assistant latest-output";
+
+  const aiAvatar = document.createElement("div");
+  aiAvatar.className = "avatar";
+  aiAvatar.textContent = "AI";
+
+  modelOutput.classList.add("bubble", "chat-output");
+  latest.append(aiAvatar, modelOutput);
+  main.querySelector("#xavi-chat-log").appendChild(latest);
+
+  const composer = document.createElement("div");
+  composer.className = "inference-composer";
+
+  const actions = document.createElement("div");
+  actions.className = "composer-actions";
+
+  const hint = document.createElement("span");
+  hint.className = "hint";
+  hint.textContent = "Runtime output is evidence, not truth. Use Ctrl+Enter to run.";
+
+  actions.append(hint, runButton);
+  composer.append(prompt, actions);
+  main.appendChild(composer);
+
+  const inspector = makePanel("inference-chat-inspector");
+  inspector.innerHTML = `
+    <div class="panel-head compact">
+      <h2>Inspector</h2>
+      <span class="pill muted">live run state</span>
+    </div>
+    <h3>Policy / non-collapse</h3>
+  `;
+  inspector.appendChild(policyOutput);
+
+  const runFactsTitle = document.createElement("h3");
+  runFactsTitle.textContent = "Run facts";
+
+  const runFacts = document.createElement("pre");
+  runFacts.id = "chat-run-output";
+  runFacts.className = "output small";
+  runFacts.textContent = "No run yet.";
+
+  inspector.append(runFactsTitle, runFacts);
+
+  shell.append(sidebar, main, inspector);
+  originalControls.replaceWith(shell);
+  originalOutputs.remove();
+
+  document.querySelectorAll("[data-prompt]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      prompt.value = btn.dataset.prompt || "";
+      prompt.focus();
+    });
+  });
+
+  prompt.addEventListener("keydown", (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter") runInference();
+  });
+}
 
 function getMcpKey() {
   return localStorage.getItem("xavi_mcp_api_key") || "";
@@ -511,6 +684,7 @@ function boot() {
   $("refresh-btn").addEventListener("click", refreshAll);
   $("run-btn").addEventListener("click", runInference);
   bindRepoOperatorUi();
+  bindInferenceChatUi();
   bindDashboardTabs();
   document.querySelectorAll("[data-reload]").forEach((btn) => btn.addEventListener("click", refreshAll));
   refreshAll();
