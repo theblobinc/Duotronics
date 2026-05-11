@@ -220,3 +220,48 @@ footer {
   .panel-head, .topbar { flex-direction: column; }
   .token-box { grid-template-columns: 1fr; }
 }
+
+
+.operator-panel {
+  margin-top: 1rem;
+  border-color: rgba(119,167,255,.26);
+}
+
+.operator-grid {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr) minmax(12rem, 16rem);
+  gap: 1rem;
+  align-items: start;
+}
+
+.operator-buttons {
+  display: grid;
+  gap: .55rem;
+  align-content: start;
+}
+
+.operator-buttons button {
+  text-align: left;
+}
+
+.operator-output-grid {
+  margin-top: 1rem;
+}
+
+#repo-patch {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  min-height: 28rem;
+}
+
+#repo-approval-token,
+#repo-expected-main-head,
+#repo-commit-sha {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: .82rem;
+}
+
+@media (max-width: 1100px) {
+  .operator-grid {
+    grid-template-columns: 1fr;
+  }
+}

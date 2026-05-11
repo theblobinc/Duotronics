@@ -88,6 +88,89 @@
       </article>
     </section>
 
+
+    <section class="panel operator-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Repo operator / MCP</h2>
+          <p>Create isolated worktrees, apply patches, inspect diffs, run tests, prepare approvals, commit approved worktrees, and integrate approved commits into local main. Push/deploy are intentionally not exposed.</p>
+        </div>
+        <div class="token-box">
+          <label for="mcp-key">Xavi MCP key</label>
+          <input id="mcp-key" type="password" placeholder="XAVI_MCP_API_KEY" autocomplete="off" />
+          <button id="save-mcp-key-btn">Save locally</button>
+        </div>
+      </div>
+
+      <div class="operator-grid">
+        <div class="form-stack">
+          <label for="repo-worktree-id">Worktree ID</label>
+          <input id="repo-worktree-id" placeholder="xavi-ui-change-001" />
+
+          <label for="repo-branch-name">Branch name</label>
+          <input id="repo-branch-name" placeholder="xavi/ui-change-001" />
+
+          <label for="repo-base-ref">Base ref</label>
+          <input id="repo-base-ref" value="HEAD" />
+
+          <label for="repo-target-branch">Target branch</label>
+          <input id="repo-target-branch" value="main" />
+
+          <label for="repo-commit-message">Commit / integration message</label>
+          <input id="repo-commit-message" placeholder="Describe approved change" />
+
+          <label for="repo-commit-sha">Worktree commit SHA</label>
+          <input id="repo-commit-sha" placeholder="auto-filled after repo.commit" />
+
+          <label for="repo-approval-token">Approval token</label>
+          <input id="repo-approval-token" placeholder="auto-filled by prepare buttons" />
+
+          <label for="repo-expected-main-head">Expected main HEAD</label>
+          <input id="repo-expected-main-head" placeholder="auto-filled by prepare_integration" />
+        </div>
+
+        <div>
+          <label for="repo-patch">Unified diff patch</label>
+          <textarea id="repo-patch" rows="18" spellcheck="false">diff --git a/build_docs/runtime/duotronic_srnn_open_runtime-v2/docs/operator_ui_example.md b/build_docs/runtime/duotronic_srnn_open_runtime-v2/docs/operator_ui_example.md
+new file mode 100644
+index 0000000..3c4fd76
+--- /dev/null
++++ b/build_docs/runtime/duotronic_srnn_open_runtime-v2/docs/operator_ui_example.md
+@@ -0,0 +1,3 @@
++# Operator UI example
++
++This is an example patch payload for the Xavi Runtime operator panel.</textarea>
+        </div>
+
+        <div class="operator-buttons">
+          <button id="mcp-health-btn">MCP health</button>
+          <button id="repo-status-btn">Repo status</button>
+          <button id="repo-worktrees-btn">List worktrees</button>
+          <button id="repo-create-worktree-btn">Create worktree</button>
+          <button id="repo-apply-patch-btn">Apply patch</button>
+          <button id="repo-diff-btn">Show diff</button>
+          <button id="repo-run-tests-btn">Run tests</button>
+          <button id="repo-prepare-commit-btn">Prepare commit</button>
+          <button id="repo-commit-btn">Commit worktree</button>
+          <button id="repo-prepare-integration-btn">Prepare integration</button>
+          <button id="repo-integrate-btn">Integrate commit</button>
+          <button id="repo-remove-worktree-btn">Remove worktree</button>
+        </div>
+      </div>
+
+      <div class="grid two operator-output-grid">
+        <article>
+          <h2>Operator output</h2>
+          <pre id="repo-operator-output" class="output small">No MCP operation yet.</pre>
+        </article>
+        <article>
+          <h2>Diff / status output</h2>
+          <pre id="repo-diff-output" class="output small">No diff loaded yet.</pre>
+        </article>
+      </div>
+    </section>
+
+
     <section class="grid three">
       <article class="panel">
         <div class="panel-head compact">

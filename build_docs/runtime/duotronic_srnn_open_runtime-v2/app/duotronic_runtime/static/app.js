@@ -3,6 +3,9 @@ const $ = (id) => document.getElementById(id);
 const state = {
   health: null,
   lastRun: null,
+  lastRepoResult: null,
+  lastCommitApproval: null,
+  lastIntegrationApproval: null,
 };
 
 function getKey() {
@@ -229,6 +232,250 @@ async function runInference() {
   }
 }
 
+
+function getMcpKey() {
+  return localStorage.getItem("xavi_mcp_api_key") || "";
+}
+
+async function mcpApi(path, options = {}) {
+  const headers = Object.assign({ "content-type": "application/json" }, options.headers || {});
+  const key = getMcpKey();
+  if (key) headers.authorization = `Bearer ${key}`;
+
+  const res = await fetch(path, Object.assign({}, options, { headers }));
+  const text = await res.text();
+  let body = null;
+  try { body = text ? JSON.parse(text) : null; } catch { body = text; }
+
+  if (!res.ok) {
+    const detail = typeof body === "object" && body ? body.detail || body.error || body : text || res.statusText;
+    throw new Error(`${res.status} ${typeof detail === "string" ? detail : JSON.stringify(detail)}`);
+  }
+
+  return body;
+}
+
+async function mcpCall(tool, args = {}, requestId = null) {
+  return await mcpApi("/xavi-runtime/mcp/call", {
+    method: "POST",
+    body: JSON.stringify({
+      tool,
+      args,
+      request_id: requestId || `${tool}-${Date.now()}`,
+    }),
+  });
+}
+
+function setRepoOutput(value, diffValue = null) {
+  state.lastRepoResult = value;
+  const out = $("repo-operator-output");
+  if (out) out.textContent = typeof value === "string" ? value : pretty(value);
+
+  if (diffValue !== null) {
+    const diffOut = $("repo-diff-output");
+    if (diffOut) diffOut.textContent = typeof diffValue === "string" ? diffValue : pretty(diffValue);
+  }
+}
+
+function repoForm() {
+  return {
+    worktree_id: $("repo-worktree-id")?.value.trim() || "",
+    branch_name: $("repo-branch-name")?.value.trim() || "",
+    base_ref: $("repo-base-ref")?.value.trim() || "HEAD",
+    target_branch: $("repo-target-branch")?.value.trim() || "main",
+    message: $("repo-commit-message")?.value.trim() || "",
+    patch: $("repo-patch")?.value || "",
+    commit: $("repo-commit-sha")?.value.trim() || "",
+    approval_token: $("repo-approval-token")?.value.trim() || "",
+    expected_main_head: $("repo-expected-main-head")?.value.trim() || "",
+  };
+}
+
+function fillRepoField(id, value) {
+  const el = $(id);
+  if (el && value) el.value = value;
+}
+
+async function runRepoAction(label, fn) {
+  setStatus(`${label}…`, "warn");
+  try {
+    const result = await fn();
+    setRepoOutput(result);
+    setStatus(`${label} ok`, "good");
+    return result;
+  } catch (err) {
+    setRepoOutput(String(err));
+    setStatus(`${label} failed`, "bad");
+    throw err;
+  }
+}
+
+async function mcpHealth() {
+  return runRepoAction("mcp health", async () => {
+    return await mcpApi("/xavi-runtime/mcp/health");
+  });
+}
+
+async function repoStatus() {
+  return runRepoAction("repo status", async () => {
+    return await mcpCall("repo.status", {}, "ui-repo-status");
+  });
+}
+
+async function repoListWorktrees() {
+  return runRepoAction("repo worktrees", async () => {
+    return await mcpCall("repo.list_worktrees", {}, "ui-repo-worktrees");
+  });
+}
+
+async function repoCreateWorktree() {
+  const f = repoForm();
+  return runRepoAction("create worktree", async () => {
+    const result = await mcpCall("repo.create_worktree", {
+      worktree_id: f.worktree_id || null,
+      branch_name: f.branch_name,
+      base_ref: f.base_ref,
+    }, "ui-create-worktree");
+
+    const payload = result.result || {};
+    fillRepoField("repo-worktree-id", payload.worktree_id);
+    fillRepoField("repo-branch-name", payload.branch_name);
+    return result;
+  });
+}
+
+async function repoApplyPatch() {
+  const f = repoForm();
+  return runRepoAction("apply patch", async () => {
+    return await mcpCall("repo.apply_patch", {
+      worktree_id: f.worktree_id,
+      patch: f.patch,
+    }, "ui-apply-patch");
+  });
+}
+
+async function repoDiff() {
+  const f = repoForm();
+  return runRepoAction("repo diff", async () => {
+    const result = await mcpCall("repo.diff", {
+      worktree_id: f.worktree_id,
+    }, "ui-repo-diff");
+
+    const payload = result.result || {};
+    setRepoOutput(result, {
+      worktree_id: payload.worktree_id,
+      status_short: payload.status_short,
+      diff_digest: payload.diff_digest,
+      diff: payload.diff,
+    });
+    return result;
+  });
+}
+
+async function repoRunTests() {
+  const f = repoForm();
+  return runRepoAction("run tests", async () => {
+    return await mcpCall("repo.run_tests", {
+      worktree_id: f.worktree_id,
+      test_command: "runtime_pytest",
+      timeout_seconds: 300,
+    }, "ui-run-tests");
+  });
+}
+
+async function repoPrepareCommit() {
+  const f = repoForm();
+  return runRepoAction("prepare commit", async () => {
+    const result = await mcpCall("repo.prepare_commit", {
+      worktree_id: f.worktree_id,
+      message: f.message,
+    }, "ui-prepare-commit");
+
+    state.lastCommitApproval = result.result;
+    fillRepoField("repo-approval-token", result.result?.approval_token);
+    return result;
+  });
+}
+
+async function repoCommit() {
+  const f = repoForm();
+  return runRepoAction("commit worktree", async () => {
+    const result = await mcpCall("repo.commit", {
+      worktree_id: f.worktree_id,
+      message: f.message,
+      approval_token: f.approval_token,
+    }, "ui-commit-worktree");
+
+    fillRepoField("repo-commit-sha", result.result?.commit);
+    return result;
+  });
+}
+
+async function repoPrepareIntegration() {
+  const f = repoForm();
+  return runRepoAction("prepare integration", async () => {
+    const result = await mcpCall("repo.prepare_integration", {
+      worktree_id: f.worktree_id,
+      message: f.message,
+      target_branch: f.target_branch,
+    }, "ui-prepare-integration");
+
+    state.lastIntegrationApproval = result.result;
+    fillRepoField("repo-approval-token", result.result?.approval_token);
+    fillRepoField("repo-commit-sha", result.result?.commit);
+    fillRepoField("repo-expected-main-head", result.result?.expected_main_head);
+    return result;
+  });
+}
+
+async function repoIntegrateCommit() {
+  const f = repoForm();
+  return runRepoAction("integrate commit", async () => {
+    return await mcpCall("repo.integrate_commit", {
+      worktree_id: f.worktree_id,
+      commit: f.commit,
+      message: f.message,
+      approval_token: f.approval_token,
+      target_branch: f.target_branch,
+      expected_main_head: f.expected_main_head,
+    }, "ui-integrate-commit");
+  });
+}
+
+async function repoRemoveWorktree() {
+  const f = repoForm();
+  return runRepoAction("remove worktree", async () => {
+    return await mcpCall("repo.remove_worktree", {
+      worktree_id: f.worktree_id,
+      force: true,
+    }, "ui-remove-worktree");
+  });
+}
+
+function bindRepoOperatorUi() {
+  if (!$("mcp-key")) return;
+
+  $("mcp-key").value = getMcpKey();
+
+  $("save-mcp-key-btn").addEventListener("click", () => {
+    localStorage.setItem("xavi_mcp_api_key", $("mcp-key").value.trim());
+    setStatus("mcp key saved", "good");
+  });
+
+  $("mcp-health-btn").addEventListener("click", mcpHealth);
+  $("repo-status-btn").addEventListener("click", repoStatus);
+  $("repo-worktrees-btn").addEventListener("click", repoListWorktrees);
+  $("repo-create-worktree-btn").addEventListener("click", repoCreateWorktree);
+  $("repo-apply-patch-btn").addEventListener("click", repoApplyPatch);
+  $("repo-diff-btn").addEventListener("click", repoDiff);
+  $("repo-run-tests-btn").addEventListener("click", repoRunTests);
+  $("repo-prepare-commit-btn").addEventListener("click", repoPrepareCommit);
+  $("repo-commit-btn").addEventListener("click", repoCommit);
+  $("repo-prepare-integration-btn").addEventListener("click", repoPrepareIntegration);
+  $("repo-integrate-btn").addEventListener("click", repoIntegrateCommit);
+  $("repo-remove-worktree-btn").addEventListener("click", repoRemoveWorktree);
+}
+
 function boot() {
   $("api-key").value = getKey();
   $("save-key-btn").addEventListener("click", () => {
@@ -237,6 +484,7 @@ function boot() {
   });
   $("refresh-btn").addEventListener("click", refreshAll);
   $("run-btn").addEventListener("click", runInference);
+  bindRepoOperatorUi();
   document.querySelectorAll("[data-reload]").forEach((btn) => btn.addEventListener("click", refreshAll));
   refreshAll();
   setInterval(refreshAll, 15000);
