@@ -135,7 +135,7 @@ class RuntimeKernel:
         ).to_dict()
         nla_contract_v1 = nla_activation_witness_contract_v1(
             nla_witness=nla_dict,
-            source_model=model_result.get("model", {}),
+            source_model=completion.get("model", {}),
             loop_id=result.get("loop_id", "loop-main"),
             node_id=self.settings.node_id,
             policy_mode=self.settings.nla_policy_mode,
