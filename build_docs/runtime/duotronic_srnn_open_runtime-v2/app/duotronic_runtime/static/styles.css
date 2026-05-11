@@ -548,3 +548,154 @@ footer {
   border-color: rgba(119,167,255,.35);
 }
 
+
+/* Compact inference viewport v2 - UI only */
+main {
+  max-width: min(1720px, calc(100vw - 2rem));
+}
+
+.inference-chat-shell.active-tab-panel {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr) 19rem;
+  gap: .7rem;
+  height: calc(100vh - 12.25rem);
+  min-height: 32rem;
+  max-height: 52rem;
+  overflow: hidden;
+}
+
+.inference-chat-sidebar,
+.inference-chat-main,
+.inference-chat-inspector {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.inference-chat-sidebar {
+  gap: .65rem;
+  padding: .75rem;
+  overflow-y: auto;
+}
+
+.inference-chat-sidebar h2,
+.inference-chat-main h2,
+.inference-chat-inspector h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.inference-chat-sidebar p {
+  font-size: .8rem;
+  line-height: 1.3;
+  margin: .3rem 0 0;
+}
+
+.chat-token-box {
+  gap: .4rem;
+}
+
+.chat-token-box input,
+.chat-token-box button,
+.inference-chat-sidebar select,
+.inference-chat-sidebar input {
+  min-height: 1.95rem;
+  font-size: .8rem;
+}
+
+.quick-prompts {
+  margin-top: 0;
+}
+
+.quick-prompts button {
+  padding: .45rem .55rem;
+  font-size: .78rem;
+}
+
+.inference-chat-main {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.inference-chat-head {
+  padding: .7rem .8rem;
+}
+
+.inference-chat-log {
+  min-height: 0;
+  padding: .75rem;
+  overflow-y: auto;
+}
+
+.chat-message {
+  gap: .5rem;
+}
+
+.avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: .6rem;
+  font-size: .7rem;
+}
+
+.bubble {
+  max-width: none;
+  padding: .7rem .8rem;
+  border-radius: .8rem;
+}
+
+.chat-output {
+  line-height: 1.42;
+  font-size: .93rem;
+  min-height: 6rem;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.inference-composer {
+  padding: .7rem .8rem;
+}
+
+.inference-composer textarea {
+  min-height: 4rem;
+  max-height: 6.5rem;
+  resize: vertical;
+}
+
+.composer-actions {
+  margin-top: .4rem;
+}
+
+.composer-actions .hint {
+  font-size: .74rem;
+}
+
+.inference-chat-inspector {
+  padding: .75rem;
+  overflow-y: auto;
+}
+
+.inference-chat-inspector h3 {
+  margin: .6rem 0 .3rem;
+}
+
+.inference-chat-inspector .output {
+  max-height: 18rem;
+  font-size: .72rem;
+}
+
+@media (max-width: 1180px) {
+  .inference-chat-shell.active-tab-panel {
+    grid-template-columns: 1fr;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .inference-chat-sidebar,
+  .inference-chat-main,
+  .inference-chat-inspector {
+    height: auto;
+    max-height: none;
+  }
+}
