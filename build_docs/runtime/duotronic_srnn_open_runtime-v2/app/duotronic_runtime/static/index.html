@@ -22,7 +22,16 @@
   <main>
     <section class="grid cards" id="health-cards"></section>
 
-    <section class="panel">
+    <nav class="runtime-tabs" aria-label="Runtime dashboard sections">
+      <button class="tab-button active" data-tab-target="overview">Overview</button>
+      <button class="tab-button" data-tab-target="inference">Inference</button>
+      <button class="tab-button" data-tab-target="evidence">Evidence</button>
+      <button class="tab-button" data-tab-target="operator">Repo operator</button>
+      <button class="tab-button" data-tab-target="system">System</button>
+    </nav>
+
+
+    <section class="panel" data-tab-panel="inference">
       <div class="panel-head">
         <div>
           <h2>Inference</h2>
@@ -63,7 +72,7 @@
       </div>
     </section>
 
-    <section class="grid two">
+    <section class="grid two" data-tab-panel="inference">
       <article class="panel">
         <h2>Model output</h2>
         <pre id="model-output" class="output">No run yet.</pre>
@@ -75,7 +84,7 @@
       </article>
     </section>
 
-    <section class="grid two">
+    <section class="grid two" data-tab-panel="evidence">
       <article class="panel">
         <h2>WG-RNN state image</h2>
         <canvas id="memory-canvas" width="900" height="260"></canvas>
@@ -89,7 +98,7 @@
     </section>
 
 
-    <section class="panel operator-panel">
+    <section class="panel operator-panel" data-tab-panel="operator">
       <div class="panel-head">
         <div>
           <h2>Repo operator / MCP</h2>
@@ -171,7 +180,7 @@ index 0000000..3c4fd76
     </section>
 
 
-    <section class="grid three">
+    <section class="grid three" data-tab-panel="overview">
       <article class="panel">
         <div class="panel-head compact">
           <h2>Models</h2>
@@ -197,7 +206,7 @@ index 0000000..3c4fd76
       </article>
     </section>
 
-    <section class="grid two">
+    <section class="grid two" data-tab-panel="evidence">
       <article class="panel">
         <div class="panel-head compact">
           <h2>Recent memory</h2>
@@ -215,7 +224,7 @@ index 0000000..3c4fd76
       </article>
     </section>
 
-    <section class="grid two">
+    <section class="grid two" data-tab-panel="system">
       <article class="panel">
         <div class="panel-head compact">
           <h2>Claims / audit</h2>

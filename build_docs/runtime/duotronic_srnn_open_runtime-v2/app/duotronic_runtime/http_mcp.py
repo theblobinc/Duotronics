@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from .config import Settings
 from .runtime_kernel import RuntimeKernel
 from .repo_mcp import XaviRepoTools, repo_resources, repo_tool_manifest
+from .ops_mcp import XaviOpsTools, ops_tool_manifest
 
 
 class McpCallRequest(BaseModel):
@@ -142,6 +143,7 @@ def _tool_manifest() -> list[dict[str, Any]]:
             },
         },
         *repo_tool_manifest(),
+        *ops_tool_manifest(),
     ]
 
 def _resources() -> list[dict[str, str]]:
@@ -229,6 +231,9 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
     if tool.startswith("repo."):
         return await XaviRepoTools(kernel.settings).call(tool, args)
+
+    if tool.startswith("ops."):
+        return await XaviOpsTools(kernel.settings).call(tool, args)
 
     raise HTTPException(status_code=404, detail=f"unknown xavi-runtime MCP tool: {tool}")
 

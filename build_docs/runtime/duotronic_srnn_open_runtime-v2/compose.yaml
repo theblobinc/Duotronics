@@ -87,6 +87,8 @@ services:
       - ./models:/models:Z
       - ./formal:/runtime/formal:Z
       - ../../..:/workspace/Duotronics:Z
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
     depends_on:

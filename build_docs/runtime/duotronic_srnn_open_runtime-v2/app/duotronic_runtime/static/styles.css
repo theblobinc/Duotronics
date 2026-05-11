@@ -265,3 +265,47 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+
+
+.runtime-tabs {
+  position: sticky;
+  top: 5.25rem;
+  z-index: 9;
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+  padding: .65rem;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 1rem;
+  background: rgba(8,11,18,.72);
+  backdrop-filter: blur(14px);
+}
+
+.tab-button {
+  border-radius: 999px;
+  padding: .6rem .9rem;
+  color: var(--muted);
+}
+
+.tab-button.active {
+  color: var(--text);
+  background: linear-gradient(135deg, rgba(49,95,220,.9), rgba(123,63,242,.9));
+  border-color: transparent;
+}
+
+[data-tab-panel] {
+  display: none;
+}
+
+[data-tab-panel].active-tab-panel {
+  display: grid;
+}
+
+.panel[data-tab-panel].active-tab-panel {
+  display: block;
+}
+
+.operator-panel[data-tab-panel].active-tab-panel {
+  display: block;
+}

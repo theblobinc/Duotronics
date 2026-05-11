@@ -85,6 +85,10 @@ class Settings:
     xavi_worktree_root: Path = Path(os.environ.get("XAVI_WORKTREE_ROOT", "/runtime/data/worktrees"))
     xavi_repo_approval_secret: str = os.environ.get("XAVI_REPO_APPROVAL_SECRET", "")
 
+    xavi_ops_enabled: bool = bool_env("XAVI_OPS_ENABLED", False)
+    xavi_ops_url: str = os.environ.get("XAVI_OPS_URL", "http://host.containers.internal:8091")
+    xavi_ops_api_key: str = os.environ.get("XAVI_OPS_API_KEY", "")
+
 
 def get_settings() -> Settings:
     return Settings()

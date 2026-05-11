@@ -476,6 +476,32 @@ function bindRepoOperatorUi() {
   $("repo-remove-worktree-btn").addEventListener("click", repoRemoveWorktree);
 }
 
+
+function showTab(tabName) {
+  document.querySelectorAll("[data-tab-target]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tabTarget === tabName);
+  });
+
+  document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
+    panel.classList.toggle("active-tab-panel", panel.dataset.tabPanel === tabName);
+  });
+
+  localStorage.setItem("xavi_runtime_active_tab", tabName);
+}
+
+function bindDashboardTabs() {
+  const buttons = Array.from(document.querySelectorAll("[data-tab-target]"));
+  if (!buttons.length) return;
+
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => showTab(btn.dataset.tabTarget));
+  });
+
+  const preferred = localStorage.getItem("xavi_runtime_active_tab") || "overview";
+  const valid = buttons.some((btn) => btn.dataset.tabTarget === preferred);
+  showTab(valid ? preferred : "overview");
+}
+
 function boot() {
   $("api-key").value = getKey();
   $("save-key-btn").addEventListener("click", () => {
@@ -485,6 +511,7 @@ function boot() {
   $("refresh-btn").addEventListener("click", refreshAll);
   $("run-btn").addEventListener("click", runInference);
   bindRepoOperatorUi();
+  bindDashboardTabs();
   document.querySelectorAll("[data-reload]").forEach((btn) => btn.addEventListener("click", refreshAll));
   refreshAll();
   setInterval(refreshAll, 15000);
