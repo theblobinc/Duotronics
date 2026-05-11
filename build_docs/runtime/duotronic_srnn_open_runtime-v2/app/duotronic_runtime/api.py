@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from .config import Settings, get_settings
 from .runtime_kernel import RuntimeKernel
 from .http_mcp import register_xavi_runtime_mcp
+from .actions_api import register_xavi_runtime_actions
 
 
 class RunRequest(BaseModel):
@@ -58,10 +59,11 @@ def create_app() -> FastAPI:
     settings = get_settings()
     kernel = RuntimeKernel(settings)
 
-    app = FastAPI(title="Duotronic SRNN Runtime Host", version="0.2.0")
+    app = FastAPI(title="Duotronic SRNN Runtime Host", version="0.2.0", openapi_url="/fastapi/openapi.json")
     static_dir = __import__("pathlib").Path(__file__).resolve().parent / "static"
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
     register_xavi_runtime_mcp(app, kernel, settings)
+    register_xavi_runtime_actions(app, kernel, settings)
 
     @app.on_event("startup")
     def startup() -> None:
