@@ -1,0 +1,175 @@
+schema_version: logical_observer_kernel_syscalls/v1
+status: draft5_2_1_lean_proof_authority_completion_candidate
+deterministic: true
+boot_instruction_set:
+- BOOT_CORPUS
+- LOAD_MANIFEST
+- VERIFY_HASH_CLOSURE
+- RESOLVE_ACTIVE_VERSION
+- LOAD_SCHEMA_REGISTRY
+- LOAD_AUTHORITY_TABLE
+- ENTER_SAFE_MODE_IF_AMBIGUOUS
+canonical_resolver_instruction_set:
+- RESOLVE_RULE
+- SELECT_ACTIVE_CONTRACT
+- APPLY_SUPERSESSION_CHAIN
+- CHECK_COMPATIBILITY_EXCEPTION
+- REPORT_AMBIGUITY
+observer_capability_instruction_set:
+- DECLARE_OBSERVER
+- CHECK_CAPABILITY
+- CHECK_SCOPE
+- CHECK_RUNTIME_MODE
+- CHECK_CHANNEL_AUTHORITY
+- CHECK_DELEGATION_CHAIN
+- DOWNGRADE_FORCE
+- DENY_OR_ESCALATE
+logical_task_instruction_set:
+- CREATE_TASK
+- TYPECHECK_TASK
+- PLAN_TASK
+- ALLOCATE_BUDGET
+- EXECUTE_DETERMINISTIC_STEP
+- EMIT_STEP_WITNESS
+- COMMIT_RESULT
+- ROLLBACK_RESULT
+- EXPORT_TASK_TRACE
+evidence_transaction_instruction_set:
+- BEGIN_EVIDENCE_TX
+- ASSERT_PRECONDITIONS
+- EMIT_WITNESS
+- CHECK_NON_COLLAPSE
+- CHECK_POLICY
+- PERSIST_WITNESS
+- COMMIT_TX
+- ABORT_TX
+error_refusal_instruction_set:
+- RAISE_MISSING_WITNESS
+- RAISE_AUTHORITY_DENIED
+- RAISE_NON_COLLAPSE_VIOLATION
+- RAISE_REPLAY_ASSUMPTION_MISSING
+- RAISE_INDETERMINATE_RESULT
+- ESCALATE_TO_HUMAN_REVIEW
+deterministic_computation_instruction_set:
+- READ_OBJECT
+- HASH_OBJECT
+- COMPARE
+- VALIDATE_SCHEMA
+- EVALUATE_PREDICATE
+- RUN_PURE_FUNCTION
+- CHECK_RESULT
+- RETURN_STATUS
+logical_memory_instruction_set:
+- READ_MEMORY_CELL
+- WRITE_OBSERVATION
+- WRITE_CANDIDATE_FACT
+- PROMOTE_MEMORY_CELL
+- MARK_STALE
+- PURGE_WITH_WITNESS
+- SNAPSHOT_MEMORY
+- REPLAY_MEMORY_STATE
+conflict_adjudication_instruction_set:
+- DETECT_CONFLICT
+- CLASSIFY_CONFLICT
+- OPEN_ADJUDICATION
+- COMPARE_AUTHORITY
+- COMPARE_EVIDENCE
+- MERGE_IF_COMPATIBLE
+- FORK_IF_INCOMPATIBLE
+- MARK_UNRESOLVED
+resource_safety_instruction_set:
+- SET_RESOURCE_BUDGET
+- CHECK_RECURSION_DEPTH
+- CHECK_TIME_BUDGET
+- CHECK_MEMORY_BUDGET
+- DENY_NETWORK
+- DENY_RANDOMNESS
+- DENY_MUTATION
+- ENTER_QUARANTINE_MODE
+syscalls:
+- name: observe
+  purpose: Record an observation
+  required_witness:
+  - EvidenceClaim
+- name: compose
+  purpose: Build compound claim
+  required_witness:
+  - CompoundClaimWitness
+- name: infer
+  purpose: Derive proposal from premises
+  required_witness:
+  - InferenceWitness
+- name: verify
+  purpose: Run deterministic verification
+  required_witness:
+  - VerificationResult
+- name: replay
+  purpose: Reconstruct from assumptions and grammar
+  required_witness:
+  - ReplayAssumptionManifest
+  - VerificationResult
+- name: delegate
+  purpose: Transfer bounded authority
+  required_witness:
+  - AuthorityDelegationChain
+- name: promote
+  purpose: Change claim, model, or status authority
+  required_witness:
+  - ClaimStatusTransition
+  - NonCollapseTransition
+- name: compute
+  purpose: Run bounded deterministic computation
+  required_witness:
+  - TaskStepWitness
+  - TaskResultWitness
+- name: adjudicate
+  purpose: Resolve conflict
+  required_witness:
+  - ConflictAdjudicationWitness
+- name: rollback
+  purpose: Undo failed transaction
+  required_witness:
+  - KernelTransaction
+- name: export
+  purpose: Produce replayable bundle
+  required_witness:
+  - ReplaySign
+  - VerificationGrammar
+- name: check_proof
+  purpose: Compile and verify Lean proof artifacts for theorem/proof promotion
+  required_witness:
+  - LeanCompilerWitness
+  - ProofWitness
+forbidden_operations:
+- network_fetch
+- random_sample
+- wall_clock_now
+- hidden_state_write
+- replace_authority
+- delete_evidence
+- promote_without_witness
+- promote_theorem_without_lean_compiler_witness
+- promote_theorem_with_sorry_or_admit
+- promote_theorem_with_unapproved_axiom
+- promote_theorem_with_source_hash_mismatch
+invariants:
+- K1. No effect before witness.
+- K2. No promotion without policy decision.
+- K3. No theorem/proof status without proof witness, Lean compiler witness, and theorem
+  promotion gate.
+- K4. No authority escalation by repetition.
+- K5. No self-trained-to-authoritative transition without gate path.
+- K6. No replay claim without assumptions and deterministic grammar.
+- K7. No hidden state in observer computation.
+- K8. No network, randomness, or wall-clock dependency in replay mode.
+- K9. Every refusal is itself a typed witness.
+- K10. Every ambiguity resolves to deny, defer, fork, or human escalation.
+proof_checking_instruction_set:
+- LOAD_LEAN_PROJECT
+- VERIFY_LEAN_TOOLCHAIN
+- RUN_LAKE_BUILD
+- SCAN_FOR_SORRY_OR_ADMIT
+- EXTRACT_THEOREM_STATUS
+- EMIT_LEAN_COMPILER_WITNESS
+- EMIT_PROOF_WITNESS
+- BIND_THEOREM_PROMOTION_GATE

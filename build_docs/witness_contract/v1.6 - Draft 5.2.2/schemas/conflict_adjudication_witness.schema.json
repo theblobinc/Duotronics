@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/conflictAdjudicationWitness.schema.json",
+  "title": "ConflictAdjudicationWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "conflict_adjudication_witness_id",
+    "conflict_id",
+    "claim_refs",
+    "conflict_class",
+    "outcome",
+    "policy_decision_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "conflict_adjudication_witness/v1"
+    },
+    "conflict_adjudication_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conflict_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 2
+    },
+    "conflict_class": {
+      "enum": [
+        "factual",
+        "temporal",
+        "authority",
+        "proof",
+        "policy",
+        "replay",
+        "non_collapse",
+        "memory"
+      ]
+    },
+    "outcome": {
+      "enum": [
+        "merged",
+        "forked",
+        "denied",
+        "unresolved",
+        "escalated",
+        "superseded"
+      ]
+    },
+    "evidence_comparison_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "authority_comparison_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "policy_decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "non_collapse_transition_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "kernel_error_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "description": "Typed adjudication witness for claim, authority, proof, replay, or memory conflicts.",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "unresolved",
+              "escalated",
+              "denied"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "kernel_error_witness_id"
+        ],
+        "properties": {
+          "kernel_error_witness_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

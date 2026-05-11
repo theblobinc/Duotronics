@@ -1,0 +1,46 @@
+{
+  "schema_version": "draft5_2_conformance_vectors/v1",
+  "generated": "2026-05-11T00:00:00Z",
+  "valid_fixtures": [
+    "refs/fixtures/draft5_2_evidence_language/valid_evidence_claim.fixture.json",
+    "refs/fixtures/draft5_2_evidence_language/valid_non_collapse_state.fixture.json",
+    "refs/fixtures/draft5_2_evidence_language/valid_non_collapse_transition.fixture.json",
+    "refs/fixtures/draft5_2_evidence_language/valid_verification_grammar.fixture.json",
+    "refs/fixtures/draft5_2_evidence_language/valid_replay_assumption_manifest.fixture.json",
+    "refs/fixtures/draft5_2_evidence_language/valid_pragmatic_context.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_logical_observer_profile.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_observer_capability_token.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_resource_budget_witness.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_observer_task.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_task_frame.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_task_step_witness.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_task_result_witness.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_kernel_transaction.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_kernel_error_witness.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_corpus_rule_resolution_witness.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_conflict_adjudication_witness.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_kernel_state.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_execution_trace.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/valid_logical_memory_cell.fixture.json"
+  ],
+  "invalid_fixtures": [
+    "refs/fixtures/draft5_2_evidence_language/invalid_theorem_without_proof.fixture.json",
+    "refs/fixtures/draft5_2_evidence_language/invalid_direct_theorem_claim_without_proof.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/invalid_kernel_transaction_commit_without_witness.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/invalid_observer_task_commit_without_result.fixture.json",
+    "refs/fixtures/draft5_2_logical_observer_kernel/invalid_resource_budget_network_allowed.fixture.json"
+  ],
+  "required_executable_checks": [
+    "json_schema_parse_all",
+    "valid_fixtures_pass",
+    "invalid_fixtures_fail",
+    "openapi_parse",
+    "sql_parse_or_apply_in_empty_sqlite",
+    "manifest_hash_scope_check",
+    "formal_status_parity",
+    "primitive_state_parity",
+    "kernel_syscall_coverage",
+    "normative_rule_coverage_check",
+    "logical_observer_kernel_fixtures_pass"
+  ]
+}

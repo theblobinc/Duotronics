@@ -1,0 +1,6 @@
+Corrected Draft 5.1 package.
+
+This zip was rebuilt from the uploaded Draft 5 package and overlaid with Draft
+5.1 authority/self-training additions. It is intended to be a standalone complete
+corpus and supersedes any earlier Draft 5.1 zip that was smaller because it was
+regenerated from Draft 4 or because Draft 5 carry-forward files were abbreviated.
