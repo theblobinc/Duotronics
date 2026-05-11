@@ -2,43 +2,159 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Duotronic SRNN Open Runtime</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Xavi Runtime | Duotronic SRNN</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Xavi Runtime</div>
+      <h1>Duotronic SRNN Control Plane</h1>
+    </div>
+    <div class="top-actions">
+      <span id="status-pill" class="pill muted">loading</span>
+      <button id="refresh-btn">Refresh</button>
+      <a href="/docs" target="_blank" rel="noreferrer">API Docs</a>
+    </div>
+  </header>
+
   <main>
-    <h1>Duotronic SRNN Open Runtime</h1>
-    <p class="sub">WG-RNN memory cells + NLA witnesses + PostgreSQL + MCP-ready sandbox.</p>
-    <section class="grid">
-      <div class="card">
-        <h2>Run cognition</h2>
-        <textarea id="prompt">Explain whether an NLA witness may write memory.</textarea>
-        <label>Requested action
+    <section class="grid cards" id="health-cards"></section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Inference</h2>
+          <p>Run a prompt through the active model, WG-RNN, NLA witness layer, policy gate, and non-collapse envelope.</p>
+        </div>
+        <div class="token-box">
+          <label for="api-key">Runtime API key</label>
+          <input id="api-key" type="password" placeholder="Bearer token value" autocomplete="off" />
+          <button id="save-key-btn">Save locally</button>
+        </div>
+      </div>
+
+      <div class="run-grid">
+        <div>
+          <label for="prompt">Prompt</label>
+          <textarea id="prompt" rows="7">Explain Duotronic non-collapse in one precise paragraph.</textarea>
+        </div>
+        <div class="form-stack">
+          <label for="model">Model</label>
+          <select id="model"></select>
+
+          <label for="action">Requested action</label>
           <select id="action">
+            <option value="respond">respond</option>
             <option value="observe">observe</option>
             <option value="memory_write">memory_write</option>
-            <option value="influence_response">influence_response</option>
             <option value="promote_witness">promote_witness</option>
           </select>
-        </label>
-        <button id="run">Run</button>
-      </div>
-      <div class="card">
-        <h2>Health</h2>
-        <button id="refresh">Refresh</button>
-        <pre id="health"></pre>
+
+          <label for="steps">WG-RNN steps</label>
+          <input id="steps" type="number" min="1" max="16" value="1" />
+
+          <label for="quality">Evidence quality</label>
+          <input id="quality" type="number" min="0" max="1" step="0.01" value="0.72" />
+
+          <button id="run-btn" class="primary">Run inference</button>
+        </div>
       </div>
     </section>
-    <section class="card">
-      <h2>Latest result</h2>
-      <pre id="result"></pre>
+
+    <section class="grid two">
+      <article class="panel">
+        <h2>Model output</h2>
+        <pre id="model-output" class="output">No run yet.</pre>
+      </article>
+
+      <article class="panel">
+        <h2>Policy / non-collapse</h2>
+        <pre id="policy-output" class="output">No run yet.</pre>
+      </article>
     </section>
-    <section class="grid">
-      <div class="card"><h2>Witnesses</h2><pre id="witnesses"></pre></div>
-      <div class="card"><h2>Memory</h2><pre id="memory"></pre></div>
+
+    <section class="grid two">
+      <article class="panel">
+        <h2>WG-RNN state image</h2>
+        <canvas id="memory-canvas" width="900" height="260"></canvas>
+        <p class="hint">Top row = hidden state h. Bottom row = cell state c. Brighter bars indicate stronger dimensions.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Latest witness</h2>
+        <pre id="witness-output" class="output">No run yet.</pre>
+      </article>
+    </section>
+
+    <section class="grid three">
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Models</h2>
+          <button data-reload="models">Reload</button>
+        </div>
+        <div id="models-list" class="list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Modules</h2>
+          <button data-reload="modules">Reload</button>
+        </div>
+        <div id="modules-list" class="list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Corpus</h2>
+          <button data-reload="corpus">Reload</button>
+        </div>
+        <pre id="corpus-output" class="output small"></pre>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Recent memory</h2>
+          <button data-reload="memory">Reload</button>
+        </div>
+        <pre id="memory-output" class="output small"></pre>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Witness feed</h2>
+          <button data-reload="witnesses">Reload</button>
+        </div>
+        <pre id="witnesses-output" class="output small"></pre>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Claims / audit</h2>
+          <button data-reload="audit">Reload</button>
+        </div>
+        <pre id="audit-output" class="output small"></pre>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Policy / formal status</h2>
+          <button data-reload="policy">Reload</button>
+        </div>
+        <pre id="system-output" class="output small"></pre>
+      </article>
     </section>
   </main>
+
+  <footer>
+    <span>Model output is evidence, not truth. Policy approval is authorization, not proof.</span>
+  </footer>
+
   <script src="/static/app.js"></script>
 </body>
 </html>
