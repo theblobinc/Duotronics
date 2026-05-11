@@ -15,6 +15,7 @@ function getKey() {
 
 function setStatus(text, kind = "muted") {
   const pill = $("status-pill");
+  if (!pill) return;
   pill.textContent = text;
   pill.className = `pill ${kind}`;
 }
@@ -92,12 +93,14 @@ function renderHealth(health) {
   setStatus(health.status === "ok" ? "online" : "degraded", health.status === "ok" ? "good" : "warn");
 
   const modelSelect = $("model");
-  const existing = modelSelect.value;
-  modelSelect.innerHTML = `<option value="">default</option>` + models
-    .filter((m) => m.enabled)
-    .map((m) => `<option value="${m.name}">${m.name} · ${m.provider}${m.default ? " · default" : ""}</option>`)
-    .join("");
-  if (existing) modelSelect.value = existing;
+  if (modelSelect) {
+    const existing = modelSelect.value;
+    modelSelect.innerHTML = `<option value="">default</option>` + models
+      .filter((m) => m.enabled)
+      .map((m) => `<option value="${m.name}">${m.name} · ${m.provider}${m.default ? " · default" : ""}</option>`)
+      .join("");
+    if (existing) modelSelect.value = existing;
+  }
 }
 
 function renderModels(data) {
@@ -716,21 +719,55 @@ function bindDashboardTabs() {
   showTab(valid ? preferred : "overview");
 }
 
-function boot() {
-  $("api-key").value = getKey();
-  $("save-key-btn").addEventListener("click", () => {
-    localStorage.setItem("xavi_runtime_api_key", $("api-key").value.trim());
-    setStatus("key saved", "good");
-  });
-  $("refresh-btn").addEventListener("click", refreshAll);
-  $("run-btn").addEventListener("click", runInference);
-  bindRepoOperatorUi();
-  bindInferenceChatUi();
-  bindOpsUi();
-  bindDashboardTabs();
-  document.querySelectorAll("[data-reload]").forEach((btn) => btn.addEventListener("click", refreshAll));
-  refreshAll();
-  setInterval(refreshAll, 15000);
+function safeBind(label, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`failed to bind ${label}`, err);
+    setStatus(`${label} failed`, "warn");
+  }
 }
 
-boot();
+function boot() {
+  safeBind("tabs", bindDashboardTabs);
+
+  safeBind("runtime key", () => {
+    const apiKey = $("api-key");
+    const saveKey = $("save-key-btn");
+    if (!apiKey || !saveKey) return;
+    apiKey.value = getKey();
+    saveKey.addEventListener("click", () => {
+      localStorage.setItem("xavi_runtime_api_key", apiKey.value.trim());
+      setStatus("key saved", "good");
+    });
+  });
+
+  safeBind("refresh button", () => {
+    $("refresh-btn")?.addEventListener("click", refreshAll);
+  });
+
+  safeBind("inference", () => {
+    $("run-btn")?.addEventListener("click", runInference);
+    bindInferenceChatUi();
+  });
+
+  safeBind("repo operator", bindRepoOperatorUi);
+  safeBind("ops", bindOpsUi);
+
+  document.querySelectorAll("[data-reload]").forEach((btn) => btn.addEventListener("click", refreshAll));
+
+  refreshAll().catch((err) => {
+    console.error("initial refresh failed", err);
+    setStatus("refresh failed", "warn");
+  });
+
+  setInterval(() => {
+    refreshAll().catch((err) => console.error("scheduled refresh failed", err));
+  }, 15000);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
