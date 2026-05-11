@@ -10,6 +10,8 @@ def test_dashboard_has_tabs():
     assert 'data-tab-target="overview"' in html
     assert 'data-tab-target="operator"' in html
     assert 'data-tab-panel="operator"' in html
+    assert 'data-tab-target="ops"' in html
+    assert 'data-tab-panel="ops"' in html
 
 
 def test_dashboard_js_binds_tabs():
@@ -17,6 +19,8 @@ def test_dashboard_js_binds_tabs():
     assert "bindDashboardTabs" in js
     assert "showTab" in js
     assert "xavi_runtime_active_tab" in js
+    assert "bindOpsUi" in js
+    assert "ops.runtime_health" in js
 
 
 def test_dashboard_css_hides_inactive_tab_panels():

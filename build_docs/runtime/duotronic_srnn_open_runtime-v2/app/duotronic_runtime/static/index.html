@@ -27,6 +27,7 @@
       <button class="tab-button" data-tab-target="inference">Inference</button>
       <button class="tab-button" data-tab-target="evidence">Evidence</button>
       <button class="tab-button" data-tab-target="operator">Repo operator</button>
+      <button class="tab-button" data-tab-target="ops">Ops</button>
       <button class="tab-button" data-tab-target="system">System</button>
     </nav>
 
@@ -176,6 +177,44 @@ index 0000000..3c4fd76
           <h2>Diff / status output</h2>
           <pre id="repo-diff-output" class="output small">No diff loaded yet.</pre>
         </article>
+      </div>
+    </section>
+
+
+
+    <section class="panel operator-panel" data-tab-panel="ops">
+      <div class="panel-head">
+        <div>
+          <h2>Runtime ops / MCP</h2>
+          <p>Run bounded host operations through MCP. Restart and rebuild stay separate maintenance actions, not bundle actions.</p>
+        </div>
+      </div>
+
+      <div class="operator-grid">
+        <div class="form-stack">
+          <label for="ops-log-tail">Log tail lines</label>
+          <input id="ops-log-tail" type="number" min="20" max="1000" value="160" />
+
+          <label for="ops-allowed-command">Allowed command</label>
+          <select id="ops-allowed-command">
+            <option value="runtime_pytest">runtime_pytest</option>
+            <option value="runtime_health_public">runtime_health_public</option>
+            <option value="runtime_health_local">runtime_health_local</option>
+            <option value="podman_ps">podman_ps</option>
+          </select>
+        </div>
+
+        <div class="operator-buttons">
+          <button id="ops-health-btn">Runtime health</button>
+          <button id="ops-ps-btn">Podman ps</button>
+          <button id="ops-logs-btn">Runtime logs</button>
+          <button id="ops-tests-btn">Run tests</button>
+          <button id="ops-git-status-btn">Git status</button>
+          <button id="ops-git-pull-btn">Git pull</button>
+          <button id="ops-allowed-command-btn">Run allowed command</button>
+        </div>
+
+        <pre id="ops-output" class="output small">No ops command yet.</pre>
       </div>
     </section>
 

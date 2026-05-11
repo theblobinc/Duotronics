@@ -650,6 +650,47 @@ function bindRepoOperatorUi() {
 }
 
 
+
+function setOpsOutput(value) {
+  const out = $("ops-output");
+  if (out) out.textContent = typeof value === "string" ? value : pretty(value);
+}
+
+async function runOpsAction(label, tool, args = {}) {
+  setStatus(`${label}…`, "warn");
+  try {
+    const result = await mcpCall(tool, args, `ui-${tool}-${Date.now()}`);
+    setOpsOutput(result);
+    setStatus(`${label} ok`, "good");
+    return result;
+  } catch (err) {
+    setOpsOutput(String(err));
+    setStatus(`${label} failed`, "bad");
+    throw err;
+  }
+}
+
+function bindOpsUi() {
+  if (!$("ops-output")) return;
+
+  $("ops-health-btn")?.addEventListener("click", () => runOpsAction("runtime health", "ops.runtime_health"));
+  $("ops-ps-btn")?.addEventListener("click", () => runOpsAction("podman ps", "ops.runtime_ps"));
+  $("ops-tests-btn")?.addEventListener("click", () => runOpsAction("runtime tests", "ops.runtime_tests"));
+  $("ops-git-status-btn")?.addEventListener("click", () => runOpsAction("git status", "ops.git_status"));
+  $("ops-git-pull-btn")?.addEventListener("click", () => runOpsAction("git pull", "ops.git_pull"));
+
+  $("ops-logs-btn")?.addEventListener("click", () => {
+    const tail = Math.max(20, Math.min(Number($("ops-log-tail")?.value || 160), 1000));
+    return runOpsAction("runtime logs", "ops.runtime_logs", { tail });
+  });
+
+  $("ops-allowed-command-btn")?.addEventListener("click", () => {
+    const name = $("ops-allowed-command")?.value || "runtime_pytest";
+    return runOpsAction("allowed command", "ops.allowed_command", { name });
+  });
+}
+
+
 function showTab(tabName) {
   document.querySelectorAll("[data-tab-target]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tabTarget === tabName);
@@ -685,6 +726,7 @@ function boot() {
   $("run-btn").addEventListener("click", runInference);
   bindRepoOperatorUi();
   bindInferenceChatUi();
+  bindOpsUi();
   bindDashboardTabs();
   document.querySelectorAll("[data-reload]").forEach((btn) => btn.addEventListener("click", refreshAll));
   refreshAll();
