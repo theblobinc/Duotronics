@@ -77,6 +77,8 @@ services:
       MODEL_REGISTRY_PATH: /runtime/config/models.json
       MODULE_REGISTRY_PATH: /runtime/config/modules.json
       POLICY_PACK_PATH: /runtime/config/policy_pack.json
+      XAVI_REPO_ROOT: /workspace/Duotronics
+      XAVI_WORKTREE_ROOT: /runtime/data/worktrees
     command: ["python", "-m", "duotronic_runtime.main"]
     volumes:
       - ./corpus:/runtime/corpus:Z
@@ -84,6 +86,7 @@ services:
       - ./config:/runtime/config:Z
       - ./models:/models:Z
       - ./formal:/runtime/formal:Z
+      - ../../..:/workspace/Duotronics:Z
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
     depends_on:

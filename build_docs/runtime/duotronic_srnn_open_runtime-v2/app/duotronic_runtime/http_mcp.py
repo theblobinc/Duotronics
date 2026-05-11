@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from .config import Settings
 from .runtime_kernel import RuntimeKernel
+from .repo_mcp import XaviRepoTools, repo_resources, repo_tool_manifest
 
 
 class McpCallRequest(BaseModel):
@@ -140,8 +141,8 @@ def _tool_manifest() -> list[dict[str, Any]]:
                 },
             },
         },
+        *repo_tool_manifest(),
     ]
-
 
 def _resources() -> list[dict[str, str]]:
     return [
@@ -155,6 +156,7 @@ def _resources() -> list[dict[str, str]]:
         {"uri": "xavi-runtime://corpus", "name": "Corpus inspection"},
         {"uri": "xavi-runtime://policy", "name": "Policy explanation"},
         {"uri": "xavi-runtime://formal", "name": "Formal observer status"},
+        *repo_resources(),
     ]
 
 
@@ -225,6 +227,9 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
                 raise HTTPException(status_code=502, detail={"error": "model_provider_error", "message": message}) from exc
             raise
 
+    if tool.startswith("repo."):
+        return await XaviRepoTools(kernel.settings).call(tool, args)
+
     raise HTTPException(status_code=404, detail=f"unknown xavi-runtime MCP tool: {tool}")
 
 
@@ -241,6 +246,12 @@ async def _read_resource(kernel: RuntimeKernel, uri: str) -> dict[str, Any]:
         "xavi-runtime://policy": ("runtime.policy", {}),
         "xavi-runtime://formal": ("runtime.formal_status", {}),
     }
+
+    if uri == "xavi-runtime://repo/status":
+        return {"uri": uri, "contents": await XaviRepoTools(kernel.settings).call("repo.status", {})}
+
+    if uri == "xavi-runtime://repo/worktrees":
+        return {"uri": uri, "contents": await XaviRepoTools(kernel.settings).call("repo.list_worktrees", {})}
 
     if uri not in mapping:
         raise HTTPException(status_code=404, detail=f"unknown xavi-runtime MCP resource: {uri}")

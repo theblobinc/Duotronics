@@ -80,6 +80,11 @@ class Settings:
     xavi_mcp_enabled: bool = bool_env("XAVI_MCP_ENABLED", False)
     xavi_mcp_api_key: str = os.environ.get("XAVI_MCP_API_KEY", "")
 
+    xavi_mcp_repo_tools_enabled: bool = bool_env("XAVI_MCP_REPO_TOOLS_ENABLED", False)
+    xavi_repo_root: Path = Path(os.environ.get("XAVI_REPO_ROOT", "/workspace/Duotronics"))
+    xavi_worktree_root: Path = Path(os.environ.get("XAVI_WORKTREE_ROOT", "/runtime/data/worktrees"))
+    xavi_repo_approval_secret: str = os.environ.get("XAVI_REPO_APPROVAL_SECRET", "")
+
 
 def get_settings() -> Settings:
     return Settings()
