@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 
 from .config import Settings
+from .prompting import DUOTRONIC_RUNTIME_SYSTEM_PROMPT, build_runtime_prompt
 
 
 def expand_env(value: Any) -> Any:
@@ -69,11 +70,19 @@ class ModelProvider:
     async def complete(self, *, prompt: str, model_name: str | None = None) -> dict[str, Any]:
         model = self.registry.get(model_name)
         provider = model.get("provider", "echo")
+        runtime_prompt = build_runtime_prompt(
+            prompt,
+            runtime_context={
+                "node_id": self.settings.node_id,
+                "runtime_mode": self.settings.wg_rnn_runtime_mode,
+                "policy_mode": self.settings.nla_policy_mode,
+            },
+        )
         if provider == "ollama":
-            return await self._ollama(prompt, model)
+            return await self._ollama(runtime_prompt, model)
         if provider == "llama_cpp":
-            return await self._llama_cpp(prompt, model)
-        return self._echo(prompt, model)
+            return await self._llama_cpp(runtime_prompt, model)
+        return self._echo(runtime_prompt, model)
 
     def _echo(self, prompt: str, model: dict[str, Any]) -> dict[str, Any]:
         response = (
@@ -95,7 +104,17 @@ class ModelProvider:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 r = await client.post(
                     f"{base.rstrip('/')}/api/generate",
-                    json={"model": name, "prompt": prompt, "stream": False},
+                    json={
+                        "model": name,
+                        "prompt": prompt,
+                        "system": DUOTRONIC_RUNTIME_SYSTEM_PROMPT,
+                        "stream": False,
+                        "options": {
+                            "temperature": 0.15,
+                            "top_p": 0.85,
+                            "repeat_penalty": 1.08,
+                        },
+                    },
                 )
                 r.raise_for_status()
                 data = r.json()
@@ -110,7 +129,15 @@ class ModelProvider:
     async def _llama_cpp(self, prompt: str, model: dict[str, Any]) -> dict[str, Any]:
         base = model.get("base_url") or self.settings.llama_cpp_base_url
         name = model.get("model") or self.settings.llama_cpp_default_model
-        body = {"model": name, "messages": [{"role": "user", "content": prompt}], "temperature": 0.2}
+        body = {
+            "model": name,
+            "messages": [
+                {"role": "system", "content": DUOTRONIC_RUNTIME_SYSTEM_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.15,
+            "top_p": 0.85,
+        }
         timeout = httpx.Timeout(
             connect=10.0,
             read=float(getattr(self.settings, "llama_cpp_timeout_seconds", 180.0)),

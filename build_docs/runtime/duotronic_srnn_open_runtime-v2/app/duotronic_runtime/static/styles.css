@@ -484,3 +484,67 @@ footer {
     min-height: auto;
   }
 }
+
+/* Inference tab polish */
+.inference-chat-shell.active-tab-panel {
+  min-height: calc(100vh - 13rem);
+}
+
+.inference-chat-sidebar {
+  background:
+    radial-gradient(circle at top left, rgba(119,167,255,.14), transparent 16rem),
+    rgba(10,17,31,.72);
+}
+
+.inference-chat-main {
+  border-color: rgba(119,167,255,.18);
+  box-shadow: 0 24px 80px rgba(0,0,0,.22);
+}
+
+.inference-chat-head {
+  background:
+    linear-gradient(135deg, rgba(49,95,220,.14), rgba(123,63,242,.08)),
+    rgba(8,11,18,.72);
+}
+
+.inference-chat-log {
+  min-height: 30rem;
+}
+
+.latest-output .avatar {
+  background: linear-gradient(135deg, rgba(119,167,255,.28), rgba(123,63,242,.28));
+}
+
+.chat-output {
+  font-family: inherit;
+  line-height: 1.55;
+  font-size: .98rem;
+  white-space: pre-wrap;
+}
+
+.inference-composer textarea {
+  border-radius: 1rem;
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.inference-chat-inspector {
+  background:
+    radial-gradient(circle at top right, rgba(123,63,242,.12), transparent 15rem),
+    rgba(10,17,31,.68);
+}
+
+.inference-chat-inspector .output {
+  max-height: 21rem;
+}
+
+.quick-prompts button {
+  border-radius: .8rem;
+  padding: .7rem .8rem;
+}
+
+.quick-prompts button:hover {
+  color: var(--text);
+  border-color: rgba(119,167,255,.35);
+}
+

@@ -7,7 +7,7 @@ from .config import Settings, get_settings
 from .corpus_agent import build_agentic_plan, scan_corpus
 from .corpus_manager import CorpusManager
 from .db import Store
-from .evidence import CorpusRef, EvidenceKernel, sha256_ref
+from .evidence import nla_activation_witness_contract_v1, CorpusRef, EvidenceKernel, sha256_ref
 from .formal_observers import FormalObserverFleet
 from .models import RuntimeRunResult, now_ms, stable_id
 from .module_registry import ModuleRegistry
@@ -133,9 +133,29 @@ class RuntimeKernel:
             memory=memory,
             created_at_ms=now_ms(),
         ).to_dict()
-        result["evidence"] = {"model_output_witness": model_witness, "non_collapse_gate": collapse_check}
+        nla_contract_v1 = nla_activation_witness_contract_v1(
+            nla_witness=nla_dict,
+            source_model=model_result.get("model", {}),
+            loop_id=result.get("loop_id", "loop-main"),
+            node_id=self.settings.node_id,
+            policy_mode=self.settings.nla_policy_mode,
+        )
+        result["evidence"] = {
+            "model_output_witness": model_witness,
+            "nla_activation_witness_v1": nla_contract_v1,
+            "non_collapse_gate": collapse_check,
+        }
         self.store.insert_run_bundle(result)
         self.store.insert_witness(model_witness, run_id=result["run_id"])
+        self.store.insert_witness(
+            self.evidence.witness(
+                "NaturalLanguageActivationWitness",
+                nla_contract_v1,
+                force="observe",
+                status="recorded",
+            ),
+            run_id=result["run_id"],
+        )
         self.store.insert_witness(self.evidence.witness("PolicyDecisionWitness", decision, force="authorize" if decision.get("allowed") else "refuse"), run_id=result["run_id"])
         return result
 

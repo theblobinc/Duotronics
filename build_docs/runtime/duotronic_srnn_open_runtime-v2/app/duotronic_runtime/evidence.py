@@ -156,3 +156,133 @@ class EvidenceKernel:
             },
         }
         return self.witness("ModelOutputWitness", payload, force="propose")
+
+
+def nla_activation_witness_contract_v1(
+    *,
+    nla_witness: dict[str, Any],
+    source_model: dict[str, Any],
+    loop_id: str,
+    node_id: str,
+    policy_mode: str = "audit_only",
+) -> dict[str, Any]:
+    """Project the legacy runtime NLA witness into the current v1 contract shape.
+
+    This is a compatibility bridge: it preserves old runtime fields while exposing
+    the newer schema_version/source_model/activation/fidelity/lifecycle/policy keys
+    expected by the current witness contract.
+    """
+    activation = nla_witness.get("activation") or {}
+    verbalizer = nla_witness.get("verbalizer") or {}
+    reconstructor = nla_witness.get("reconstructor") or {}
+    fidelity = nla_witness.get("fidelity") or {}
+    lifecycle = nla_witness.get("lifecycle") or {}
+    policy = nla_witness.get("policy") or {}
+
+    created_ms = int(nla_witness.get("created_at_ms") or now_ms())
+    created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(created_ms / 1000))
+
+    backend = str(source_model.get("provider") or source_model.get("backend") or "unknown")
+    if backend not in {"transformers", "sglang", "llama_server", "ollama", "other", "unknown"}:
+        backend = "other"
+
+    confidence = fidelity.get("cosine_similarity")
+    if confidence is None:
+        confidence = fidelity.get("confidence")
+    try:
+        confidence = max(0.0, min(1.0, float(confidence)))
+    except Exception:
+        confidence = 0.0
+
+    status = str(fidelity.get("fidelity_status") or fidelity.get("status") or "unscored")
+    if status not in {"high", "medium", "low", "failed", "unscored", "quarantined"}:
+        status = "quarantined" if lifecycle.get("quarantined") else "unscored"
+
+    current_state = str(lifecycle.get("state") or lifecycle.get("current_state") or status)
+    if current_state not in {
+        "requested", "captured", "verbalized", "scored", "accepted",
+        "accepted_single_use_only", "diagnostic_only", "unscored_diagnostic",
+        "quarantined", "human_review_pending", "human_review_accepted",
+        "human_review_rejected", "promotable", "promoted_to_meta",
+        "promoted_to_hyper", "expired", "failed"
+    }:
+        current_state = "quarantined" if status in {"low", "quarantined", "failed"} else "diagnostic_only"
+
+    return {
+        "schema_version": "nla-activation-witness/v1",
+        "witness_id": str(nla_witness.get("witness_id") or "nla_" + sha256_ref(nla_witness).split(":", 1)[1][:20]),
+        "request_id": None,
+        "loop_id": str(loop_id or nla_witness.get("loop_id") or "loop-main"),
+        "created_at": created_at,
+        "source_model": {
+            "model_id": str(source_model.get("model") or source_model.get("name") or "unknown"),
+            "model_revision": None,
+            "backend": backend,
+            "backend_capability": "hidden_states_unavailable" if backend == "ollama" else "unknown",
+            "layer_index": 0,
+            "token_index": None,
+            "pooling_rule": "runtime_shim",
+            "d_model": int(len((nla_witness.get("activation") or {}).get("activation_vector", [])) or 1),
+            "token_text_hash": None,
+        },
+        "activation": {
+            "vector_ref": str(activation.get("activation_vector_ref") or "inline:sandbox-vector"),
+            "vector_sha256": str(activation.get("activation_digest") or "sha256:" + "0" * 64),
+            "norm_l2": float(activation.get("norm") or 0.0),
+            "dtype": "float32",
+            "capture_time_utc": created_at,
+            "retention_class": "audit_artifact",
+            "transcript_ref": None,
+            "redaction_status": "none",
+        },
+        "verbalizer": {
+            "av_model_id": str(verbalizer.get("av_model") or "deterministic-av-shim-v1"),
+            "av_model_revision": None,
+            "av_checkpoint_sha256": None,
+            "sidecar_ref": verbalizer.get("sidecar_ref"),
+            "sidecar_digest": str(verbalizer.get("response_integrity") or verbalizer.get("prompt_integrity") or "sha256:" + "0" * 64),
+            "prompt_template_hash": str(verbalizer.get("prompt_integrity") or "sha256:" + "0" * 64),
+            "injection_scale": None,
+            "injection_token_id": None,
+            "explanation_text": str(verbalizer.get("explanation_text") or ""),
+            "raw_generation_ref": None,
+            "explanation_tags_valid": bool(verbalizer.get("parser_status") in {"parsed", "passed"} or verbalizer.get("explanation_tags_valid") is True),
+        },
+        "reconstructor": {
+            "ar_available": reconstructor.get("mse") is not None or reconstructor.get("cosine") is not None,
+            "ar_model_id": reconstructor.get("ar_model"),
+            "ar_model_revision": None,
+            "ar_checkpoint_sha256": None,
+            "reconstruction_vector_ref": reconstructor.get("reconstruction_ref"),
+            "reconstruction_vector_sha256": reconstructor.get("reconstruction_digest"),
+            "mse": reconstructor.get("mse"),
+            "cosine_similarity": reconstructor.get("cosine") if reconstructor.get("cosine") is not None else reconstructor.get("cosine_similarity"),
+        },
+        "fidelity": {
+            "status": status,
+            "confidence": confidence,
+            "repeat_stability": fidelity.get("repeat_stability"),
+            "parser_valid": fidelity.get("parser_status") in {"passed", "parsed"} or bool(fidelity.get("parser_valid")),
+            "sidecar_valid": bool(fidelity.get("sidecar_valid", False)),
+            "replay_valid": bool(fidelity.get("replay_valid", False)),
+            "contradiction_pressure_delta": None,
+            "novelty_delta": None,
+            "recurrence_family": None,
+            "human_review_required": bool((policy or {}).get("human_review_required", True)),
+        },
+        "lifecycle": {
+            "current_state": current_state,
+            "previous_state": None,
+            "transition_reason": "compatibility_projection_from_legacy_runtime_witness",
+            "transitioned_at": created_at,
+            "review_ref": None,
+            "expiry_at": None,
+        },
+        "policy": {
+            "mode": str(policy.get("mode") or policy_mode or "audit_only"),
+            "may_influence_response": bool(policy.get("may_influence_response", False)),
+            "may_write_memory": bool(policy.get("may_write_memory", False)),
+            "may_promote_witness": bool(policy.get("may_promote_witness", False)),
+            "may_trigger_mutation": bool(policy.get("may_trigger_mutation", False)),
+        },
+    }

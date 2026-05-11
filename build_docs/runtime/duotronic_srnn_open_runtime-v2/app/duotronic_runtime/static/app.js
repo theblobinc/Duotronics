@@ -179,6 +179,7 @@ function renderRun(result) {
     run_id: result.run_id,
     model: result.model,
     requested_action: result.requested_action,
+    witness_contract: result.evidence?.nla_activation_witness_v1 || null,
   });
   $("witness-output").textContent = pretty({
     run_id: result.run_id,
@@ -194,7 +195,6 @@ function renderRun(result) {
   ]);
 
   state.chatTurn += 1;
-  appendChatMessage("assistant", result.response_text || "No response text returned.", `runtime response ${state.chatTurn}`);
 }
 
 async function refreshAll() {
@@ -342,7 +342,7 @@ function bindInferenceChatUi() {
         <div class="avatar">X</div>
         <div class="bubble">
           <div class="message-meta">Xavi runtime</div>
-          <p>Ask the local runtime anything. Responses flow through the active model provider, WG-RNN state, witness generation, and policy gate.</p>
+          <p>Ask the local runtime anything. The response below is model evidence, while the inspector shows witness contract, policy, and WG-RNN state.</p>
         </div>
       </article>
     </div>
@@ -356,6 +356,9 @@ function bindInferenceChatUi() {
   aiAvatar.textContent = "AI";
 
   modelOutput.classList.add("bubble", "chat-output");
+  if (modelOutput.textContent.trim() === "No run yet.") {
+    modelOutput.textContent = "No inference run yet. Send a prompt to generate model evidence.";
+  }
   latest.append(aiAvatar, modelOutput);
   main.querySelector("#xavi-chat-log").appendChild(latest);
 
