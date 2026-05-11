@@ -84,7 +84,21 @@ def create_app() -> FastAPI:
     @app.post("/v1/run")
     async def run(req: RunRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
-        return await kernel.run_cognition(prompt=req.prompt, steps=req.steps, requested_action=req.requested_action, model_name=req.model_name, evidence_quality=req.evidence_quality)
+        try:
+            return await kernel.run_cognition(
+                prompt=req.prompt,
+                steps=req.steps,
+                requested_action=req.requested_action,
+                model_name=req.model_name,
+                evidence_quality=req.evidence_quality,
+            )
+        except RuntimeError as exc:
+            message = str(exc)
+            if "timeout" in message:
+                raise HTTPException(status_code=504, detail={"error": "model_provider_timeout", "message": message}) from exc
+            if "ollama_" in message or "llama_cpp_" in message:
+                raise HTTPException(status_code=502, detail={"error": "model_provider_error", "message": message}) from exc
+            raise
 
     @app.get("/v1/witnesses")
     def witnesses(limit: int = 20) -> dict[str, Any]:

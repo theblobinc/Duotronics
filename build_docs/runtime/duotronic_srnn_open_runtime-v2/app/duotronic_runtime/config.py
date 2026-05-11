@@ -61,10 +61,12 @@ class Settings:
     ollama_enabled: bool = bool_env("OLLAMA_ENABLED", False)
     ollama_host: str = os.environ.get("OLLAMA_HOST", "http://ollama:11434")
     ollama_default_model: str = os.environ.get("OLLAMA_DEFAULT_MODEL", "llama3.2:1b")
+    ollama_timeout_seconds: float = float_env("OLLAMA_TIMEOUT_SECONDS", 180.0)
 
     llama_cpp_enabled: bool = bool_env("LLAMA_CPP_ENABLED", False)
     llama_cpp_base_url: str = os.environ.get("LLAMA_CPP_BASE_URL", "http://llama-cpp:8080/v1")
     llama_cpp_default_model: str = os.environ.get("LLAMA_CPP_DEFAULT_MODEL", "local-gguf")
+    llama_cpp_timeout_seconds: float = float_env("LLAMA_CPP_TIMEOUT_SECONDS", 180.0)
 
     corpus_dir: Path = Path(os.environ.get("CORPUS_DIR", "/runtime/corpus"))
     corpus_autoindex: bool = bool_env("CORPUS_AUTOINDEX", True)

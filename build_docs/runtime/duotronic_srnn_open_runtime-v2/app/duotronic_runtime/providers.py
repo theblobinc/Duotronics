@@ -85,19 +85,48 @@ class ModelProvider:
     async def _ollama(self, prompt: str, model: dict[str, Any]) -> dict[str, Any]:
         base = model.get("base_url") or self.settings.ollama_host
         name = model.get("model") or self.settings.ollama_default_model
-        async with httpx.AsyncClient(timeout=60) as client:
-            r = await client.post(f"{base.rstrip('/')}/api/generate", json={"model": name, "prompt": prompt, "stream": False})
-            r.raise_for_status()
-            data = r.json()
+        timeout = httpx.Timeout(
+            connect=10.0,
+            read=float(getattr(self.settings, "ollama_timeout_seconds", 180.0)),
+            write=30.0,
+            pool=10.0,
+        )
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                r = await client.post(
+                    f"{base.rstrip('/')}/api/generate",
+                    json={"model": name, "prompt": prompt, "stream": False},
+                )
+                r.raise_for_status()
+                data = r.json()
+        except httpx.TimeoutException as exc:
+            raise RuntimeError(f"ollama_timeout:{name}:{base}") from exc
+        except httpx.HTTPStatusError as exc:
+            raise RuntimeError(f"ollama_http_error:{name}:{base}:{exc.response.status_code}") from exc
+        except httpx.HTTPError as exc:
+            raise RuntimeError(f"ollama_transport_error:{name}:{base}:{exc.__class__.__name__}") from exc
         return {"model": model | {"model": name}, "response_text": data.get("response", ""), "provider_status": "ollama"}
 
     async def _llama_cpp(self, prompt: str, model: dict[str, Any]) -> dict[str, Any]:
         base = model.get("base_url") or self.settings.llama_cpp_base_url
         name = model.get("model") or self.settings.llama_cpp_default_model
         body = {"model": name, "messages": [{"role": "user", "content": prompt}], "temperature": 0.2}
-        async with httpx.AsyncClient(timeout=60) as client:
-            r = await client.post(f"{base.rstrip('/')}/chat/completions", json=body)
-            r.raise_for_status()
-            data = r.json()
+        timeout = httpx.Timeout(
+            connect=10.0,
+            read=float(getattr(self.settings, "llama_cpp_timeout_seconds", 180.0)),
+            write=30.0,
+            pool=10.0,
+        )
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                r = await client.post(f"{base.rstrip('/')}/chat/completions", json=body)
+                r.raise_for_status()
+                data = r.json()
+        except httpx.TimeoutException as exc:
+            raise RuntimeError(f"llama_cpp_timeout:{name}:{base}") from exc
+        except httpx.HTTPStatusError as exc:
+            raise RuntimeError(f"llama_cpp_http_error:{name}:{base}:{exc.response.status_code}") from exc
+        except httpx.HTTPError as exc:
+            raise RuntimeError(f"llama_cpp_transport_error:{name}:{base}:{exc.__class__.__name__}") from exc
         content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
         return {"model": model | {"model": name}, "response_text": content, "provider_status": "llama_cpp"}
