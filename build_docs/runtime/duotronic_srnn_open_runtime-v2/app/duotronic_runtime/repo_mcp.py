@@ -113,6 +113,46 @@ def repo_tool_manifest() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "repo.prepare_integration",
+            "description": "Generate an approval token to integrate a tested worktree commit into local main.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["worktree_id", "message"],
+                "properties": {
+                    "worktree_id": {"type": "string"},
+                    "message": {"type": "string"},
+                    "target_branch": {"type": "string", "default": "main"},
+                },
+            },
+        },
+        {
+            "name": "repo.integrate_commit",
+            "description": "Cherry-pick an approved worktree commit into local main. Does not push.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["worktree_id", "commit", "message", "approval_token", "expected_main_head"],
+                "properties": {
+                    "worktree_id": {"type": "string"},
+                    "commit": {"type": "string"},
+                    "message": {"type": "string"},
+                    "approval_token": {"type": "string"},
+                    "target_branch": {"type": "string", "default": "main"},
+                    "expected_main_head": {"type": "string"},
+                },
+            },
+        },
+        {
+            "name": "repo.abort_integration",
+            "description": "Abort an in-progress cherry-pick in the mounted repo root.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "properties": {},
+            },
+        },
+        {
             "name": "repo.remove_worktree",
             "description": "Remove an isolated worktree under the configured worktree root.",
             "read_only": False,
@@ -167,6 +207,15 @@ class XaviRepoTools:
 
         if tool == "repo.commit":
             return self.commit(args)
+
+        if tool == "repo.prepare_integration":
+            return self.prepare_integration(args)
+
+        if tool == "repo.integrate_commit":
+            return self.integrate_commit(args)
+
+        if tool == "repo.abort_integration":
+            return self.abort_integration(args)
 
         if tool == "repo.remove_worktree":
             return self.remove_worktree(args)
@@ -262,7 +311,11 @@ class XaviRepoTools:
         return path
 
     def _metadata_dir(self, worktree: Path) -> Path:
-        path = worktree / ".xavi"
+        git_dir_raw = self._run(["git", "rev-parse", "--git-dir"], cwd=worktree).stdout.strip()
+        git_dir = Path(git_dir_raw)
+        if not git_dir.is_absolute():
+            git_dir = (worktree / git_dir).resolve()
+        path = git_dir / "xavi-runtime"
         path.mkdir(parents=True, exist_ok=True)
         return path
 
@@ -472,7 +525,7 @@ class XaviRepoTools:
         if not status.strip():
             raise HTTPException(status_code=422, detail="no changes to commit")
 
-        self._run(["git", "add", "-A"], cwd=worktree)
+        self._run(["git", "add", "-A", "--", ".", ":(exclude).xavi", ":(exclude).xavi/**"], cwd=worktree)
         commit_proc = self._run(["git", "commit", "-m", message], cwd=worktree, timeout=180)
         head = self._run(["git", "rev-parse", "HEAD"], cwd=worktree).stdout.strip()
         branch = self._run(["git", "branch", "--show-current"], cwd=worktree).stdout.strip()
@@ -486,6 +539,153 @@ class XaviRepoTools:
             "stderr": commit_proc.stderr,
             "push_enabled": False,
             "next_step": "Review the worktree commit locally, then merge/sync manually from VS Code or CLI.",
+        }
+
+    def _integration_token(
+        self,
+        *,
+        worktree_id: str,
+        commit_sha: str,
+        main_head: str,
+        message: str,
+        target_branch: str,
+    ) -> str:
+        payload = f"integrate\n{worktree_id}\n{commit_sha}\n{main_head}\n{message}\n{target_branch}".encode("utf-8")
+        secret = self.settings.xavi_repo_approval_secret.encode("utf-8")
+        return hmac.new(secret, payload, hashlib.sha256).hexdigest()
+
+    def _require_clean_tracked_tree(self, path: Path) -> None:
+        unstaged = self._run(["git", "diff", "--quiet"], cwd=path, check=False)
+        staged = self._run(["git", "diff", "--cached", "--quiet"], cwd=path, check=False)
+        if unstaged.returncode != 0 or staged.returncode != 0:
+            raise HTTPException(status_code=409, detail="tracked working tree changes are present")
+
+    def prepare_integration(self, args: dict[str, Any]) -> dict[str, Any]:
+        worktree_id = self._safe_worktree_id(str(args.get("worktree_id", "")))
+        message = str(args.get("message", "")).strip()
+        target_branch = self._safe_branch(str(args.get("target_branch", "main")))
+
+        if not message:
+            raise HTTPException(status_code=422, detail="message is required")
+
+        worktree = self._worktree_path(worktree_id)
+        if not worktree.exists():
+            raise HTTPException(status_code=404, detail=f"unknown worktree: {worktree_id}")
+
+        self._require_clean_tracked_tree(worktree)
+
+        test_path = self._metadata_dir(worktree) / "last_test.json"
+        if not test_path.exists():
+            raise HTTPException(status_code=403, detail="run repo.run_tests before preparing integration approval")
+
+        last_test = json.loads(test_path.read_text())
+        if not last_test.get("passed"):
+            raise HTTPException(status_code=403, detail="latest test did not pass")
+
+        commit_sha = self._run(["git", "rev-parse", "HEAD"], cwd=worktree).stdout.strip()
+        worktree_branch = self._run(["git", "branch", "--show-current"], cwd=worktree).stdout.strip()
+
+        current_branch = self._run(["git", "branch", "--show-current"], cwd=self.repo_root).stdout.strip()
+        if current_branch != target_branch:
+            raise HTTPException(
+                status_code=409,
+                detail=f"repo root must be on {target_branch}; currently on {current_branch}",
+            )
+
+        self._require_clean_tracked_tree(self.repo_root)
+        main_head = self._run(["git", "rev-parse", "HEAD"], cwd=self.repo_root).stdout.strip()
+
+        token = self._integration_token(
+            worktree_id=worktree_id,
+            commit_sha=commit_sha,
+            main_head=main_head,
+            message=message,
+            target_branch=target_branch,
+        )
+
+        approval = {
+            "worktree_id": worktree_id,
+            "worktree_branch": worktree_branch,
+            "commit": commit_sha,
+            "target_branch": target_branch,
+            "expected_main_head": main_head,
+            "message": message,
+            "approval_token": token,
+            "created_at_ms": int(time.time() * 1000),
+            "push_enabled": False,
+            "deploy_enabled": False,
+        }
+        (self._metadata_dir(worktree) / "integration_approval.json").write_text(json.dumps(approval, indent=2) + "\n")
+        return approval
+
+    def integrate_commit(self, args: dict[str, Any]) -> dict[str, Any]:
+        worktree_id = self._safe_worktree_id(str(args.get("worktree_id", "")))
+        commit_sha = str(args.get("commit", "")).strip()
+        message = str(args.get("message", "")).strip()
+        approval_token = str(args.get("approval_token", "")).strip()
+        target_branch = self._safe_branch(str(args.get("target_branch", "main")))
+        expected_main_head = str(args.get("expected_main_head", "")).strip()
+
+        if not re.fullmatch(r"[0-9a-fA-F]{7,64}", commit_sha):
+            raise HTTPException(status_code=422, detail="invalid commit sha")
+        if not message:
+            raise HTTPException(status_code=422, detail="message is required")
+        if not approval_token:
+            raise HTTPException(status_code=422, detail="approval_token is required")
+        if not expected_main_head:
+            raise HTTPException(status_code=422, detail="expected_main_head is required")
+
+        worktree = self._worktree_path(worktree_id)
+        if not worktree.exists():
+            raise HTTPException(status_code=404, detail=f"unknown worktree: {worktree_id}")
+
+        current_branch = self._run(["git", "branch", "--show-current"], cwd=self.repo_root).stdout.strip()
+        if current_branch != target_branch:
+            raise HTTPException(
+                status_code=409,
+                detail=f"repo root must be on {target_branch}; currently on {current_branch}",
+            )
+
+        self._require_clean_tracked_tree(self.repo_root)
+        current_main_head = self._run(["git", "rev-parse", "HEAD"], cwd=self.repo_root).stdout.strip()
+        if current_main_head != expected_main_head:
+            raise HTTPException(
+                status_code=409,
+                detail={"error": "main moved since approval", "current": current_main_head, "expected": expected_main_head},
+            )
+
+        expected = self._integration_token(
+            worktree_id=worktree_id,
+            commit_sha=commit_sha,
+            main_head=expected_main_head,
+            message=message,
+            target_branch=target_branch,
+        )
+        if not hmac.compare_digest(approval_token, expected):
+            raise HTTPException(status_code=403, detail="invalid integration approval token")
+
+        cherry = self._run(["git", "cherry-pick", commit_sha], cwd=self.repo_root, timeout=180)
+        new_head = self._run(["git", "rev-parse", "HEAD"], cwd=self.repo_root).stdout.strip()
+
+        return {
+            "worktree_id": worktree_id,
+            "target_branch": target_branch,
+            "integrated_commit": commit_sha,
+            "new_head": new_head,
+            "stdout": cherry.stdout,
+            "stderr": cherry.stderr,
+            "push_enabled": False,
+            "deploy_enabled": False,
+            "next_step": "Review local main, run tests, then publish manually from the host Git client.",
+        }
+
+    def abort_integration(self, args: dict[str, Any]) -> dict[str, Any]:
+        proc = self._run(["git", "cherry-pick", "--abort"], cwd=self.repo_root, check=False)
+        return {
+            "aborted": proc.returncode == 0,
+            "returncode": proc.returncode,
+            "stdout": proc.stdout,
+            "stderr": proc.stderr,
         }
 
     def remove_worktree(self, args: dict[str, Any]) -> dict[str, Any]:

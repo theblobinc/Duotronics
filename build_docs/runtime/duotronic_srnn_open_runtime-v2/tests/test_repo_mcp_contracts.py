@@ -15,6 +15,9 @@ def test_repo_mcp_module_exists_and_is_gated():
     assert "repo.run_tests" in content
     assert "repo.prepare_commit" in content
     assert "repo.commit" in content
+    assert "repo.prepare_integration" in content
+    assert "repo.integrate_commit" in content
+    assert "repo.abort_integration" in content
 
 
 def test_repo_mcp_has_no_push_or_deploy_tool():
@@ -65,3 +68,11 @@ def test_env_example_documents_repo_mcp_settings():
     assert "XAVI_REPO_ROOT" in content
     assert "XAVI_WORKTREE_ROOT" in content
     assert "XAVI_REPO_APPROVAL_SECRET" in content
+
+
+def test_repo_mcp_metadata_is_not_written_into_worktree():
+    content = (ROOT / "app" / "duotronic_runtime" / "repo_mcp.py").read_text()
+    assert "rev-parse" in content
+    assert "--git-dir" in content
+    assert "xavi-runtime" in content
+    assert 'worktree / ".xavi"' not in content
