@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duotronic SRNN Open Runtime</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main>
+    <h1>Duotronic SRNN Open Runtime</h1>
+    <p class="sub">WG-RNN memory cells + NLA witnesses + PostgreSQL + MCP-ready sandbox.</p>
+    <section class="grid">
+      <div class="card">
+        <h2>Run cognition</h2>
+        <textarea id="prompt">Explain whether an NLA witness may write memory.</textarea>
+        <label>Requested action
+          <select id="action">
+            <option value="observe">observe</option>
+            <option value="memory_write">memory_write</option>
+            <option value="influence_response">influence_response</option>
+            <option value="promote_witness">promote_witness</option>
+          </select>
+        </label>
+        <button id="run">Run</button>
+      </div>
+      <div class="card">
+        <h2>Health</h2>
+        <button id="refresh">Refresh</button>
+        <pre id="health"></pre>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Latest result</h2>
+      <pre id="result"></pre>
+    </section>
+    <section class="grid">
+      <div class="card"><h2>Witnesses</h2><pre id="witnesses"></pre></div>
+      <div class="card"><h2>Memory</h2><pre id="memory"></pre></div>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

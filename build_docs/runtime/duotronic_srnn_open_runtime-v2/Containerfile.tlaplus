@@ -1,0 +1,6 @@
+FROM docker.io/library/eclipse-temurin:21-jre
+WORKDIR /opt/tlaplus
+# Build this image on a connected machine. The release URL can be replaced/pinned.
+ADD https://github.com/tlaplus/tlaplus/releases/latest/download/tla2tools.jar /opt/tlaplus/tla2tools.jar
+RUN printf '#!/bin/sh\nexec java -cp /opt/tlaplus/tla2tools.jar tlc2.TLC "$@"\n' > /usr/local/bin/tlc && chmod +x /usr/local/bin/tlc
+WORKDIR /workspace

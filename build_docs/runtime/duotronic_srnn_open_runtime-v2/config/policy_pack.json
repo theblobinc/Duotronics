@@ -1,0 +1,23 @@
+{
+  "policy_pack_id": "duotronic-runtime-policy-v2",
+  "default_force": "observe",
+  "self_development": {
+    "self_editing": "candidate_only",
+    "self_merge": "requires_human_approval_witness",
+    "self_deploy": "requires_release_gate_witness",
+    "production_mutation": "denied_without_ops_approval"
+  },
+  "non_collapse": {
+    "model_output_is_truth": false,
+    "computation_is_theorem": false,
+    "policy_approval_is_proof": false,
+    "retrieval_hit_is_fact": false,
+    "generated_media_is_observation": false,
+    "self_trained_is_authoritative": false
+  },
+  "secret_handling": {
+    "persist_plaintext_secrets": false,
+    "allowed_secret_sources": ["environment", "container_secret", "external_vault", "one_time_operator_prompt"],
+    "redact_in_witnesses": true
+  }
+}
