@@ -77,6 +77,9 @@ class Settings:
 
     runtime_api_key: str = os.environ.get("RUNTIME_API_KEY", "")
 
+    xavi_mcp_enabled: bool = bool_env("XAVI_MCP_ENABLED", False)
+    xavi_mcp_api_key: str = os.environ.get("XAVI_MCP_API_KEY", "")
+
 
 def get_settings() -> Settings:
     return Settings()
