@@ -1,0 +1,16 @@
+[Unit]
+Description=Duotronic SRNN Runtime Host
+Requires=duotronic-runtime.pod
+After=duotronic-runtime.pod
+
+[Container]
+Pod=duotronic-runtime.pod
+Image=localhost/duotronic-srnn-runtime-host:latest
+EnvironmentFile=%h/.config/duotronic-runtime/.env
+Volume=%h/duotronic-runtime/corpus:/runtime/corpus:Z
+Volume=%h/duotronic-runtime/data:/runtime/data:Z
+Volume=%h/duotronic-runtime/config:/runtime/config:Z
+Exec=python -m duotronic_runtime.main
+
+[Install]
+WantedBy=default.target

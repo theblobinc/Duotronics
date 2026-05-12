@@ -1,0 +1,255 @@
+# Podman Compose stack for the Duotronic SRNN Runtime Host.
+# Core: podman compose --env-file .env up --build postgres redis minio runtime
+# Full-ish dev stack: podman compose --profile models --profile formal --profile ui --env-file .env up --build
+
+name: duotronic-srnn-runtime-host
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:
+  ollama-models:
+  milvus-etcd-data:
+  milvus-minio-data:
+  milvus-data:
+  librechat-data:
+
+networks:
+  runtime-net:
+    driver: bridge
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: duotronic-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-duotronic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-duotronic_dev_password_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-duotronic_runtime}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data:Z
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT_FORWARD:-5433}:5432"
+    networks: [runtime-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-duotronic} -d ${POSTGRES_DB:-duotronic_runtime}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: duotronic-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data:Z
+    networks: [runtime-net]
+
+  minio:
+    image: docker.io/minio/minio:latest
+    container_name: duotronic-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-duotronic_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-duotronic_minio_password_change_me}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data:Z
+    ports:
+      - "127.0.0.1:${MINIO_PORT_FORWARD:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT_FORWARD:-9001}:9001"
+    networks: [runtime-net]
+
+  runtime:
+    build:
+      context: .
+      dockerfile: Containerfile
+    image: localhost/duotronic-srnn-runtime-host:latest
+    container_name: duotronic-runtime
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://duotronic:duotronic_dev_password_change_me@postgres:5432/duotronic_runtime}
+      CORPUS_DIR: /runtime/corpus
+      RUNTIME_DATA_DIR: /runtime/data
+      MODEL_REGISTRY_PATH: /runtime/config/models.json
+      MODULE_REGISTRY_PATH: /runtime/config/modules.json
+      POLICY_PACK_PATH: /runtime/config/policy_pack.json
+      XAVI_REPO_ROOT: /workspace/Duotronics
+      XAVI_WORKTREE_ROOT: /runtime/data/worktrees
+    command: ["python", "-m", "duotronic_runtime.main"]
+    volumes:
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.2.2:/runtime/corpus:Z"
+      - ./data:/runtime/data:Z
+      - ./config:/runtime/config:Z
+      - ./models:/models:Z
+      - ./formal:/runtime/formal:Z
+      - ../../..:/workspace/Duotronics:Z
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    networks: [runtime-net]
+    healthcheck:
+      test: ["CMD", "python", "-m", "duotronic_runtime.cli", "health", "--url", "http://127.0.0.1:8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  mcp:
+    image: localhost/duotronic-srnn-runtime-host:latest
+    build:
+      context: .
+      dockerfile: Containerfile
+    profiles: ["mcp"]
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://duotronic:duotronic_dev_password_change_me@postgres:5432/duotronic_runtime}
+      CORPUS_DIR: /runtime/corpus
+      RUNTIME_DATA_DIR: /runtime/data
+      MODEL_REGISTRY_PATH: /runtime/config/models.json
+      MODULE_REGISTRY_PATH: /runtime/config/modules.json
+    command: ["python", "-m", "duotronic_runtime.mcp_stdio"]
+    volumes:
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.2.2:/runtime/corpus:Z"
+      - ./data:/runtime/data:Z
+      - ./config:/runtime/config:Z
+      - ./models:/models:Z
+      - ./formal:/runtime/formal:Z
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [runtime-net]
+    stdin_open: true
+    tty: false
+
+  ollama:
+    image: docker.io/ollama/ollama:latest
+    container_name: duotronic-ollama
+    profiles: ["models", "ollama"]
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0
+    volumes:
+      - ollama-models:/root/.ollama:Z
+    ports:
+      - "127.0.0.1:${OLLAMA_PORT_FORWARD:-11434}:11434"
+    networks: [runtime-net]
+
+  llama-cpp:
+    image: ghcr.io/ggerganov/llama.cpp:server
+    container_name: duotronic-llama-cpp
+    profiles: ["models", "llama-cpp"]
+    restart: unless-stopped
+    command: ["-m", "${LLAMA_CPP_MODEL:-/models/model.gguf}", "--host", "0.0.0.0", "--port", "8080", "--ctx-size", "4096"]
+    volumes:
+      - ./models:/models:Z
+    ports:
+      - "127.0.0.1:${LLAMA_CPP_PORT_FORWARD:-8081}:8080"
+    networks: [runtime-net]
+
+  tlaplus:
+    build:
+      context: .
+      dockerfile: Containerfile.tlaplus
+    image: localhost/duotronic-tlaplus:latest
+    container_name: duotronic-tlaplus
+    profiles: ["formal"]
+    command: ["sleep", "infinity"]
+    volumes:
+      - ./formal:/workspace/formal:Z
+      - ./corpus:/workspace/corpus:Z,ro
+    networks: [runtime-net]
+
+  lean4:
+    image: ghcr.io/leanprover/lean4:latest
+    container_name: duotronic-lean4
+    profiles: ["formal"]
+    command: ["sleep", "infinity"]
+    volumes:
+      - ./formal:/workspace/formal:Z
+      - ./corpus:/workspace/corpus:Z,ro
+    networks: [runtime-net]
+
+  stable-diffusion:
+    image: ghcr.io/ai-dock/stable-diffusion-webui:latest
+    container_name: duotronic-stable-diffusion
+    profiles: ["media"]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${STABLE_DIFFUSION_PORT_FORWARD:-7860}:7860"
+    volumes:
+      - ./models:/models:Z
+      - ./data/stable-diffusion:/data:Z
+    networks: [runtime-net]
+
+  librechat:
+    image: ghcr.io/danny-avila/librechat:latest
+    container_name: duotronic-librechat
+    profiles: ["ui"]
+    restart: unless-stopped
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3080
+    volumes:
+      - librechat-data:/app/client/public/images:Z
+      - ./config/librechat.yaml:/app/librechat.yaml:Z,ro
+    ports:
+      - "127.0.0.1:${LIBRECHAT_PORT_FORWARD:-3080}:3080"
+    networks: [runtime-net]
+
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.16
+    container_name: duotronic-milvus-etcd
+    profiles: ["vector", "milvus"]
+    restart: unless-stopped
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+    command: ["etcd", "--advertise-client-urls=http://127.0.0.1:2379", "--listen-client-urls=http://0.0.0.0:2379", "--data-dir=/etcd", "--listen-peer-urls=http://0.0.0.0:2380", "--initial-advertise-peer-urls=http://127.0.0.1:2380", "--initial-cluster=default=http://127.0.0.1:2380", "--name=default"]
+    volumes:
+      - milvus-etcd-data:/etcd:Z
+    networks: [runtime-net]
+
+  milvus-minio:
+    image: docker.io/minio/minio:latest
+    container_name: duotronic-milvus-minio
+    profiles: ["vector", "milvus"]
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-duotronic_minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-duotronic_minio_password_change_me}
+    command: server /data --console-address ":9001"
+    volumes:
+      - milvus-minio-data:/data:Z
+    networks: [runtime-net]
+
+  milvus:
+    image: docker.io/milvusdb/milvus:v2.5.6
+    container_name: duotronic-milvus
+    profiles: ["vector", "milvus"]
+    restart: unless-stopped
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+      MINIO_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-duotronic_minio}
+      MINIO_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-duotronic_minio_password_change_me}
+    volumes:
+      - milvus-data:/var/lib/milvus:Z
+    ports:
+      - "127.0.0.1:${MILVUS_PORT_FORWARD:-19530}:19530"
+      - "127.0.0.1:${MILVUS_METRICS_PORT_FORWARD:-9091}:9091"
+    depends_on: [milvus-etcd, milvus-minio]
+    networks: [runtime-net]

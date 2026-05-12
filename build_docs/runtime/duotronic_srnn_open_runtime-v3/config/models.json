@@ -1,0 +1,25 @@
+{
+  "models": [
+    {
+      "name": "sandbox-echo",
+      "provider": "echo",
+      "default": false,
+      "description": "Deterministic local provider for offline tests."
+    },
+    {
+      "name": "ollama-default",
+      "provider": "ollama",
+      "model": "${OLLAMA_DEFAULT_MODEL}",
+      "base_url": "${OLLAMA_HOST}",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": true
+    },
+    {
+      "name": "llama-cpp-default",
+      "provider": "llama_cpp",
+      "model": "${LLAMA_CPP_DEFAULT_MODEL}",
+      "base_url": "${LLAMA_CPP_BASE_URL}",
+      "enabled_env": "LLAMA_CPP_ENABLED"
+    }
+  ]
+}

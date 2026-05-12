@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+data/*
+!data/.gitkeep
+models/*
+!models/.gitkeep
+corpus/*
+!corpus/.gitkeep
+*.backup*
+*backup*
+duotronic_srnn_open_runtime-v3.pre_active_migration_20260512_052913/*
