@@ -43,17 +43,31 @@ class ModelRegistry:
         if not getattr(self.settings, "ollama_enabled", False):
             return []
 
-        base = str(getattr(self.settings, "ollama_host", "") or "").rstrip("/")
-        if not base:
-            return []
+        configured_base = str(getattr(self.settings, "ollama_host", "") or "").rstrip("/")
+        candidates = []
+        for base in [
+            configured_base,
+            "http://ollama:11434",
+            "http://host.containers.internal:11434",
+        ]:
+            if base and base not in candidates:
+                candidates.append(base)
 
-        try:
-            timeout = httpx.Timeout(5.0, connect=2.0)
-            with httpx.Client(timeout=timeout) as client:
-                r = client.get(f"{base}/api/tags")
-                r.raise_for_status()
-                data = r.json()
-        except Exception:
+        data = None
+        working_base = configured_base
+        for base in candidates:
+            try:
+                timeout = httpx.Timeout(5.0, connect=2.0)
+                with httpx.Client(timeout=timeout) as client:
+                    r = client.get(f"{base}/api/tags")
+                    r.raise_for_status()
+                    data = r.json()
+                    working_base = base
+                    break
+            except Exception:
+                continue
+
+        if data is None:
             return []
 
         discovered: list[dict[str, Any]] = []
@@ -75,7 +89,7 @@ class ModelRegistry:
                     "name": runtime_name,
                     "provider": "ollama",
                     "model": tag,
-                    "base_url": base,
+                    "base_url": working_base,
                     "enabled": True,
                     "default": False,
                     "description": "Discovered from Ollama /api/tags",
