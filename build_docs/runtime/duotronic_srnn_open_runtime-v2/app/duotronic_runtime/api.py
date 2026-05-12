@@ -32,6 +32,12 @@ class ModelRegisterRequest(BaseModel):
     description: str = ""
 
 
+class PolicyModeRequest(BaseModel):
+    audit_only: bool = True
+    allow_memory_write: bool | None = None
+    allow_promote_witness: bool | None = None
+
+
 class EvidenceClaimRequest(BaseModel):
     subject: str
     predicate: str
@@ -174,6 +180,15 @@ def create_app() -> FastAPI:
     @app.get("/v1/policy/explain")
     def policy_explain() -> dict[str, Any]:
         return kernel.policy.explain()
+
+    @app.post("/v1/policy/mode")
+    def policy_mode(req: PolicyModeRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.policy.set_mode(
+            audit_only=req.audit_only,
+            allow_memory_write=req.allow_memory_write,
+            allow_promote=req.allow_promote_witness,
+        )
 
     @app.get("/v1/formal/status")
     def formal_status() -> dict[str, Any]:

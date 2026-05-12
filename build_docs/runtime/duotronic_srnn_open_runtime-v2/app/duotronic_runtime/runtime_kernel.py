@@ -79,13 +79,13 @@ class RuntimeKernel:
     async def run_cognition(self, *, prompt: str, steps: int = 1, requested_action: str = "observe", model_name: str | None = None, evidence_quality: float = 0.72) -> dict[str, Any]:
         completion = await self.model_provider.complete(prompt=prompt, model_name=model_name)
         raw_response_text = completion["response_text"]
-        response_text, grounding = ground_response(prompt, raw_response_text)
+        response_text, grounding = ground_response(prompt, raw_response_text, policy=self.policy.explain())
         completion["raw_response_text"] = raw_response_text
         completion["response_text"] = response_text
         completion["grounding"] = grounding
         provider = completion.get("model", {}).get("provider", completion.get("provider_status", "unknown"))
         model_name_value = completion.get("model", {}).get("model") or completion.get("model", {}).get("name") or "unknown"
-        model_witness = self.evidence.model_output_witness(provider=str(provider), model=str(model_name_value), prompt=prompt, response_text=response_text)
+        model_witness = self.evidence.model_output_witness(provider=str(provider), model=str(model_name_value), prompt=prompt, response_text=raw_response_text)
         wg_result = None
         for _ in range(steps):
             wg_result = self.wgrnn.step(prompt=prompt, response_text=response_text, requested_action=requested_action, evidence_quality=evidence_quality)
@@ -145,7 +145,7 @@ class RuntimeKernel:
             source_model=completion.get("model", {}),
             loop_id=result.get("loop_id", "loop-main"),
             node_id=self.settings.node_id,
-            policy_mode=self.settings.nla_policy_mode,
+            policy_mode=self.policy.nla_policy_mode,
         )
         result["evidence"] = {
             "model_output_witness": model_witness,
