@@ -81,7 +81,7 @@ services:
       XAVI_WORKTREE_ROOT: /runtime/data/worktrees
     command: ["python", "-m", "duotronic_runtime.main"]
     volumes:
-      - ./corpus:/runtime/corpus:Z
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.2.2:/runtime/corpus:Z"
       - ./data:/runtime/data:Z
       - ./config:/runtime/config:Z
       - ./models:/models:Z
@@ -121,7 +121,7 @@ services:
       MODULE_REGISTRY_PATH: /runtime/config/modules.json
     command: ["python", "-m", "duotronic_runtime.mcp_stdio"]
     volumes:
-      - ./corpus:/runtime/corpus:Z
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.2.2:/runtime/corpus:Z"
       - ./data:/runtime/data:Z
       - ./config:/runtime/config:Z
       - ./models:/models:Z

@@ -38,11 +38,65 @@ class ModelRegistry:
             out.append(rec)
         return out
 
+    def _discover_ollama_models(self) -> list[dict[str, Any]]:
+        """Return transient model records for models currently installed in Ollama."""
+        if not getattr(self.settings, "ollama_enabled", False):
+            return []
+
+        base = str(getattr(self.settings, "ollama_host", "") or "").rstrip("/")
+        if not base:
+            return []
+
+        try:
+            timeout = httpx.Timeout(5.0, connect=2.0)
+            with httpx.Client(timeout=timeout) as client:
+                r = client.get(f"{base}/api/tags")
+                r.raise_for_status()
+                data = r.json()
+        except Exception:
+            return []
+
+        discovered: list[dict[str, Any]] = []
+        existing_names = {str(r.get("name") or "") for r in self.records}
+
+        for item in data.get("models", []):
+            if not isinstance(item, dict):
+                continue
+            tag = str(item.get("name") or item.get("model") or "").strip()
+            if not tag:
+                continue
+
+            runtime_name = f"ollama:{tag}"
+            if runtime_name in existing_names:
+                continue
+
+            discovered.append(
+                {
+                    "name": runtime_name,
+                    "provider": "ollama",
+                    "model": tag,
+                    "base_url": base,
+                    "enabled": True,
+                    "default": False,
+                    "description": "Discovered from Ollama /api/tags",
+                    "discovered": True,
+                }
+            )
+
+        return discovered
+
     def list_models(self) -> list[dict[str, Any]]:
-        return self.records
+        records = list(self.records)
+        existing_names = {str(r.get("name") or "") for r in records}
+        for record in self._discover_ollama_models():
+            name = str(record.get("name") or "")
+            if name and name not in existing_names:
+                records.append(record)
+                existing_names.add(name)
+        return records
 
     def get(self, name: str | None = None) -> dict[str, Any]:
-        enabled = [r for r in self.records if r.get("enabled", True)]
+        enabled = [r for r in self.list_models() if r.get("enabled", True)]
         if name:
             for r in enabled:
                 if r.get("name") == name:

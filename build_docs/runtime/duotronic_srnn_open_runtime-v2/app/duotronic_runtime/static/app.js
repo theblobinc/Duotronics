@@ -100,6 +100,7 @@ function renderHealth(health) {
       .map((m) => `<option value="${m.name}">${m.name} · ${m.provider}${m.default ? " · default" : ""}</option>`)
       .join("");
     if (existing) modelSelect.value = existing;
+    updateSettingsSummary();
   }
 }
 
@@ -169,7 +170,8 @@ function drawVector(canvas, vectors) {
 
 function renderRun(result) {
   state.lastRun = result;
-  $("model-output").textContent = result.response_text || pretty(result);
+  const responseText = result.response_text || pretty(result);
+  $("model-output").textContent = responseText;
   $("policy-output").textContent = pretty({
     requested_action: result.requested_action,
     policy_decision: result.policy_decision,
@@ -194,7 +196,92 @@ function renderRun(result) {
     { label: "c", values: snapshot.c || [] },
   ]);
 
-  state.chatTurn += 1;
+  const turn = state.chatTurn || 1;
+  const modelLabel = result.model?.name || result.model?.model || result.model?.provider || "model";
+  appendChatMessage("assistant", responseText, `turn ${turn} · ${modelLabel}`);
+}
+
+function updateSettingsSummary(policy = null) {
+  const summary = $("settings-summary-text");
+  if (!summary) return;
+
+  const model = $("model")?.value || "default";
+  const action = $("action")?.value || "respond";
+  const steps = $("steps")?.value || "1";
+  const quality = $("quality")?.value || "0.72";
+  const auditOnly = $("policy-audit-toggle")?.checked ?? Boolean(policy?.audit_only ?? policy?.nla_policy_mode === "audit_only");
+  const mode = auditOnly ? "audit-only" : "enforcement";
+
+  summary.textContent = `${mode} · ${action} · ${model} · steps ${steps} · q ${quality}`;
+}
+
+function renderPolicyMode(policy) {
+  const auditToggle = $("policy-audit-toggle");
+  const memoryToggle = $("policy-memory-write-toggle");
+  const promoteToggle = $("policy-promote-toggle");
+  const label = $("policy-mode-label");
+  const detail = $("policy-mode-detail");
+  if (!auditToggle || !label || !detail || !policy) return;
+
+  const auditOnly = Boolean(policy.audit_only ?? policy.nla_policy_mode === "audit_only");
+  auditToggle.checked = auditOnly;
+  if (memoryToggle) {
+    memoryToggle.checked = Boolean(policy.allow_memory_write);
+    memoryToggle.disabled = auditOnly;
+  }
+  if (promoteToggle) {
+    promoteToggle.checked = Boolean(policy.allow_promote_witness);
+    promoteToggle.disabled = auditOnly;
+  }
+
+  label.textContent = auditOnly ? "Audit-only" : "Enforcement";
+  detail.textContent = auditOnly
+    ? "Witnesses are recorded, but they may not influence response, memory, or promotion."
+    : "Response influence is enabled. Memory write and witness promotion are separately gated below.";
+
+  updateSettingsSummary(policy);
+}
+
+function readPolicySettingsFromModal() {
+  const auditOnly = Boolean($("policy-audit-toggle")?.checked);
+  return {
+    audit_only: auditOnly,
+    allow_memory_write: auditOnly ? false : Boolean($("policy-memory-write-toggle")?.checked),
+    allow_promote_witness: auditOnly ? false : Boolean($("policy-promote-toggle")?.checked),
+  };
+}
+
+async function applyInferenceSettingsFromModal() {
+  const body = readPolicySettingsFromModal();
+  setStatus("applying inference settings", "warn");
+
+  const result = await api("/v1/policy/mode", {
+    method: "POST",
+    body: JSON.stringify(body),
+  }, true);
+
+  renderPolicyMode(result);
+  $("policy-output").textContent = pretty(result);
+  setStatus(result.audit_only ? "audit-only mode" : "enforcement mode", result.audit_only ? "warn" : "good");
+  closeInferenceSettingsModal();
+  await refreshAll();
+}
+
+function openInferenceSettingsModal() {
+  const modal = $("inference-settings-modal");
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.classList.add("modal-open");
+  updateSettingsSummary();
+  $("close-settings-btn")?.focus();
+}
+
+function closeInferenceSettingsModal() {
+  const modal = $("inference-settings-modal");
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.classList.remove("modal-open");
+  updateSettingsSummary();
 }
 
 async function refreshAll() {
@@ -235,6 +322,8 @@ async function refreshAll() {
     formal: formal.status === "fulfilled" ? formal.value : String(formal.reason),
   });
 
+  if (policy.status === "fulfilled") renderPolicyMode(policy.value);
+
   if (!state.lastRun && memory.status === "fulfilled") {
     const latest = (memory.value.items || [])[0];
     const snapshot = latest?.runtime_snapshot || latest?.payload?.runtime_snapshot;
@@ -256,8 +345,11 @@ async function runInference() {
   const modelName = $("model").value;
   if (modelName) body.model_name = modelName;
 
+  state.chatTurn += 1;
+  const turn = state.chatTurn;
+
   $("run-btn").disabled = true;
-  appendChatMessage("user", promptText, "you");
+  appendChatMessage("user", promptText, `turn ${turn} · you`);
   $("run-btn").textContent = "Running…";
   try {
     const result = await api("/v1/run", {
@@ -268,6 +360,7 @@ async function runInference() {
     await refreshAll();
   } catch (err) {
     $("model-output").textContent = String(err);
+    appendChatMessage("assistant", String(err), `turn ${turn} · error`);
     setStatus("run failed", "bad");
   } finally {
     $("run-btn").disabled = false;
@@ -317,7 +410,118 @@ function bindInferenceChatUi() {
     sidebar.appendChild(tokenBox);
   }
 
-  if (formStack) sidebar.appendChild(formStack);
+  const settingsSummary = document.createElement("div");
+  settingsSummary.className = "settings-summary-card";
+  settingsSummary.innerHTML = `
+    <div class="eyebrow">Inference settings</div>
+    <strong id="settings-summary-text">loading settings…</strong>
+    <button id="open-settings-btn" type="button">Settings</button>
+  `;
+  sidebar.appendChild(settingsSummary);
+
+  const settingsModal = document.createElement("section");
+  settingsModal.id = "inference-settings-modal";
+  settingsModal.className = "settings-modal";
+  settingsModal.hidden = true;
+  settingsModal.innerHTML = `
+    <div class="settings-modal-backdrop" data-close-settings="true"></div>
+    <div class="settings-modal-card" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+      <div class="settings-modal-head">
+        <div>
+          <div class="eyebrow">Inference control surface</div>
+          <h2 id="settings-modal-title">Runtime settings</h2>
+          <p>Test model selection, WG-RNN parameters, and policy behavior without taking space from the chat.</p>
+        </div>
+        <button id="close-settings-btn" type="button" aria-label="Close settings">Close</button>
+      </div>
+
+      <div class="settings-modal-grid">
+        <section class="settings-section" id="runtime-model-settings">
+          <h3>Model and run</h3>
+        </section>
+
+        <section class="settings-section">
+          <h3>Policy mode</h3>
+          <div class="policy-mode-card">
+            <div class="policy-mode-row">
+              <div>
+                <strong id="policy-mode-label">Audit-only</strong>
+                <p id="policy-mode-detail">Witnesses are recorded but may not influence the chat response.</p>
+              </div>
+              <label class="switch" title="Toggle audit-only mode">
+                <input id="policy-audit-toggle" type="checkbox" checked />
+                <span></span>
+              </label>
+            </div>
+            <div class="hint">On = observe only. Off = enforce response policy.</div>
+          </div>
+
+          <div class="settings-toggle-list">
+            <label class="toggle-row">
+              <span>
+                <strong>Allow memory write</strong>
+                <small>Only meaningful when enforcement mode is active.</small>
+              </span>
+              <label class="switch">
+                <input id="policy-memory-write-toggle" type="checkbox" />
+                <span></span>
+              </label>
+            </label>
+
+            <label class="toggle-row">
+              <span>
+                <strong>Allow witness promotion</strong>
+                <small>Only meaningful when enforcement mode is active.</small>
+              </span>
+              <label class="switch">
+                <input id="policy-promote-toggle" type="checkbox" />
+                <span></span>
+              </label>
+            </label>
+          </div>
+        </section>
+      </div>
+
+      <div class="settings-modal-actions">
+        <span class="hint">Changes apply to runtime policy immediately. Model/run fields apply on next inference.</span>
+        <div>
+          <button id="cancel-settings-btn" type="button">Cancel</button>
+          <button id="apply-settings-btn" type="button" class="primary">Apply settings</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(settingsModal);
+
+  if (formStack) {
+    $("runtime-model-settings")?.appendChild(formStack);
+  }
+
+  $("open-settings-btn")?.addEventListener("click", openInferenceSettingsModal);
+  $("close-settings-btn")?.addEventListener("click", closeInferenceSettingsModal);
+  $("cancel-settings-btn")?.addEventListener("click", closeInferenceSettingsModal);
+  $("apply-settings-btn")?.addEventListener("click", () => {
+    applyInferenceSettingsFromModal().catch((err) => {
+      setStatus("settings failed", "bad");
+      $("policy-output").textContent = String(err);
+    });
+  });
+
+  settingsModal.addEventListener("click", (event) => {
+    if (event.target?.dataset?.closeSettings === "true") closeInferenceSettingsModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !settingsModal.hidden) closeInferenceSettingsModal();
+  });
+
+  ["model", "action", "steps", "quality", "policy-audit-toggle", "policy-memory-write-toggle", "policy-promote-toggle"]
+    .forEach((id) => $(id)?.addEventListener("change", () => {
+      const auditOnly = Boolean($("policy-audit-toggle")?.checked);
+      if ($("policy-memory-write-toggle")) $("policy-memory-write-toggle").disabled = auditOnly;
+      if ($("policy-promote-toggle")) $("policy-promote-toggle").disabled = auditOnly;
+      updateSettingsSummary();
+    }));
 
   const quickPrompts = document.createElement("div");
   quickPrompts.className = "quick-prompts";
@@ -348,19 +552,10 @@ function bindInferenceChatUi() {
     </div>
   `;
 
-  const latest = document.createElement("article");
-  latest.className = "chat-message assistant latest-output";
-
-  const aiAvatar = document.createElement("div");
-  aiAvatar.className = "avatar";
-  aiAvatar.textContent = "AI";
-
-  modelOutput.classList.add("bubble", "chat-output");
+  modelOutput.classList.add("output", "small", "latest-response-output");
   if (modelOutput.textContent.trim() === "No run yet.") {
     modelOutput.textContent = "No inference run yet. Send a prompt to generate model evidence.";
   }
-  latest.append(aiAvatar, modelOutput);
-  main.querySelector("#xavi-chat-log").appendChild(latest);
 
   const composer = document.createElement("div");
   composer.className = "inference-composer";
@@ -385,6 +580,10 @@ function bindInferenceChatUi() {
     <h3>Policy / non-collapse</h3>
   `;
   inspector.appendChild(policyOutput);
+
+  const latestResponseTitle = document.createElement("h3");
+  latestResponseTitle.textContent = "Latest response";
+  inspector.append(latestResponseTitle, modelOutput);
 
   const runFactsTitle = document.createElement("h3");
   runFactsTitle.textContent = "Run facts";
@@ -774,3 +973,62 @@ if (document.readyState === "loading") {
 } else {
   boot();
 }
+
+
+/* Robust settings-modal fallback binding. Keeps working even if earlier binding order changes. */
+function forceOpenInferenceSettingsModal() {
+  const modal = document.getElementById("inference-settings-modal");
+  if (!modal) {
+    console.warn("inference settings modal not found");
+    setStatus("settings modal missing", "warn");
+    return;
+  }
+
+  modal.hidden = false;
+  modal.removeAttribute("hidden");
+  modal.style.display = "grid";
+  modal.style.position = "fixed";
+  modal.style.inset = "0";
+  modal.style.zIndex = "2147483000";
+  modal.style.pointerEvents = "auto";
+
+  const card = modal.querySelector(".settings-modal-card");
+  if (card) {
+    card.style.zIndex = "2147483001";
+    card.style.position = "relative";
+  }
+
+  document.body.classList.add("modal-open");
+  updateSettingsSummary?.();
+}
+
+function forceCloseInferenceSettingsModal() {
+  const modal = document.getElementById("inference-settings-modal");
+  if (!modal) return;
+  modal.hidden = true;
+  modal.style.display = "none";
+  document.body.classList.remove("modal-open");
+  updateSettingsSummary?.();
+}
+
+window.openInferenceSettingsModal = forceOpenInferenceSettingsModal;
+window.closeInferenceSettingsModal = forceCloseInferenceSettingsModal;
+
+document.addEventListener("click", (event) => {
+  const openBtn = event.target.closest?.("#open-settings-btn, [data-open-settings]");
+  if (openBtn) {
+    event.preventDefault();
+    forceOpenInferenceSettingsModal();
+    return;
+  }
+
+  const closeBtn = event.target.closest?.("#close-settings-btn, #cancel-settings-btn, [data-close-settings]");
+  if (closeBtn) {
+    event.preventDefault();
+    forceCloseInferenceSettingsModal();
+  }
+}, true);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") forceCloseInferenceSettingsModal();
+}, true);

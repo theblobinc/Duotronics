@@ -77,13 +77,46 @@ class PolicyEngine:
             },
         }
 
+    def set_mode(
+        self,
+        *,
+        audit_only: bool,
+        allow_memory_write: bool | None = None,
+        allow_promote: bool | None = None,
+    ) -> dict[str, Any]:
+        """Toggle runtime policy behavior without editing .env or restarting.
+
+        audit_only=True:
+          witnesses are recorded, but they may not influence response, memory, or promotion.
+
+        audit_only=False:
+          response influence is enabled for the policy/witness layer. Memory write and
+          witness promotion remain opt-in unless explicitly requested.
+        """
+        if audit_only:
+            self.nla_policy_mode = "audit_only"
+            self.allow_influence = False
+            self.allow_memory_write = False
+            self.allow_promote = False
+        else:
+            self.nla_policy_mode = "enforce_response"
+            self.allow_influence = True
+            if allow_memory_write is not None:
+                self.allow_memory_write = bool(allow_memory_write)
+            if allow_promote is not None:
+                self.allow_promote = bool(allow_promote)
+
+        return self.explain()
+
     def explain(self) -> dict[str, Any]:
         return {
             "summary": "NLA is audit evidence by default. WG-RNN owns governed memory updates. Policy gates decide whether evidence may influence response, memory, or promotion.",
             "nla_policy_mode": self.nla_policy_mode,
+            "audit_only": self.nla_policy_mode == "audit_only",
             "allow_influence_response": self.allow_influence,
             "allow_memory_write": self.allow_memory_write,
             "allow_promote_witness": self.allow_promote,
+            "effective_response_control": "observe_only" if self.nla_policy_mode == "audit_only" else "may_influence_response",
             "rules": [
                 "NLA explanations are diagnostic evidence, not hidden intent.",
                 "NLA cannot write memory unless both .env policy and witness fidelity gates allow it.",
