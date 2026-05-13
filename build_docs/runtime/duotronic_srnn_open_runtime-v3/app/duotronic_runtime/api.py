@@ -90,7 +90,6 @@ def create_app() -> FastAPI:
 
     @app.get("/health")
     def health() -> dict[str, Any]:
-        kernel.migrate()
         return kernel.health()
 
     @app.post("/v1/run")

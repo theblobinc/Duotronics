@@ -24,6 +24,8 @@ body {
     var(--bg);
   color: var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  width: 100%;
+  padding-bottom: 140px;
 }
 
 .topbar {
@@ -39,6 +41,22 @@ body {
   backdrop-filter: blur(16px);
 }
 
+.footer-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid rgba(255,255,255,.08);
+  background: rgba(8,11,18,.95);
+  backdrop-filter: blur(16px);
+}
+
 .eyebrow {
   color: var(--accent);
   font-weight: 700;
@@ -49,12 +67,14 @@ body {
 
 h1, h2, p { margin-top: 0; }
 h1 { margin-bottom: 0; font-size: clamp(1.3rem, 4vw, 2rem); }
+.footer-bar h1 { margin-bottom: 0; font-size: 1rem; }
 h2 { margin-bottom: .45rem; font-size: 1.05rem; }
 p { color: var(--muted); }
 
 main {
-  width: min(1440px, calc(100% - 2rem));
-  margin: 1rem auto 4rem;
+  width: 100%;
+  margin: 0;
+  padding: 1rem 1.5rem 4rem;
 }
 
 a, button {
@@ -96,6 +116,14 @@ label {
   align-items: center;
   gap: .65rem;
   flex-wrap: wrap;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  flex-wrap: wrap;
+  white-space: nowrap;
 }
 
 .pill {
@@ -989,4 +1017,183 @@ body.modal-open {
 
 body.modal-open {
   overflow: hidden !important;
+}
+
+/* Phase 1: Progress indicator and error handling */
+.inference-progress {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(119, 167, 255, 0.08);
+  border: 1px solid rgba(119, 167, 255, 0.2);
+  border-radius: 0.75rem;
+}
+
+.progress-label {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(119, 167, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #315fdc, #7b3ff2);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.error-output {
+  background: rgba(255, 96, 116, 0.1) !important;
+  border-color: rgba(255, 96, 116, 0.3) !important;
+  color: #ff6074 !important;
+}
+
+.success-output {
+  background: rgba(67, 209, 122, 0.05) !important;
+  border-color: rgba(67, 209, 122, 0.2) !important;
+}
+
+.error-message {
+  border-left: 3px solid var(--bad);
+  padding-left: 1rem;
+}
+
+.error-hint {
+  display: block;
+  color: var(--bad);
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.retry-hint {
+  display: block;
+  color: var(--warn);
+  font-size: 0.78rem;
+  margin-top: 0.5rem;
+}
+
+.retry-hint a {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Phase 3: Preset buttons */
+.preset-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.preset-btn {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid rgba(119, 167, 255, 0.3);
+  background: rgba(119, 167, 255, 0.08);
+  color: var(--accent);
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+  background: rgba(119, 167, 255, 0.15);
+  border-color: rgba(119, 167, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Phase 4: History panel */
+.inference-history {
+  max-height: 20rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-item {
+  padding: 0.6rem;
+  background: rgba(119, 167, 255, 0.05);
+  border: 1px solid rgba(119, 167, 255, 0.15);
+  border-radius: 0.65rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.history-item:hover {
+  background: rgba(119, 167, 255, 0.12);
+  border-color: rgba(119, 167, 255, 0.3);
+  transform: translateX(2px);
+}
+
+.history-prompt {
+  font-size: 0.8rem;
+  color: var(--text);
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+  word-break: break-word;
+}
+
+.history-meta {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.history-empty {
+  padding: 1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
+/* Phase 5: Analytics dashboard */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.analytics-card {
+  background: rgba(49, 95, 220, 0.08);
+  border: 1px solid rgba(49, 95, 220, 0.2);
+  border-radius: 0.85rem;
+  padding: 0.9rem;
+  text-align: center;
+}
+
+.analytics-label {
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.analytics-value {
+  color: var(--accent);
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-family: "Monaco", "Courier New", monospace;
+}
+
+@media (max-width: 768px) {
+  .preset-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

@@ -153,18 +153,16 @@ class RuntimeKernel:
             "response_grounding": grounding,
             "non_collapse_gate": collapse_check,
         }
-        self.store.insert_run_bundle(result)
-        self.store.insert_witness(model_witness, run_id=result["run_id"])
-        self.store.insert_witness(
+        self.store.insert_run_bundle(result, extra_witnesses=[
+            model_witness,
             self.evidence.witness(
                 "NaturalLanguageActivationWitness",
                 nla_contract_v1,
                 force="observe",
                 status="recorded",
             ),
-            run_id=result["run_id"],
-        )
-        self.store.insert_witness(self.evidence.witness("PolicyDecisionWitness", decision, force="authorize" if decision.get("allowed") else "refuse"), run_id=result["run_id"])
+            self.evidence.witness("PolicyDecisionWitness", decision, force="authorize" if decision.get("allowed") else "refuse"),
+        ])
         return result
 
     def submit_claim(self, body: dict[str, Any]) -> dict[str, Any]:

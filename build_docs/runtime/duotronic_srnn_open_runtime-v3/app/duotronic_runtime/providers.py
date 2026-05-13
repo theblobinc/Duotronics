@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,9 @@ class ModelRegistry:
         self.path = path
         self.settings = settings
         self.records = self._load()
+        self._ollama_cache: list[dict[str, Any]] = []
+        self._ollama_cache_ts: float = 0.0
+        self._OLLAMA_CACHE_TTL = 30.0
 
     def _load(self) -> list[dict[str, Any]]:
         if not self.path.exists():
@@ -42,7 +46,9 @@ class ModelRegistry:
         """Return transient model records for models currently installed in Ollama."""
         if not getattr(self.settings, "ollama_enabled", False):
             return []
-
+        now = time.monotonic()
+        if now - self._ollama_cache_ts < self._OLLAMA_CACHE_TTL:
+            return self._ollama_cache
         configured_base = str(getattr(self.settings, "ollama_host", "") or "").rstrip("/")
         candidates = []
         for base in [
@@ -68,6 +74,8 @@ class ModelRegistry:
                 continue
 
         if data is None:
+            self._ollama_cache = []
+            self._ollama_cache_ts = time.monotonic()
             return []
 
         discovered: list[dict[str, Any]] = []
@@ -97,9 +105,9 @@ class ModelRegistry:
                 }
             )
 
-        return discovered
-
-    def list_models(self) -> list[dict[str, Any]]:
+        self._ollama_cache = discovered
+        self._ollama_cache_ts = time.monotonic()
+        return discovered -> list[dict[str, Any]]:
         records = list(self.records)
         existing_names = {str(r.get("name") or "") for r in records}
         for record in self._discover_ollama_models():

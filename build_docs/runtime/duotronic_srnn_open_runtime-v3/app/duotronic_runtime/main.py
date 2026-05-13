@@ -10,7 +10,9 @@ app = create_app()
 
 def main() -> None:
     settings = get_settings()
-    uvicorn.run("duotronic_runtime.main:app", host=settings.app_host, port=settings.app_port, log_level=settings.log_level)
+    import multiprocessing
+    workers = max(2, multiprocessing.cpu_count())
+    uvicorn.run("duotronic_runtime.main:app", host=settings.app_host, port=settings.app_port, log_level=settings.log_level, workers=workers)
 
 
 if __name__ == "__main__":

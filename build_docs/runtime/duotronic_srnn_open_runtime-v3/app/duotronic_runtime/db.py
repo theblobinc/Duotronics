@@ -170,17 +170,26 @@ CREATE INDEX IF NOT EXISTS evidence_witnesses_run_idx ON evidence_witnesses(run_
 class Store:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
+        self._pool: psycopg.ConnectionPool | None = None
+
+    def _get_pool(self) -> psycopg.ConnectionPool:
+        if self._pool is None:
+            from psycopg_pool import ConnectionPool
+            self._pool = ConnectionPool(self.settings.database_url, kwargs={"row_factory": dict_row}, min_size=1, max_size=10, open=True)
+        return self._pool
 
     def connect(self):
-        return psycopg.connect(self.settings.database_url, row_factory=dict_row)
+        try:
+            return self._get_pool().connection()
+        except Exception:
+            return psycopg.connect(self.settings.database_url, row_factory=dict_row)
 
     def migrate(self) -> None:
         with self.connect() as conn:
             conn.execute(SCHEMA_SQL)
             conn.commit()
 
-    def insert_run_bundle(self, result: dict[str, Any]) -> None:
-        self.migrate()
+    def insert_run_bundle(self, result: dict[str, Any], extra_witnesses: list[dict[str, Any]] | None = None) -> None:
         run_id = result["run_id"]
         wg_update = result["wg_rnn"]["memory_update"]
         nla = result["nla_witness"]
@@ -232,10 +241,25 @@ class Store:
                 "INSERT INTO audit_events (event_type, severity, run_id, witness_id, update_id, payload) VALUES (%s,%s,%s,%s,%s,%s)",
                 ("runtime.run", "info", run_id, nla["witness_id"], wg_update["update_id"], json.dumps(result)),
             )
+            for w in (extra_witnesses or []):
+                conn.execute(
+                    """
+                    INSERT INTO evidence_witnesses
+                    (witness_id, witness_type, force, observer_id, status, corpus, payload_digest, payload, run_id, created_at_ms)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    ON CONFLICT (witness_id) DO UPDATE SET
+                      status=EXCLUDED.status, payload=EXCLUDED.payload, run_id=COALESCE(EXCLUDED.run_id, evidence_witnesses.run_id)
+                    """,
+                    (
+                        w["witness_id"], w["witness_type"], w.get("force", "observe"),
+                        w.get("observer_id", "unknown"), w.get("status", "recorded"),
+                        json.dumps(w.get("corpus", {})), w.get("payload_digest", ""),
+                        json.dumps(w.get("payload", {})), run_id, w.get("created_at_ms", 0),
+                    ),
+                )
             conn.commit()
 
     def insert_witness(self, witness: dict[str, Any], run_id: str | None = None) -> None:
-        self.migrate()
         with self.connect() as conn:
             conn.execute(
                 """
@@ -255,7 +279,6 @@ class Store:
             conn.commit()
 
     def insert_evidence_claim(self, claim: dict[str, Any]) -> None:
-        self.migrate()
         with self.connect() as conn:
             conn.execute(
                 """
@@ -275,7 +298,6 @@ class Store:
             conn.commit()
 
     def upsert_corpus_version(self, corpus: dict[str, Any], validation: dict[str, Any], status: str = "candidate") -> None:
-        self.migrate()
         corpus_id = "corpus_" + str(corpus.get("digest", "sha256:unknown")).split(":")[-1][:24]
         with self.connect() as conn:
             conn.execute(
@@ -293,14 +315,12 @@ class Store:
     def fetch_recent(self, table: str, limit: int = 20) -> list[dict[str, Any]]:
         if table not in {"runtime_runs", "wgrnn_memory_updates", "nla_activation_witnesses", "memory_cells", "audit_events", "corpus_documents", "corpus_versions", "evidence_claims", "evidence_witnesses", "module_invocations"}:
             raise ValueError("unsupported table")
-        self.migrate()
         with self.connect() as conn:
             order_col = "updated_at" if table == "memory_cells" else "created_at"
             rows = conn.execute(f"SELECT * FROM {table} ORDER BY {order_col} DESC LIMIT %s", (min(max(int(limit), 1), 100),)).fetchall()
         return [dict(r) for r in rows]
 
     def upsert_corpus_docs(self, docs: Iterable[dict[str, Any]]) -> int:
-        self.migrate()
         count = 0
         with self.connect() as conn:
             for d in docs:
