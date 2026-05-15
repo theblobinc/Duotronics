@@ -107,7 +107,9 @@ class ModelRegistry:
 
         self._ollama_cache = discovered
         self._ollama_cache_ts = time.monotonic()
-        return discovered -> list[dict[str, Any]]:
+        return discovered
+
+    def list_models(self) -> list[dict[str, Any]]:
         records = list(self.records)
         existing_names = {str(r.get("name") or "") for r in records}
         for record in self._discover_ollama_models():

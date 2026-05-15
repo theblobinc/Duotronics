@@ -75,6 +75,7 @@ services:
       CORPUS_DIR: /runtime/corpus
       RUNTIME_DATA_DIR: /runtime/data
       MODEL_REGISTRY_PATH: /runtime/config/models.json
+      MODEL_ORCHESTRATOR_PATH: /runtime/config/model_orchestrator.json
       MODULE_REGISTRY_PATH: /runtime/config/modules.json
       POLICY_PACK_PATH: /runtime/config/policy_pack.json
       XAVI_REPO_ROOT: /workspace/Duotronics
@@ -163,16 +164,15 @@ services:
     container_name: xavi-ollama-tool-proxy
     profiles: ["models", "ollama"]
     restart: unless-stopped
+    network_mode: host
     environment:
-      OLLAMA_BASE_URL: http://host.containers.internal:18205
+      OLLAMA_BASE_URL: http://127.0.0.1:18205
       DEFAULT_MODEL: xavi-copilot-agent:latest
       XAVI_MAX_TOOL_ROUNDS: "999999"
       XAVI_ALLOW_TERMINAL_TOOLS: "0"
       XAVI_STOP_AFTER_EDIT: "1"
       XAVI_WORKSPACE_ROOT: /var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3
-    ports:
-      - "127.0.0.1:11434:11435"
-    networks: [runtime-net]
+    command: ["uvicorn", "app:app", "--host", "127.0.0.1", "--port", "11434"]
     depends_on:
       - ollama
 

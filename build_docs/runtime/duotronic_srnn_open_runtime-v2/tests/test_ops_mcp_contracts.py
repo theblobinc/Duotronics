@@ -12,6 +12,9 @@ def test_ops_agent_exists_and_has_allowlisted_commands():
     assert "ops.runtime_tests" in content
     assert "ops.git_push" in content
     assert "raw_shell_enabled" in content
+    assert "ops.v3_server_snapshot" in content
+    assert "ops.v3_ollama_ports" in content
+    assert "ops.v3_ollama_proxy_status" in content
     assert "False" in content
 
 
@@ -21,6 +24,15 @@ def test_ops_mcp_proxy_exists():
     assert "ops_tool_manifest" in content
     assert "ops.runtime_rebuild" in content
     assert "xavi_ops_api_key" in content
+    assert "ops.v3_server_snapshot" in content
+    assert "ops.v3_ollama_ports" in content
+
+
+def test_ops_agent_v3_observability_settings_exist():
+    content = (ROOT / "ops_agent" / "xavi_ops_agent.py").read_text()
+    assert "XAVI_OPS_V3_OLLAMA_PROXY_URL" in content
+    assert "XAVI_OPS_V3_OLLAMA_PROBE_PORTS" in content
+    assert "sanitized_runtime_env" in content
 
 
 def test_http_mcp_exposes_ops_tools():

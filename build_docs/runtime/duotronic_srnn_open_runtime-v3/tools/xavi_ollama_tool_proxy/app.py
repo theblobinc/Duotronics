@@ -16,6 +16,7 @@ DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "xavi-copilot-agent:latest")
 
 LOCAL_MODEL_PREFIXES = (
     "xavi-copilot-agent",
+    "xavi-",
     "wgrnn",
     "qwen",
     "llama",
@@ -33,11 +34,72 @@ def log(msg: str) -> None:
     print(f"[xavi-ollama-tool-proxy] {msg}", flush=True)
 
 
-def normalize_model(model: Any) -> str:
-    if not isinstance(model, str) or not model.strip():
-        return DEFAULT_MODEL
+def _load_model_aliases() -> dict[str, str]:
+    """
+    Stable model aliases for OpenAI-compatible clients.
 
-    m = model.strip()
+    Supported env vars:
+      - XAVI_MODEL_ALIASES_JSON='{"xavi-agent":"qwen2.5-coder:xavi-continue-agent"}'
+      - XAVI_MODEL_ALIASES='xavi-agent=qwen2.5-coder:xavi-continue-agent,xavi-plan=qwen3:4b'
+    """
+    raw_json = (os.getenv("XAVI_MODEL_ALIASES_JSON") or "").strip()
+    if raw_json:
+        try:
+            parsed = json.loads(raw_json)
+            if isinstance(parsed, dict):
+                out: dict[str, str] = {}
+                for k, v in parsed.items():
+                    kk = str(k or "").strip()
+                    vv = str(v or "").strip()
+                    if kk and vv:
+                        out[kk] = vv
+                return out
+        except Exception:
+            log("Invalid XAVI_MODEL_ALIASES_JSON; ignoring.")
+
+    raw_pairs = (os.getenv("XAVI_MODEL_ALIASES") or "").strip()
+    if raw_pairs:
+        out: dict[str, str] = {}
+        for part in raw_pairs.split(","):
+            part = part.strip()
+            if not part or "=" not in part:
+                continue
+            k, v = part.split("=", 1)
+            k = k.strip()
+            v = v.strip()
+            if k and v:
+                out[k] = v
+        if out:
+            return out
+
+    return {
+        "xavi-agent": "qwen2.5-coder:xavi-continue-agent",
+        "xavi-plan": "qwen2.5:xavi-continue-plan",
+        "xavi-background": "qwen2.5-coder:xavi-continue-background",
+        "xavi-autocomplete": "qwen2.5-coder:xavi-continue-autocomplete",
+        "xavi-agent-qwen3": "qwen3:8b",
+        "xavi-plan-qwen3": "qwen3:4b",
+        "xavi-code-specialist": "starcoder2:7b",
+        "xavi-fast-code": "starcoder2:3b",
+        "xavi-vision": "qwen2.5vl:7b",
+        "xavi-embed": "nomic-embed-text:latest",
+    }
+
+
+_MODEL_ALIASES: dict[str, str] = _load_model_aliases()
+
+
+def resolve_model_alias(model: Any) -> tuple[str, str]:
+    requested = str(model or "").strip()
+    if not requested:
+        requested = DEFAULT_MODEL
+    resolved = _MODEL_ALIASES.get(requested, requested)
+    return requested, resolved
+
+
+def normalize_model(model: Any) -> str:
+    requested, resolved = resolve_model_alias(model)
+    m = resolved.strip()
 
     if m == "xavi-copilot-agent":
         return "xavi-copilot-agent:latest"
@@ -45,7 +107,7 @@ def normalize_model(model: Any) -> str:
     if m.startswith(LOCAL_MODEL_PREFIXES):
         return m
 
-    log(f"remapping non-local model {m!r} -> {DEFAULT_MODEL!r}")
+    log(f"remapping non-local model requested={requested!r} resolved={m!r} -> {DEFAULT_MODEL!r}")
     return DEFAULT_MODEL
 
 
@@ -748,6 +810,21 @@ async def v1_models():
             "owned_by": "ollama",
         })
 
+    # Advertise aliases when their target appears in upstream tags.
+    remote_set = set(remote_names)
+    for alias, target in _MODEL_ALIASES.items():
+        if alias in remote_set or target not in remote_set:
+            continue
+        models.append(
+            {
+                "id": alias,
+                "object": "model",
+                "created": 1778615667,
+                "owned_by": "xavi",
+                "xavi_alias_for": target,
+            }
+        )
+
     return JSONResponse({"object": "list", "data": models}, status_code=200)
 
 
@@ -756,22 +833,24 @@ async def v1_chat_completions(request: Request):
     payload = await request.json()
 
     requested_stream = bool(payload.get("stream"))
-    payload["model"] = normalize_model(payload.get("model"))
+    requested_model, _resolved_model = resolve_model_alias(payload.get("model"))
+    normalized_model = normalize_model(requested_model)
+    payload["model"] = normalized_model
     payload["stream"] = False
     payload = filter_tools_for_local_agent(payload)
     payload = xavi_filter_tools(payload)
     payload = inject_tool_instruction(payload)
 
-    model = payload["model"]
+    model = normalized_model
 
     max_tool_rounds = int(os.getenv("XAVI_MAX_TOOL_ROUNDS", "4"))
     tool_rounds = xavi_tool_result_rounds(payload)
     if tool_rounds >= max_tool_rounds:
-        log(f"xavi loop guard stopping model={model!r} tool_rounds={tool_rounds} max={max_tool_rounds}")
-        guarded = xavi_loop_guard_response(model)
+        log(f"xavi loop guard stopping model={requested_model!r} resolved={model!r} tool_rounds={tool_rounds} max={max_tool_rounds}")
+        guarded = xavi_loop_guard_response(requested_model)
         if requested_stream:
             return StreamingResponse(
-                stream_openai_response(guarded, model),
+                stream_openai_response(guarded, requested_model),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
@@ -781,11 +860,11 @@ async def v1_chat_completions(request: Request):
             )
         return JSONResponse(guarded, status_code=200)
     if os.getenv("XAVI_STOP_AFTER_EDIT", "1") == "1" and xavi_seen_edit_tool_call(payload):
-        log(f"xavi stop-after-edit returning final stop for model={model!r}")
-        final = xavi_stop_after_edit_response(model)
+        log(f"xavi stop-after-edit returning final stop for model={requested_model!r} resolved={model!r}")
+        final = xavi_stop_after_edit_response(requested_model)
         if requested_stream:
             return StreamingResponse(
-                stream_openai_response(final, model),
+                stream_openai_response(final, requested_model),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
@@ -796,7 +875,7 @@ async def v1_chat_completions(request: Request):
         return JSONResponse(final, status_code=200)
 
     log(
-        f"/v1/chat/completions model={model!r} "
+        f"/v1/chat/completions model={requested_model!r} resolved={model!r} "
         f"tools={bool(payload.get('tools'))} requested_stream={requested_stream}"
     )
 
@@ -810,10 +889,11 @@ async def v1_chat_completions(request: Request):
         upstream = {}
 
     repaired = repair_openai_response(upstream, model)
+    repaired["model"] = requested_model
 
     if requested_stream:
         return StreamingResponse(
-            stream_openai_response(repaired, model),
+            stream_openai_response(repaired, requested_model),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -828,10 +908,11 @@ async def v1_chat_completions(request: Request):
 @app.post("/api/chat")
 async def api_chat(request: Request):
     payload = await request.json()
-    payload["model"] = normalize_model(payload.get("model"))
+    requested_model, _resolved_model = resolve_model_alias(payload.get("model"))
+    payload["model"] = normalize_model(requested_model)
     payload["stream"] = False
 
-    log(f"/api/chat model={payload.get('model')!r} tools={bool(payload.get('tools'))}")
+    log(f"/api/chat model={requested_model!r} resolved={payload.get('model')!r} tools={bool(payload.get('tools'))}")
 
     async with httpx.AsyncClient(timeout=None) as client:
         r = await client.post(f"{OLLAMA_BASE_URL}/api/chat", json=payload)

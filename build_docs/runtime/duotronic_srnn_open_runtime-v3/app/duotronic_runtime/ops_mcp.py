@@ -22,6 +22,18 @@ def ops_tool_manifest() -> list[dict[str, Any]]:
         {"name": "ops.runtime_restart", "description": "Restart the runtime container.", "read_only": False, "input_schema": {"type": "object", "properties": {}}},
         {"name": "ops.runtime_rebuild", "description": "Rebuild and restart the runtime container.", "read_only": False, "input_schema": {"type": "object", "properties": {}}},
         {"name": "ops.runtime_rebuild_models", "description": "Rebuild and restart runtime with models profile.", "read_only": False, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_server_snapshot", "description": "Read runtime v3 containers, ports, service state, runtime health, and Ollama proxy state.", "read_only": True, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_ollama_ports", "description": "Probe runtime v3 host Ollama/proxy ports with /api/tags.", "read_only": True, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_ollama_proxy_status", "description": "Read runtime v3 Ollama proxy status endpoint.", "read_only": True, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_ollama_proxy_tags", "description": "Read runtime v3 Ollama proxy aggregate model tags.", "read_only": True, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_model_route_probe", "description": "Probe which runtime v3 Ollama proxy route would handle a model, when supported by the proxy.", "read_only": True, "input_schema": {"type": "object", "properties": {"model": {"type": "string", "default": "qwen2.5-coder:3b"}}}},
+        {"name": "ops.v3_runtime_env", "description": "Read sanitized runtime v3 Ollama/model env configuration.", "read_only": True, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_apply_vscode_model_aliases", "description": "Apply stable runtime v3 VS Code model aliases to config/models.json.", "read_only": False, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_apply_text_replace", "description": "Safely replace text in an allowlisted file under runtime v3, with backup.", "read_only": False, "input_schema": {"type": "object", "required": ["path", "old", "new"], "properties": {"path": {"type": "string"}, "old": {"type": "string"}, "new": {"type": "string"}, "expected_occurrences": {"type": "integer"}, "count": {"type": "integer", "default": 1}, "dry_run": {"type": "boolean", "default": false}}}},
+        {"name": "ops.v3_rebuild_runtime_image", "description": "Build the runtime v3 container image only.", "read_only": False, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_restart_runtime_only", "description": "Recreate only the runtime v3 container using the v3 run spec.", "read_only": False, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_git_status", "description": "Show git status for the Duotronics repo.", "read_only": True, "input_schema": {"type": "object", "properties": {}}},
+        {"name": "ops.v3_git_diff", "description": "Show git diff for runtime v3 changes.", "read_only": True, "input_schema": {"type": "object", "properties": {}}},
         {"name": "ops.allowed_command", "description": "Run a named allowlisted host command.", "read_only": False, "input_schema": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}}}},
     ]
 

@@ -11,7 +11,10 @@ from .evidence import nla_activation_witness_contract_v1, CorpusRef, EvidenceKer
 from .formal_observers import FormalObserverFleet
 from .models import RuntimeRunResult, now_ms, stable_id
 from .module_registry import ModuleRegistry
+from .model_orchestrator import ModelOrchestrator
+from .moe_router import MoERouter
 from .nla import NLAWitnessFactory
+from .turbo_quant_service import TurboQuantSidecar
 from .policy import PolicyEngine
 from .providers import ModelProvider
 from .response_grounding import ground_response
@@ -24,6 +27,12 @@ class RuntimeKernel:
         self.settings = settings or get_settings()
         self.store = Store(self.settings)
         self.model_provider = ModelProvider(self.settings)
+        self.model_orchestrator = ModelOrchestrator(
+            self.settings.model_orchestrator_path,
+            runtime_models=self.model_provider.registry.list_models(),
+        )
+        self.turbo_quant = TurboQuantSidecar(dim=384, recipe="turbo25")
+        self.moe_router = MoERouter()
         self.policy = PolicyEngine(
             nla_policy_mode=self.settings.nla_policy_mode,
             allow_influence=self.settings.nla_allow_influence_response,

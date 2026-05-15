@@ -32,6 +32,56 @@ class ModelRegisterRequest(BaseModel):
     description: str = ""
 
 
+class ModelRoutePreviewRequest(BaseModel):
+    task: str = "small_chat"
+    capability: str | None = None
+    tokens_estimate: int = Field(default=2048, ge=1, le=262144)
+    needs_tools: bool = False
+    needs_vision: bool = False
+    prefer_backend: str | None = None
+    allow_experimental: bool = False
+    slow_mode: bool = False
+
+
+class TurboQuantVectorRequest(BaseModel):
+    vector: list[float] = Field(..., min_length=1)
+
+
+class TurboQuantBatchRequest(BaseModel):
+    vectors: list[list[float]] = Field(..., min_length=1)
+    sample_size: int = Field(default=100, ge=1, le=1000)
+
+
+class TurboQuantCompressedRequest(BaseModel):
+    compressed_b64: str = Field(..., min_length=1)
+
+
+class TurboQuantSignatureRequest(BaseModel):
+    vector: list[float] = Field(..., min_length=1)
+    max_bits: int = Field(default=256, ge=8, le=4096)
+
+
+class TurboQuantSignatureDistanceRequest(BaseModel):
+    a_b64: str = Field(..., min_length=1)
+    b_b64: str = Field(..., min_length=1)
+
+
+class TurboQuantIndexAddRequest(BaseModel):
+    item_id: str = Field(..., min_length=1)
+    vector: list[float] = Field(..., min_length=1)
+
+
+class TurboQuantIndexSearchRequest(BaseModel):
+    vector: list[float] = Field(..., min_length=1)
+    top_k: int = Field(default=20, ge=1, le=200)
+
+
+class MoERouteRequest(BaseModel):
+    capability: str = Field(..., min_length=1)
+    tokens_estimate: int = Field(default=2048, ge=1, le=262144)
+    allow_experimental: bool = False
+
+
 class PolicyModeRequest(BaseModel):
     audit_only: bool = True
     allow_memory_write: bool | None = None
@@ -139,6 +189,86 @@ def create_app() -> FastAPI:
     @app.get("/v1/models")
     def models() -> dict[str, Any]:
         return {"items": kernel.model_provider.registry.list_models()}
+
+    @app.get("/v1/models/catalog")
+    def model_catalog() -> dict[str, Any]:
+        return kernel.model_orchestrator.catalog()
+
+    @app.get("/v1/models/capabilities")
+    def model_capabilities() -> dict[str, Any]:
+        return {"capabilities": kernel.model_orchestrator.capabilities()}
+
+    @app.get("/v1/models/kv-policy-matrix")
+    def model_kv_policy_matrix() -> dict[str, Any]:
+        return {"kv_policies": kernel.model_orchestrator.kv_policy_matrix()}
+
+    @app.post("/v1/models/route-preview")
+    def model_route_preview(req: ModelRoutePreviewRequest) -> dict[str, Any]:
+        return kernel.model_orchestrator.route_preview(req.model_dump())
+
+    @app.get("/v1/turboquant/status")
+    def turboquant_status() -> dict[str, Any]:
+        return kernel.turbo_quant.status()
+
+    @app.post("/v1/turboquant/calibrate")
+    def turboquant_calibrate(req: TurboQuantBatchRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.calibrate(req.vectors)
+
+    @app.post("/v1/turboquant/compress")
+    def turboquant_compress(req: TurboQuantVectorRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.compress(req.vector)
+
+    @app.post("/v1/turboquant/decompress")
+    def turboquant_decompress(req: TurboQuantCompressedRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.decompress(req.compressed_b64)
+
+    @app.post("/v1/turboquant/signature")
+    def turboquant_signature(req: TurboQuantSignatureRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.signature(req.vector, max_bits=req.max_bits)
+
+    @app.post("/v1/turboquant/signature-distance")
+    def turboquant_signature_distance(req: TurboQuantSignatureDistanceRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.signature_distance(req.a_b64, req.b_b64)
+
+    @app.post("/v1/turboquant/quality")
+    def turboquant_quality(req: TurboQuantBatchRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.quality(req.vectors, sample_size=req.sample_size)
+
+    @app.post("/v1/turboquant/index/add")
+    def turboquant_index_add(req: TurboQuantIndexAddRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.index_add(req.item_id, req.vector)
+
+    @app.post("/v1/turboquant/index/search")
+    def turboquant_index_search(req: TurboQuantIndexSearchRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.index_search(req.vector, top_k=req.top_k)
+
+    @app.post("/v1/turboquant/index/reset")
+    def turboquant_index_reset(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.turbo_quant.reset_index()
+
+    @app.get("/v1/moe/status")
+    async def moe_status(force: bool = False) -> dict[str, Any]:
+        return await kernel.moe_router.status(force=force)
+
+    @app.get("/v1/moe/profiles/{profile_name}/runtime-form")
+    def moe_runtime_form(profile_name: str) -> dict[str, Any]:
+        try:
+            return {"profile": profile_name, "fields": kernel.moe_router.runtime_form_fields(profile_name)}
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/v1/moe/route")
+    def moe_route(req: MoERouteRequest) -> dict[str, Any]:
+        return kernel.moe_router.route(req.capability, tokens_estimate=req.tokens_estimate, allow_experimental=req.allow_experimental)
 
     @app.post("/v1/models")
     def register_model(req: ModelRegisterRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:

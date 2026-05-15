@@ -72,6 +72,7 @@ class Settings:
     corpus_autoindex: bool = bool_env("CORPUS_AUTOINDEX", True)
     runtime_data_dir: Path = Path(os.environ.get("RUNTIME_DATA_DIR", "/runtime/data"))
     model_registry_path: Path = Path(os.environ.get("MODEL_REGISTRY_PATH", "/runtime/config/models.json"))
+    model_orchestrator_path: Path = Path(os.environ.get("MODEL_ORCHESTRATOR_PATH", "/runtime/config/model_orchestrator.json"))
     module_registry_path: Path = Path(os.environ.get("MODULE_REGISTRY_PATH", "/runtime/config/modules.json"))
     policy_pack_path: Path = Path(os.environ.get("POLICY_PACK_PATH", "/runtime/config/policy_pack.json"))
 

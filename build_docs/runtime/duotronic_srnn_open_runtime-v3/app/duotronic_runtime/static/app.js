@@ -212,6 +212,157 @@ function card(label, value, kind = "") {
   return `<article class="card"><div class="label">${label}</div><div class="value ${kind}">${value}</div></article>`;
 }
 
+const XAVI_MODEL_CATEGORIES = [
+  { id: "chat", label: "Xavi Models / Chat" },
+  { id: "agent", label: "Xavi Models / Agent" },
+  { id: "plan", label: "Xavi Models / Plan" },
+  { id: "background", label: "Xavi Models / Background" },
+  { id: "coding", label: "Xavi Models / Coding" },
+  { id: "vision", label: "Xavi Models / Vision" },
+  { id: "autocomplete", label: "Xavi Models / Autocomplete" },
+  { id: "embedding", label: "Xavi Models / Embeddings" },
+  { id: "utility", label: "Xavi Models / Utility & Test" },
+];
+
+const XAVI_MODEL_CATEGORY_IDS = new Set(XAVI_MODEL_CATEGORIES.map((category) => category.id));
+const XAVI_MODEL_CATEGORY_ALIASES = {
+  agent_chat: "agent",
+  agentic_editing: "agent",
+  tool_augmented_agent: "agent",
+  tool_use: "agent",
+  planning: "plan",
+  repo_reasoning: "plan",
+  long_context_planning: "plan",
+  architecture: "plan",
+  docs: "background",
+  readme: "background",
+  summaries: "background",
+  code: "coding",
+  coder: "coding",
+  code_review: "coding",
+  single_file_edit: "coding",
+  small_edit: "coding",
+  multi_file_edit: "coding",
+  refactor: "coding",
+  vision: "vision",
+  multimodal: "vision",
+  vl: "vision",
+  autocomplete: "autocomplete",
+  inline_completion: "autocomplete",
+  completion: "autocomplete",
+  embed: "embedding",
+  embedding: "embedding",
+  embeddings: "embedding",
+  fallback: "utility",
+  test: "utility",
+  runtime_test: "utility",
+};
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function normalizeModelCategory(value) {
+  const key = String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+  return XAVI_MODEL_CATEGORY_ALIASES[key] || (XAVI_MODEL_CATEGORY_IDS.has(key) ? key : "");
+}
+
+function modelSearchText(model) {
+  const metadata = model.metadata || {};
+  return [
+    model.name,
+    model.model,
+    model.provider,
+    model.description,
+    metadata.xavi_role,
+    metadata.hardware_tier,
+    ...(metadata.xavi_categories || []),
+    ...(metadata.tags || []),
+    ...(metadata.recommended_for || []),
+  ].filter(Boolean).join(" ").toLowerCase().replace(/[_-]+/g, " ");
+}
+
+function getConfiguredModelCategories(model) {
+  const metadata = model.metadata || {};
+  const values = [
+    ...(metadata.xavi_categories || []),
+    ...(metadata.tags || []),
+    ...(metadata.recommended_for || []),
+    metadata.xavi_role,
+  ];
+  return values.map(normalizeModelCategory).filter(Boolean);
+}
+
+function inferModelCategories(model) {
+  const text = modelSearchText(model);
+  const categories = new Set(getConfiguredModelCategories(model));
+  const add = (category) => { if (category) categories.add(category); };
+
+  const isEmbedding = text.includes("embed") || text.includes("nomic embed");
+  if (isEmbedding) add("embedding");
+  if (/vision|visual|multimodal|qwen2\.5vl|minicpm v|minicpm-v|llava|bakllava|moondream|\bvl\b/.test(text)) add("vision");
+  if (/auto ?complete|inline completion/.test(text)) add("autocomplete");
+  if (/background|docs|readme|summar/.test(text)) add("background");
+  if (/plan|planning|architecture|repo reasoning|long context|deep/.test(text)) add("plan");
+  if (/agent|agentic|tool use|tool augmented|copilot|multi file|refactor/.test(text)) add("agent");
+  if (/coder|coding|code review|single file|small edit|edit|refactor|vscode|qwen2\.5 coder/.test(text)) add("coding");
+  if (/selection explain/.test(text)) { add("chat"); add("coding"); }
+  if (!isEmbedding && /chat|small chat|copilot|llama|mistral|gemma|dolphin|phi|qwen2\.5|default/.test(text)) add("chat");
+  if (/sandbox|echo|fallback|test/.test(text) || model.provider === "echo") add("utility");
+  if (!categories.size) add("chat");
+
+  return XAVI_MODEL_CATEGORIES.map((category) => category.id).filter((id) => categories.has(id));
+}
+
+function modelDisplayName(model) {
+  const rawCandidate = String(model.model || model.name || "unnamed").replace(/^ollama:/i, "");
+  const parts = rawCandidate.split(":");
+  const tag = parts.slice(1).join(":");
+  let raw = rawCandidate;
+  if (tag && /xavi|continue|vscode|agent|plan|background|autocomplete/i.test(tag)) raw = parts[0];
+  raw = raw.replace(/^xavi[-_]/i, "").replace(/:latest$/i, "").replace(/[-_]+/g, " ");
+  raw = raw.replace(/\bvl\b/gi, "VL").replace(/\bapi\b/gi, "API");
+  raw = raw.replace(/\b([a-z])/g, (match) => match.toUpperCase());
+  raw = raw.replace(/\b(\d+(?:\.\d+)?)b\b/gi, "$1B");
+  return raw.trim() || "Unnamed model";
+}
+
+function modelOptionLabel(model) {
+  const details = [];
+  if (model.provider) details.push(model.provider);
+  if (model.metadata?.hardware_tier) details.push(String(model.metadata.hardware_tier).replace(/[_-]+/g, " "));
+  if (model.default) details.push("default");
+  if (model.discovered) details.push("discovered");
+  return [modelDisplayName(model), details.join(", ")].filter(Boolean).join(" - ");
+}
+
+function groupedModelEntries(models) {
+  const groups = new Map(XAVI_MODEL_CATEGORIES.map((category) => [category.id, []]));
+  for (const model of models.filter((item) => item && item.enabled !== false && item.name)) {
+    for (const categoryId of inferModelCategories(model)) {
+      const bucket = groups.get(categoryId);
+      if (bucket && !bucket.some((entry) => entry.name === model.name)) bucket.push(model);
+    }
+  }
+  return XAVI_MODEL_CATEGORIES.map((category) => ({
+    ...category,
+    models: groups.get(category.id) || [],
+  })).filter((category) => category.models.length);
+}
+
+function renderModelSelectOptions(models) {
+  return `<option value="">default</option>` + groupedModelEntries(models).map((group) => `
+    <optgroup label="${escapeHtml(group.label)}">
+      ${group.models.map((model) => `<option value="${escapeHtml(model.name)}" title="${escapeHtml(model.name)}">${escapeHtml(modelOptionLabel(model))}</option>`).join("")}
+    </optgroup>
+  `).join("");
+}
+
 function renderHealth(health) {
   state.health = health;
   const models = health.models || [];
@@ -228,10 +379,7 @@ function renderHealth(health) {
   const modelSelect = $("model");
   if (modelSelect) {
     const existing = modelSelect.value;
-    modelSelect.innerHTML = `<option value="">default</option>` + models
-      .filter((m) => m.enabled)
-      .map((m) => `<option value="${m.name}">${m.name} · ${m.provider}${m.default ? " · default" : ""}</option>`)
-      .join("");
+    modelSelect.innerHTML = renderModelSelectOptions(models);
     if (existing) modelSelect.value = existing;
     updateSettingsSummary();
   }

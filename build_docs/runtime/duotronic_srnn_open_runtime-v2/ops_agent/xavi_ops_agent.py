@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import shlex
+import urllib.parse
 import subprocess
 import time
 from pathlib import Path
@@ -19,6 +20,14 @@ RUNTIME_DIR = Path(os.environ.get(
 )).resolve()
 OPS_API_KEY = os.environ.get("XAVI_OPS_API_KEY", "")
 MAX_OUTPUT = int(os.environ.get("XAVI_OPS_MAX_OUTPUT", "20000"))
+
+# Runtime v3 observability defaults. These are read-only probes.
+V3_OLLAMA_PROXY_URL = os.environ.get("XAVI_OPS_V3_OLLAMA_PROXY_URL", "http://127.0.0.1:11434").rstrip("/")
+V3_OLLAMA_PROBE_PORTS = tuple(
+    part.strip()
+    for part in os.environ.get("XAVI_OPS_V3_OLLAMA_PROBE_PORTS", "11434,11435,11436").split(",")
+    if part.strip()
+)
 
 
 class OpsCallRequest(BaseModel):
@@ -81,6 +90,60 @@ def runtime_env() -> dict[str, str]:
     return {"PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"}
 
 
+def curl_read(url: str, *, timeout: int = 10) -> dict[str, Any]:
+    return run_cmd(["curl", "-fsS", "--max-time", str(timeout), url], cwd=RUNTIME_DIR, timeout=timeout + 5)
+
+
+def service_state(service: str) -> dict[str, Any]:
+    return {
+        "active": run_cmd(["systemctl", "is-active", service], cwd=RUNTIME_DIR, timeout=30),
+        "enabled": run_cmd(["systemctl", "is-enabled", service], cwd=RUNTIME_DIR, timeout=30),
+    }
+
+
+def v3_ollama_ports() -> dict[str, Any]:
+    probes: dict[str, Any] = {}
+    for port in V3_OLLAMA_PROBE_PORTS:
+        base = f"http://127.0.0.1:{port}"
+        probe: dict[str, Any] = {
+            "api_tags": curl_read(f"{base}/api/tags", timeout=10),
+        }
+        if port in {"11434", "11435"}:
+            probe["proxy_status"] = curl_read(f"{base}/_proxy/status", timeout=10)
+        probes[port] = probe
+
+    return {
+        "proxy_url": V3_OLLAMA_PROXY_URL,
+        "probe_ports": list(V3_OLLAMA_PROBE_PORTS),
+        "probes": probes,
+    }
+
+
+def sanitized_runtime_env() -> dict[str, Any]:
+    env_path = RUNTIME_DIR / ".env"
+    if not env_path.exists():
+        return {"path": str(env_path), "exists": False, "values": {}}
+
+    values: dict[str, str] = {}
+    interesting = ("OLLAMA", "MODEL", "XAVI", "RUNTIME", "V3")
+    secret_words = ("KEY", "TOKEN", "SECRET", "PASSWORD", "PASS")
+
+    for raw in env_path.read_text().splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not any(part in key.upper() for part in interesting):
+            continue
+        if any(part in key.upper() for part in secret_words):
+            values[key] = "<redacted>"
+        else:
+            values[key] = value.strip()
+
+    return {"path": str(env_path), "exists": True, "values": values}
+
+
 def command_manifest() -> list[dict[str, Any]]:
     return [
         {"name": "ops.health", "description": "Check host ops agent status.", "danger": "low"},
@@ -94,6 +157,12 @@ def command_manifest() -> list[dict[str, Any]]:
         {"name": "ops.runtime_restart", "description": "Restart duotronic-runtime container.", "danger": "high"},
         {"name": "ops.runtime_rebuild", "description": "Rebuild and restart runtime service through podman compose.", "danger": "high"},
         {"name": "ops.runtime_rebuild_models", "description": "Rebuild/restart runtime with COMPOSE_PROFILES=models.", "danger": "high"},
+        {"name": "ops.v3_server_snapshot", "description": "Read runtime v3 containers, ports, services, runtime health, and Ollama proxy state.", "danger": "low"},
+        {"name": "ops.v3_ollama_ports", "description": "Probe runtime v3 host Ollama/proxy ports with /api/tags.", "danger": "low"},
+        {"name": "ops.v3_ollama_proxy_status", "description": "Read runtime v3 Ollama proxy /_proxy/status.", "danger": "low"},
+        {"name": "ops.v3_ollama_proxy_tags", "description": "Read runtime v3 Ollama proxy /api/tags.", "danger": "low"},
+        {"name": "ops.v3_model_route_probe", "description": "Probe runtime v3 Ollama proxy routing for a model.", "danger": "low"},
+        {"name": "ops.v3_runtime_env", "description": "Read sanitized runtime v3 Ollama/model env configuration.", "danger": "low"},
         {"name": "ops.allowed_command", "description": "Run one named allowlisted command.", "danger": "varies"},
     ]
 
@@ -185,6 +254,48 @@ async def call(req: OpsCallRequest, authorization: str | None = Header(default=N
             "result": {
                 "local": run_cmd(["curl", "-fsS", "http://127.0.0.1:8080/health"], cwd=RUNTIME_DIR, timeout=60),
                 "public": run_cmd(["curl", "-fsS", "https://dev.xavi.app/health"], cwd=RUNTIME_DIR, timeout=60),
+            }
+        }
+
+    if command == "ops.v3_ollama_ports":
+        return {"result": v3_ollama_ports()}
+
+    if command == "ops.v3_ollama_proxy_status":
+        return {"result": curl_read(f"{V3_OLLAMA_PROXY_URL}/_proxy/status", timeout=10)}
+
+    if command == "ops.v3_ollama_proxy_tags":
+        return {"result": curl_read(f"{V3_OLLAMA_PROXY_URL}/api/tags", timeout=10)}
+
+    if command == "ops.v3_model_route_probe":
+        model = str(args.get("model", "qwen2.5-coder:3b")).strip()
+        encoded_model = urllib.parse.quote(model, safe=":-._")
+        return {
+            "result": {
+                "model": model,
+                "route_probe": curl_read(f"{V3_OLLAMA_PROXY_URL}/_proxy/route_probe?model={encoded_model}", timeout=10),
+                "tags": curl_read(f"{V3_OLLAMA_PROXY_URL}/api/tags", timeout=10),
+            }
+        }
+
+    if command == "ops.v3_runtime_env":
+        return {"result": sanitized_runtime_env()}
+
+    if command == "ops.v3_server_snapshot":
+        return {
+            "result": {
+                "repo_root": str(REPO_ROOT),
+                "runtime_dir": str(RUNTIME_DIR),
+                "ollama_proxy_url": V3_OLLAMA_PROXY_URL,
+                "podman_ps": run_cmd(["podman", "ps", "--format", "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"], cwd=RUNTIME_DIR, timeout=60),
+                "listening_ports": run_cmd(["ss", "-ltnp"], cwd=RUNTIME_DIR, timeout=30),
+                "runtime_health_local": run_cmd(["curl", "-fsS", "--max-time", "10", "http://127.0.0.1:8080/health"], cwd=RUNTIME_DIR, timeout=15),
+                "runtime_env": sanitized_runtime_env(),
+                "services": {
+                    "xavi-runtime-ops-agent.service": service_state("xavi-runtime-ops-agent.service"),
+                    "xavi-ollama-tool-proxy.service": service_state("xavi-ollama-tool-proxy.service"),
+                    "xavi-ollama-proxy.service": service_state("xavi-ollama-proxy.service"),
+                },
+                "ollama_ports": v3_ollama_ports(),
             }
         }
 

@@ -24,11 +24,169 @@
     {
       "name": "ollama-coder-default",
       "provider": "ollama",
-      "model": "qwen2.5-coder:1.5b",
+      "model": "${XAVI_CODER_MODEL}",
       "base_url": "${OLLAMA_HOST}",
       "enabled_env": "OLLAMA_ENABLED",
       "default": false,
-      "description": "Default local coding model for v3; P2000-friendly Qwen2.5 Coder 1.5B."
+      "description": "Default local coding model for v3; Qwen2.5 Coder."
+    },
+    {
+      "name": "xavi-vscode-fast",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:1.5b",
+      "base_url": "http://ollama:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "VS Code model alias for xavi-vscode-fast.",
+      "metadata": {
+        "xavi_role": "vscode_fast",
+        "hardware_tier": "local_fast",
+        "recommended_for": [
+          "selection_explain",
+          "small_edit",
+          "fallback"
+        ]
+      }
+    },
+    {
+      "name": "xavi-vscode-balanced",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:3b",
+      "base_url": "http://ollama:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "VS Code model alias for xavi-vscode-balanced.",
+      "metadata": {
+        "xavi_role": "vscode_balanced",
+        "hardware_tier": "local_balanced",
+        "recommended_for": [
+          "single_file_edit",
+          "code_review",
+          "chat"
+        ]
+      }
+    },
+    {
+      "name": "xavi-vscode-agent",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:xavi-agent",
+      "base_url": "http://host.containers.internal:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "VS Code model alias for xavi-vscode-agent.",
+      "metadata": {
+        "xavi_role": "vscode_agent",
+        "hardware_tier": "gpu_mesh",
+        "recommended_for": [
+          "multi_file_edit",
+          "agent_chat",
+          "refactor"
+        ]
+      }
+    },
+    {
+      "name": "xavi-vscode-deep",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "base_url": "http://host.containers.internal:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "VS Code model alias for xavi-vscode-deep.",
+      "metadata": {
+        "xavi_role": "vscode_deep",
+        "hardware_tier": "remote_gpu_or_cpu",
+        "recommended_for": [
+          "repo_reasoning",
+          "architecture",
+          "long_context_planning"
+        ]
+      }
+    },
+    {
+      "name": "xavi-vscode-copilot",
+      "provider": "ollama",
+      "model": "xavi-copilot-agent:latest",
+      "base_url": "http://host.containers.internal:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "VS Code model alias for xavi-vscode-copilot.",
+      "metadata": {
+        "xavi_role": "vscode_copilot",
+        "hardware_tier": "gpu_mesh",
+        "recommended_for": [
+          "copilot_chat",
+          "custom_xavi_behavior",
+          "tool_augmented_agent"
+        ]
+      }
+    },
+    {
+      "name": "xavi-continue-autocomplete",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:xavi-continue-autocomplete",
+      "base_url": "http://host.containers.internal:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "Continue/Roo autocomplete model.",
+      "metadata": {
+        "xavi_role": "continue_autocomplete",
+        "recommended_for": [
+          "autocomplete",
+          "inline_completion"
+        ]
+      }
+    },
+    {
+      "name": "xavi-continue-background",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:xavi-continue-background",
+      "base_url": "http://host.containers.internal:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "Continue/Roo background/chat/docs model.",
+      "metadata": {
+        "xavi_role": "continue_background",
+        "recommended_for": [
+          "docs",
+          "readme",
+          "summaries",
+          "small_chat"
+        ]
+      }
+    },
+    {
+      "name": "xavi-continue-agent",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:xavi-continue-agent",
+      "base_url": "http://host.containers.internal:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "Continue/Roo agentic coding model.",
+      "metadata": {
+        "xavi_role": "continue_agent",
+        "recommended_for": [
+          "agentic_editing",
+          "multi_file_edit",
+          "tool_use"
+        ]
+      }
+    },
+    {
+      "name": "xavi-continue-plan",
+      "provider": "ollama",
+      "model": "qwen2.5:xavi-continue-plan",
+      "base_url": "http://host.containers.internal:11434",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "Continue/Roo planning and architecture model.",
+      "metadata": {
+        "xavi_role": "continue_plan",
+        "recommended_for": [
+          "planning",
+          "architecture",
+          "repo_reasoning"
+        ]
+      }
     }
   ]
 }
