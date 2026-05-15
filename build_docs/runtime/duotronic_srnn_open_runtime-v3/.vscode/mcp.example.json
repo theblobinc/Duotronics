@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "duotronic-srnn-open-runtime": {
+      "command": "podman",
+      "args": ["compose", "--env-file", ".env", "run", "--rm", "-i", "mcp"],
+      "env": {}
+    }
+  }
+}

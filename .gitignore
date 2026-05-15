@@ -1,0 +1,4 @@
+
+# Shared local runtime model storage
+/build_docs/runtime/models/
+/build_docs/runtime/**/models/

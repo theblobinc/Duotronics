@@ -1,0 +1,16 @@
+[Unit]
+Description=Xavi Runtime Host Ops Agent
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v2
+EnvironmentFile=/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v2/.env
+Environment=XAVI_OPS_REPO_ROOT=/var/www/xavi/Duotronics
+Environment=XAVI_OPS_RUNTIME_DIR=/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v2
+ExecStart=/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v2/.venv/bin/python -m ops_agent.xavi_ops_agent
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

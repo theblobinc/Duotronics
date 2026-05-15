@@ -7,6 +7,7 @@ import urllib.parse
 import subprocess
 import time
 from pathlib import Path
+from datetime import datetime
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
@@ -16,12 +17,11 @@ from pydantic import BaseModel, Field
 REPO_ROOT = Path(os.environ.get("XAVI_OPS_REPO_ROOT", "/var/www/xavi/Duotronics")).resolve()
 RUNTIME_DIR = Path(os.environ.get(
     "XAVI_OPS_RUNTIME_DIR",
-    "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v2",
+    "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
 )).resolve()
 OPS_API_KEY = os.environ.get("XAVI_OPS_API_KEY", "")
 MAX_OUTPUT = int(os.environ.get("XAVI_OPS_MAX_OUTPUT", "20000"))
 
-# Runtime v3 observability defaults. These are read-only probes.
 V3_OLLAMA_PROXY_URL = os.environ.get("XAVI_OPS_V3_OLLAMA_PROXY_URL", "http://127.0.0.1:11434").rstrip("/")
 V3_OLLAMA_PROBE_PORTS = tuple(
     part.strip()
@@ -105,43 +105,227 @@ def v3_ollama_ports() -> dict[str, Any]:
     probes: dict[str, Any] = {}
     for port in V3_OLLAMA_PROBE_PORTS:
         base = f"http://127.0.0.1:{port}"
-        probe: dict[str, Any] = {
-            "api_tags": curl_read(f"{base}/api/tags", timeout=10),
-        }
+        probe: dict[str, Any] = {"api_tags": curl_read(f"{base}/api/tags", timeout=10)}
         if port in {"11434", "11435"}:
             probe["proxy_status"] = curl_read(f"{base}/_proxy/status", timeout=10)
         probes[port] = probe
-
-    return {
-        "proxy_url": V3_OLLAMA_PROXY_URL,
-        "probe_ports": list(V3_OLLAMA_PROBE_PORTS),
-        "probes": probes,
-    }
+    return {"proxy_url": V3_OLLAMA_PROXY_URL, "probe_ports": list(V3_OLLAMA_PROBE_PORTS), "probes": probes}
 
 
 def sanitized_runtime_env() -> dict[str, Any]:
     env_path = RUNTIME_DIR / ".env"
-    if not env_path.exists():
-        return {"path": str(env_path), "exists": False, "values": {}}
-
     values: dict[str, str] = {}
-    interesting = ("OLLAMA", "MODEL", "XAVI", "RUNTIME", "V3")
+    if not env_path.exists():
+        return {"path": str(env_path), "exists": False, "values": values}
+    interesting = ("OLLAMA", "MODEL", "XAVI", "RUNTIME", "V3", "SRNN", "WG_RNN")
     secret_words = ("KEY", "TOKEN", "SECRET", "PASSWORD", "PASS")
-
     for raw in env_path.read_text().splitlines():
         line = raw.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        key = key.strip()
         if not any(part in key.upper() for part in interesting):
             continue
-        if any(part in key.upper() for part in secret_words):
-            values[key] = "<redacted>"
-        else:
-            values[key] = value.strip()
-
+        values[key] = "<redacted>" if any(part in key.upper() for part in secret_words) else value
     return {"path": str(env_path), "exists": True, "values": values}
+
+
+
+# ---- Runtime v3 maintenance helpers added by MCP bootstrap ----
+
+def _v3_runtime_dir() -> Path:
+    return Path(os.environ.get(
+        "XAVI_OPS_RUNTIME_DIR",
+        "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
+    )).resolve()
+
+
+def _v3_repo_root() -> Path:
+    return Path(os.environ.get("XAVI_OPS_REPO_ROOT", "/var/www/xavi/Duotronics")).resolve()
+
+
+def _v3_backup(path: Path) -> Path:
+    stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    backup_path = path.with_name(f"{path.name}.backup-mcp-{stamp}-{os.getpid()}")
+    backup_path.write_text(path.read_text())
+    return backup_path
+
+
+def _v3_safe_file(relative_path: str) -> Path:
+    root = _v3_runtime_dir()
+    rel = str(relative_path or "").strip().lstrip("/")
+    if not rel:
+        raise HTTPException(status_code=400, detail="path is required")
+    target = (root / rel).resolve()
+    if not target.is_relative_to(root):
+        raise HTTPException(status_code=400, detail="path escapes runtime v3 root")
+    allowed_suffixes = {".json", ".py", ".yaml", ".yml", ".toml", ".md", ".txt"}
+    if target.suffix not in allowed_suffixes:
+        raise HTTPException(status_code=400, detail=f"file suffix not allowlisted: {target.suffix}")
+    if not target.exists():
+        raise HTTPException(status_code=404, detail=f"file not found: {rel}")
+    return target
+
+
+def v3_git_status() -> dict[str, Any]:
+    return run_cmd(["git", "status", "--short"], cwd=_v3_repo_root(), timeout=60)
+
+
+def v3_git_diff() -> dict[str, Any]:
+    return run_cmd(["git", "diff", "--", str(_v3_runtime_dir().relative_to(_v3_repo_root()))], cwd=_v3_repo_root(), timeout=60)
+
+
+def v3_rebuild_runtime_image() -> dict[str, Any]:
+    return run_cmd(
+        ["podman", "build", "-f", "./Containerfile", "-t", "localhost/duotronic-srnn-runtime-host:v3", "."],
+        cwd=_v3_runtime_dir(),
+        timeout=900,
+    )
+
+
+def v3_restart_runtime_only() -> dict[str, Any]:
+    script = _v3_runtime_dir() / "ops_agent" / "v3_maintenance" / "restart_runtime_only.sh"
+    return run_cmd([str(script)], cwd=_v3_runtime_dir(), timeout=180)
+
+
+def v3_apply_text_replace(args: dict[str, Any]) -> dict[str, Any]:
+    target = _v3_safe_file(str(args.get("path", "")))
+    old = str(args.get("old", ""))
+    new = str(args.get("new", ""))
+    count = int(args.get("count", 1))
+    dry_run = bool(args.get("dry_run", False))
+
+    if not old:
+        raise HTTPException(status_code=400, detail="old text is required")
+    if count < 1:
+        raise HTTPException(status_code=400, detail="count must be >= 1")
+
+    text = target.read_text()
+    occurrences = text.count(old)
+
+    expected = args.get("expected_occurrences")
+    if expected is not None and occurrences != int(expected):
+        raise HTTPException(
+            status_code=409,
+            detail=f"expected {expected} occurrences, found {occurrences}",
+        )
+    if occurrences == 0:
+        raise HTTPException(status_code=404, detail="old text not found")
+
+    result = {
+        "path": str(target),
+        "occurrences": occurrences,
+        "replaced": min(count, occurrences),
+        "dry_run": dry_run,
+        "backup": None,
+    }
+
+    if not dry_run:
+        backup = _v3_backup(target)
+        target.write_text(text.replace(old, new, count))
+        result["backup"] = str(backup)
+
+    return result
+
+
+def v3_apply_vscode_model_aliases() -> dict[str, Any]:
+    path = _v3_runtime_dir() / "config" / "models.json"
+    data = json.loads(path.read_text())
+    models = data.setdefault("models", [])
+
+    aliases = [
+        {
+            "name": "xavi-vscode-fast",
+            "provider": "ollama",
+            "model": "qwen2.5-coder:1.5b",
+            "base_url": "http://ollama:11434",
+            "enabled_env": "OLLAMA_ENABLED",
+            "default": False,
+            "description": "Fast VS Code coding route for small edits, explanations, and fallback on the local runtime Ollama path.",
+            "metadata": {
+                "xavi_role": "vscode_fast",
+                "hardware_tier": "local_fast",
+                "recommended_for": ["selection_explain", "small_edit", "fallback"],
+            },
+        },
+        {
+            "name": "xavi-vscode-balanced",
+            "provider": "ollama",
+            "model": "qwen2.5-coder:3b",
+            "base_url": "http://ollama:11434",
+            "enabled_env": "OLLAMA_ENABLED",
+            "default": False,
+            "description": "Balanced VS Code coding route for normal file edits on the local runtime Ollama path.",
+            "metadata": {
+                "xavi_role": "vscode_balanced",
+                "hardware_tier": "local_balanced",
+                "recommended_for": ["single_file_edit", "code_review", "chat"],
+            },
+        },
+        {
+            "name": "xavi-vscode-agent",
+            "provider": "ollama",
+            "model": "qwen2.5-coder:xavi-agent",
+            "base_url": "http://host.containers.internal:11434",
+            "enabled_env": "OLLAMA_ENABLED",
+            "default": False,
+            "description": "Primary VS Code agent route through the host Ollama tool proxy / remote GPU mesh.",
+            "metadata": {
+                "xavi_role": "vscode_agent",
+                "hardware_tier": "gpu_mesh",
+                "recommended_for": ["multi_file_edit", "agent_chat", "refactor"],
+            },
+        },
+        {
+            "name": "xavi-vscode-deep",
+            "provider": "ollama",
+            "model": "qwen2.5-coder:7b",
+            "base_url": "http://host.containers.internal:11434",
+            "enabled_env": "OLLAMA_ENABLED",
+            "default": False,
+            "description": "Deep VS Code reasoning route for repo-wide planning and larger code context through the host Ollama tool proxy / remote GPU mesh.",
+            "metadata": {
+                "xavi_role": "vscode_deep",
+                "hardware_tier": "remote_gpu_or_cpu",
+                "recommended_for": ["repo_reasoning", "architecture", "long_context_planning"],
+            },
+        },
+        {
+            "name": "xavi-vscode-copilot",
+            "provider": "ollama",
+            "model": "xavi-copilot-agent:latest",
+            "base_url": "http://host.containers.internal:11434",
+            "enabled_env": "OLLAMA_ENABLED",
+            "default": False,
+            "description": "Custom Xavi copilot route through the host Ollama tool proxy / remote GPU mesh.",
+            "metadata": {
+                "xavi_role": "vscode_copilot",
+                "hardware_tier": "gpu_mesh",
+                "recommended_for": ["copilot_chat", "custom_xavi_behavior", "tool_augmented_agent"],
+            },
+        },
+    ]
+
+    def upsert(record: dict[str, Any]) -> None:
+        for i, existing in enumerate(models):
+            if existing.get("name") == record["name"]:
+                models[i] = record
+                return
+        models.append(record)
+
+    backup = _v3_backup(path)
+    for alias in aliases:
+        upsert(alias)
+
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+    return {
+        "path": str(path),
+        "backup": str(backup),
+        "aliases": [{"name": a["name"], "model": a["model"], "base_url": a["base_url"]} for a in aliases],
+    }
+
+# ---- End runtime v3 maintenance helpers ----
 
 
 def command_manifest() -> list[dict[str, Any]]:
@@ -163,11 +347,42 @@ def command_manifest() -> list[dict[str, Any]]:
         {"name": "ops.v3_ollama_proxy_tags", "description": "Read runtime v3 Ollama proxy /api/tags.", "danger": "low"},
         {"name": "ops.v3_model_route_probe", "description": "Probe runtime v3 Ollama proxy routing for a model.", "danger": "low"},
         {"name": "ops.v3_runtime_env", "description": "Read sanitized runtime v3 Ollama/model env configuration.", "danger": "low"},
+        {"name": "ops.v3_apply_vscode_model_aliases", "description": "Apply stable runtime v3 VS Code model aliases.", "danger": "medium"},
+        {"name": "ops.v3_apply_text_replace", "description": "Safely replace text in an allowlisted runtime v3 file with backup.", "danger": "medium"},
+        {"name": "ops.v3_rebuild_runtime_image", "description": "Build the runtime v3 container image only.", "danger": "high"},
+        {"name": "ops.v3_restart_runtime_only", "description": "Recreate only the runtime v3 container.", "danger": "high"},
+        {"name": "ops.v3_git_status", "description": "Show git status for the Duotronics repo.", "danger": "low"},
+        {"name": "ops.v3_git_diff", "description": "Show git diff for runtime v3 changes.", "danger": "low"},
         {"name": "ops.allowed_command", "description": "Run one named allowlisted command.", "danger": "varies"},
     ]
 
 
 ALLOWED_COMMANDS: dict[str, dict[str, Any]] = {
+    "v3_apply_vscode_model_aliases": {
+        "cmd": ["/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/.venv/bin/python", "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/ops_agent/v3_maintenance/apply_vscode_model_aliases.py"],
+        "cwd": Path("/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3"),
+        "timeout": 60,
+    },
+    "v3_rebuild_runtime_image": {
+        "cmd": ["podman", "build", "-f", "./Containerfile", "-t", "localhost/duotronic-srnn-runtime-host:v3", "."],
+        "cwd": Path("/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3"),
+        "timeout": 900,
+    },
+    "v3_restart_runtime_only": {
+        "cmd": ["/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/ops_agent/v3_maintenance/restart_runtime_only.sh"],
+        "cwd": Path("/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3"),
+        "timeout": 180,
+    },
+    "v3_git_status": {
+        "cmd": ["git", "status", "--short"],
+        "cwd": Path("/var/www/xavi/Duotronics"),
+        "timeout": 60,
+    },
+    "v3_git_diff": {
+        "cmd": ["git", "diff", "--", "build_docs/runtime/duotronic_srnn_open_runtime-v3"],
+        "cwd": Path("/var/www/xavi/Duotronics"),
+        "timeout": 60,
+    },
     "runtime_pytest": {
         "cmd": [".venv/bin/python", "-m", "pytest", "-q"],
         "cwd": RUNTIME_DIR,
@@ -298,6 +513,24 @@ async def call(req: OpsCallRequest, authorization: str | None = Header(default=N
                 "ollama_ports": v3_ollama_ports(),
             }
         }
+
+    if command == "ops.v3_apply_vscode_model_aliases":
+        return {"result": v3_apply_vscode_model_aliases()}
+
+    if command == "ops.v3_apply_text_replace":
+        return {"result": v3_apply_text_replace(args)}
+
+    if command == "ops.v3_rebuild_runtime_image":
+        return {"result": v3_rebuild_runtime_image()}
+
+    if command == "ops.v3_restart_runtime_only":
+        return {"result": v3_restart_runtime_only()}
+
+    if command == "ops.v3_git_status":
+        return {"result": v3_git_status()}
+
+    if command == "ops.v3_git_diff":
+        return {"result": v3_git_diff()}
 
     if command == "ops.runtime_restart":
         return {

@@ -7,7 +7,86 @@ const state = {
   lastCommitApproval: null,
   lastIntegrationApproval: null,
   chatTurn: 0,
+  inferenceHistory: [],
+  inferenceMetrics: {
+    totalRuns: 0,
+    successfulRuns: 0,
+    failedRuns: 0,
+    totalLatency: 0,
+    avgLatency: 0,
+  },
+  currentAbortController: null,
+  inferenceStartTime: null,
 };
+
+// Phase 4 & 5: History and Analytics Management
+class InferenceHistory {
+  static MAX_HISTORY = 50;
+  
+  static save(run) {
+    const history = InferenceHistory.load();
+    history.unshift({
+      ...run,
+      timestamp: new Date().toISOString(),
+      id: `run-${Date.now()}`,
+    });
+    if (history.length > this.MAX_HISTORY) history.pop();
+    localStorage.setItem("xavi_inference_history", JSON.stringify(history));
+    return history;
+  }
+  
+  static load() {
+    try {
+      return JSON.parse(localStorage.getItem("xavi_inference_history") || "[]");
+    } catch { return []; }
+  }
+  
+  static clear() {
+    localStorage.removeItem("xavi_inference_history");
+  }
+}
+
+class InferenceAnalytics {
+  static record(run, latencyMs, success = true) {
+    const metrics = InferenceAnalytics.load();
+    metrics.totalRuns += 1;
+    if (success) metrics.successfulRuns += 1;
+    else metrics.failedRuns += 1;
+    metrics.totalLatency += latencyMs;
+    metrics.avgLatency = metrics.totalLatency / metrics.totalRuns;
+    localStorage.setItem("xavi_inference_metrics", JSON.stringify(metrics));
+    state.inferenceMetrics = metrics;
+    return metrics;
+  }
+  
+  static load() {
+    try {
+      return JSON.parse(localStorage.getItem("xavi_inference_metrics") || JSON.stringify({
+        totalRuns: 0, successfulRuns: 0, failedRuns: 0, totalLatency: 0, avgLatency: 0,
+      }));
+    } catch { return { totalRuns: 0, successfulRuns: 0, failedRuns: 0, totalLatency: 0, avgLatency: 0 }; }
+  }
+}
+
+// Phase 3: Settings Presets
+const INFERENCE_PRESETS = {
+  "default": { model: "", action: "respond", steps: 1, quality: 0.72, auditOnly: true },
+  "deep-reasoning": { model: "", action: "observe", steps: 4, quality: 0.85, auditOnly: true },
+  "memory-active": { model: "", action: "memory_write", steps: 2, quality: 0.78, auditOnly: false },
+  "witness-boost": { model: "", action: "promote_witness", steps: 3, quality: 0.90, auditOnly: false },
+  "quick-response": { model: "", action: "respond", steps: 1, quality: 0.60, auditOnly: true },
+};
+
+// Phase 1: Error Classification and Categorization
+function categorizeError(error) {
+  const msg = String(error).toLowerCase();
+  if (msg.includes("timeout") || msg.includes("504")) return { kind: "timeout", icon: "⏱", recoverable: true };
+  if (msg.includes("502") || msg.includes("provider")) return { kind: "provider", icon: "⚙", recoverable: true };
+  if (msg.includes("401") || msg.includes("token")) return { kind: "auth", icon: "🔐", recoverable: false };
+  if (msg.includes("404")) return { kind: "notfound", icon: "❓", recoverable: false };
+  if (msg.includes("429")) return { kind: "ratelimit", icon: "🚦", recoverable: true };
+  return { kind: "unknown", icon: "⚠", recoverable: true };
+}
 
 function getKey() {
   return localStorage.getItem("xavi_runtime_api_key") || "";
@@ -20,21 +99,45 @@ function setStatus(text, kind = "muted") {
   pill.className = `pill ${kind}`;
 }
 
-async function api(path, options = {}, auth = false) {
+async function api(path, options = {}, auth = false, retries = 2) {
   const headers = Object.assign({ "content-type": "application/json" }, options.headers || {});
   if (auth) {
     const key = getKey();
     if (key) headers.authorization = `Bearer ${key}`;
   }
-  const res = await fetch(path, Object.assign({}, options, { headers }));
-  const text = await res.text();
-  let body = null;
-  try { body = text ? JSON.parse(text) : null; } catch { body = text; }
-  if (!res.ok) {
-    const message = typeof body === "object" && body && body.detail ? body.detail : text || res.statusText;
-    throw new Error(`${res.status} ${message}`);
+  
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const fetchOptions = Object.assign({}, options, { headers });
+      if (state.currentAbortController) {
+        fetchOptions.signal = state.currentAbortController.signal;
+      }
+      const res = await fetch(path, fetchOptions);
+      const text = await res.text();
+      let body = null;
+      try { body = text ? JSON.parse(text) : null; } catch { body = text; }
+      if (!res.ok) {
+        const message = typeof body === "object" && body && body.detail ? body.detail : text || res.statusText;
+        lastError = new Error(`${res.status} ${message}`);
+        if (attempt < retries && res.status >= 500) {
+          await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
+          continue;
+        }
+        throw lastError;
+      }
+      return body;
+    } catch (err) {
+      if (err.name === "AbortError") throw new Error("Inference cancelled by user");
+      lastError = err;
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1000));
+        continue;
+      }
+      throw lastError;
+    }
   }
-  return body;
+  throw lastError || new Error("Request failed");
 }
 
 function pretty(value) {
@@ -46,16 +149,37 @@ function short(value, n = 96) {
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
 }
 
-function appendChatMessage(role, text, meta = null) {
+function formatResponseOutput(response) {
+  if (typeof response !== "string") return pretty(response);
+  const lines = response.split("\n").filter(l => l.trim());
+  if (lines.length > 50) {
+    return lines.slice(0, 40).join("\n") + `\n\n[... ${lines.length - 40} more lines ...]`;
+  }
+  return response;
+}
+
+function formatTime(ms) {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  return `${(ms / 1000).toFixed(2)}s`;
+}
+
+function appendChatMessage(role, text, meta = null, errorKind = null) {
   const log = $("xavi-chat-log");
   if (!log || !text) return;
 
   const article = document.createElement("article");
-  article.className = `chat-message ${role}`;
+  article.className = `chat-message ${role}${errorKind ? " error-message" : ""}`;
+  if (errorKind) article.setAttribute("data-error-kind", errorKind);
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
-  avatar.textContent = role === "user" ? "You" : "AI";
+  if (errorKind) {
+    const errCat = categorizeError(text);
+    avatar.textContent = errCat.icon;
+    avatar.title = errCat.kind;
+  } else {
+    avatar.textContent = role === "user" ? "You" : "AI";
+  }
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -70,6 +194,15 @@ function appendChatMessage(role, text, meta = null) {
   const body = document.createElement("p");
   body.textContent = text;
   bubble.appendChild(body);
+  
+  if (errorKind) {
+    const errCat = categorizeError(text);
+    const hint = document.createElement("small");
+    hint.className = "error-hint";
+    hint.textContent = `${errCat.kind}${errCat.recoverable ? " (retryable)" : " (requires manual action)"}`;
+    bubble.appendChild(hint);
+  }
+  
   article.append(avatar, bubble);
   log.appendChild(article);
   log.scrollTop = log.scrollHeight;
@@ -316,21 +449,31 @@ function drawVector(canvas, vectors) {
   });
 }
 
-function renderRun(result) {
+function renderRun(result, latencyMs) {
   state.lastRun = result;
-  const responseText = result.response_text || pretty(result);
-  $("model-output").textContent = responseText;
-  $("policy-output").textContent = pretty({
+  const responseText = formatResponseOutput(result.response_text || pretty(result));
+  const modelOutput = $("model-output");
+  const policyOutput = $("policy-output");
+  
+  modelOutput.textContent = responseText;
+  modelOutput.classList.add("success-output");
+  
+  const policyData = {
     requested_action: result.requested_action,
     policy_decision: result.policy_decision,
     non_collapse_gate: result.evidence?.non_collapse_gate,
-  });
+  };
+  policyOutput.textContent = pretty(policyData);
+  policyOutput.classList.add("success-output");
+  
   if ($("chat-run-output")) $("chat-run-output").textContent = pretty({
     run_id: result.run_id,
     model: result.model,
     requested_action: result.requested_action,
+    latency: formatTime(latencyMs),
     witness_contract: result.evidence?.nla_activation_witness_v1 || null,
   });
+  
   $("witness-output").textContent = pretty({
     run_id: result.run_id,
     model: result.model,
@@ -346,7 +489,8 @@ function renderRun(result) {
 
   const turn = state.chatTurn || 1;
   const modelLabel = result.model?.name || result.model?.model || result.model?.provider || "model";
-  appendChatMessage("assistant", responseText, `turn ${turn} · ${modelLabel}`);
+  const latencyLabel = formatTime(latencyMs);
+  appendChatMessage("assistant", responseText, `turn ${turn} · ${modelLabel} · ${latencyLabel}`);
 }
 
 function updateSettingsSummary(policy = null) {
@@ -484,6 +628,11 @@ async function refreshAll() {
 
 async function runInference() {
   const promptText = $("prompt").value;
+  if (!promptText.trim()) {
+    setStatus("please enter a prompt", "warn");
+    return;
+  }
+  
   const body = {
     prompt: promptText,
     requested_action: $("action").value,
@@ -495,25 +644,164 @@ async function runInference() {
 
   state.chatTurn += 1;
   const turn = state.chatTurn;
+  state.inferenceStartTime = Date.now();
+  state.currentAbortController = new AbortController();
 
-  $("run-btn").disabled = true;
+  const runBtn = $("run-btn");
+  const modelOutput = $("model-output");
+  const policyOutput = $("policy-output");
+  
+  runBtn.disabled = true;
   appendChatMessage("user", promptText, `turn ${turn} · you`);
-  $("run-btn").textContent = "Running…";
+  
+  // Show progress indicator
+  showProgress(true);
+  const progressBar = $("inference-progress-bar");
+  if (progressBar) progressBar.style.width = "0%";
+  
+  let originalBtnText = runBtn.textContent;
+  runBtn.textContent = "Running…";
+  
   try {
+    const progressInterval = setInterval(() => {
+      if (progressBar && progressBar.style.width !== "100%") {
+        const current = parseFloat(progressBar.style.width) || 0;
+        progressBar.style.width = Math.min(current + Math.random() * 15, 90) + "%";
+      }
+    }, 300);
+    
     const result = await api("/v1/run", {
       method: "POST",
       body: JSON.stringify(body),
-    }, true);
-    renderRun(result);
+    }, true, 2);
+    
+    clearInterval(progressInterval);
+    if (progressBar) progressBar.style.width = "100%";
+    
+    const latency = Date.now() - state.inferenceStartTime;
+    
+    // Save to history and analytics
+    InferenceHistory.save({ prompt: promptText, ...body, success: true });
+    InferenceAnalytics.record(body, latency, true);
+    updateHistoryUI();
+    updateAnalyticsUI();
+    
+    renderRun(result, latency);
     await refreshAll();
+    setStatus("inference complete", "good");
   } catch (err) {
-    $("model-output").textContent = String(err);
-    appendChatMessage("assistant", String(err), `turn ${turn} · error`);
-    setStatus("run failed", "bad");
+    const latency = Date.now() - state.inferenceStartTime;
+    const errMsg = String(err);
+    const errCat = categorizeError(errMsg);
+    
+    // Save failed run
+    InferenceHistory.save({ prompt: promptText, ...body, success: false, error: errMsg });
+    InferenceAnalytics.record(body, latency, false);
+    updateHistoryUI();
+    updateAnalyticsUI();
+    
+    modelOutput.textContent = `${errCat.icon} ${errMsg}`;
+    modelOutput.classList.add("error-output");
+    modelOutput.classList.remove("success-output");
+    policyOutput.classList.remove("success-output");
+    
+    appendChatMessage("assistant", errMsg, `turn ${turn} · error`, errCat.kind);
+    setStatus(`inference failed: ${errCat.kind}`, "bad");
+    
+    if (errCat.recoverable) {
+      const retryHint = document.createElement("small");
+      retryHint.className = "retry-hint";
+      retryHint.innerHTML = ` <a href="#" onclick="runInference(); return false;">Retry</a> or adjust settings and try again.`;
+      modelOutput.appendChild(retryHint);
+    }
   } finally {
-    $("run-btn").disabled = false;
-    $("run-btn").textContent = "Run inference";
+    showProgress(false);
+    runBtn.disabled = false;
+    runBtn.textContent = originalBtnText;
+    state.currentAbortController = null;
   }
+}
+
+function cancelInference() {
+  if (state.currentAbortController) {
+    state.currentAbortController.abort();
+    $("run-btn").textContent = "Cancelling…";
+    setStatus("cancelling request", "warn");
+  }
+}
+
+function showProgress(show) {
+  const progress = $("inference-progress-container");
+  if (progress) progress.style.display = show ? "block" : "none";
+}
+
+function updateHistoryUI() {
+  const history = InferenceHistory.load();
+  const historyList = $("inference-history-list");
+  if (!historyList) return;
+  
+  historyList.innerHTML = history.slice(0, 15).map(run => `
+    <div class="history-item" onclick="loadHistoryRun('${run.id}')" title="${run.prompt}">
+      <div class="history-prompt">${short(run.prompt, 48)}</div>
+      <div class="history-meta">${run.success ? "✓" : "✗"} · ${short(new Date(run.timestamp).toLocaleTimeString(), 12)}</div>
+    </div>
+  `).join("") || "<div class='history-empty'>No runs yet</div>";
+}
+
+function loadHistoryRun(runId) {
+  const history = InferenceHistory.load();
+  const run = history.find(r => r.id === runId);
+  if (!run) return;
+  
+  $("prompt").value = run.prompt;
+  if ($("model") && run.model_name) $("model").value = run.model_name;
+  if ($("action")) $("action").value = run.requested_action || "respond";
+  if ($("steps")) $("steps").value = run.steps || 1;
+  if ($("quality")) $("quality").value = run.evidence_quality || 0.72;
+  
+  setStatus(`loaded run from ${new Date(run.timestamp).toLocaleTimeString()}`, "warn");
+}
+
+function applyPreset(presetName) {
+  const preset = INFERENCE_PRESETS[presetName];
+  if (!preset) return;
+  
+  if (preset.model && $("model")) $("model").value = preset.model;
+  if ($("action")) $("action").value = preset.action;
+  if ($("steps")) $("steps").value = preset.steps;
+  if ($("quality")) $("quality").value = preset.quality;
+  if ($("policy-audit-toggle")) $("policy-audit-toggle").checked = preset.auditOnly;
+  
+  updateSettingsSummary();
+  setStatus(`loaded preset: ${presetName}`, "good");
+}
+
+function updateAnalyticsUI() {
+  const metrics = state.inferenceMetrics;
+  const analyticsPanel = $("inference-analytics-panel");
+  if (!analyticsPanel) return;
+  
+  const successRate = metrics.totalRuns > 0 ? ((metrics.successfulRuns / metrics.totalRuns) * 100).toFixed(1) : "0";
+  analyticsPanel.innerHTML = `
+    <div class="analytics-grid">
+      <div class="analytics-card">
+        <div class="analytics-label">Total runs</div>
+        <div class="analytics-value">${metrics.totalRuns}</div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-label">Success rate</div>
+        <div class="analytics-value">${successRate}%</div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-label">Avg latency</div>
+        <div class="analytics-value">${formatTime(metrics.avgLatency)}</div>
+      </div>
+      <div class="analytics-card">
+        <div class="analytics-label">Total time</div>
+        <div class="analytics-value">${formatTime(metrics.totalLatency)}</div>
+      </div>
+    </div>
+  `;
 }
 
 
@@ -1180,3 +1468,31 @@ document.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") forceCloseInferenceSettingsModal();
 }, true);
+
+// Phase 4 & 5: Initialize history and analytics on page load
+document.addEventListener("DOMContentLoaded", () => {
+  // Load metrics for analytics display
+  const metrics = InferenceAnalytics.load();
+  state.inferenceMetrics = metrics;
+  updateAnalyticsUI();
+  
+  // Initialize history UI
+  updateHistoryUI();
+  
+  // Restore any saved run button click listeners
+  const runBtn = $("run-btn");
+  if (runBtn) {
+    runBtn.addEventListener("click", runInference);
+  }
+  
+  // Initialize prompt shortcuts (Ctrl+Enter or Cmd+Enter to run)
+  const prompt = $("prompt");
+  if (prompt) {
+    prompt.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        runInference();
+      }
+    });
+  }
+});

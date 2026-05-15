@@ -20,6 +20,15 @@
       "model": "${LLAMA_CPP_DEFAULT_MODEL}",
       "base_url": "${LLAMA_CPP_BASE_URL}",
       "enabled_env": "LLAMA_CPP_ENABLED"
+    },
+    {
+      "name": "ollama-coder-default",
+      "provider": "ollama",
+      "model": "${XAVI_CODER_MODEL}",
+      "base_url": "${OLLAMA_HOST}",
+      "enabled_env": "OLLAMA_ENABLED",
+      "default": false,
+      "description": "Default local coding model for v3; Qwen2.5 Coder."
     }
   ]
 }

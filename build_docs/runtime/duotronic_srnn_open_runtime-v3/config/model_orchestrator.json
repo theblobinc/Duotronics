@@ -1,0 +1,682 @@
+{
+  "schema_version": "model-orchestrator.v1",
+  "hardware_profiles": {
+    "rtx2070_8gb_5950x_64gb": {
+      "label": "RTX 2070 8GB + Ryzen 5950X + 64GB RAM",
+      "gpu_vram_gb": 8,
+      "system_ram_gb": 64,
+      "storage_gb": 10000,
+      "notes": [
+        "8GB VRAM makes KV cache and context size first-class routing constraints.",
+        "Hybrid CPU/GPU profiles must force low parallelism and tested context windows.",
+        "CPU-heavy profiles require explicit slow-mode routing."
+      ]
+    }
+  },
+  "kv_policies": {
+    "f16": {
+      "label": "F16 KV cache",
+      "status": "stable",
+      "backend_support": [
+        "llama_cpp"
+      ],
+      "quality_risk": "lowest",
+      "memory_reduction": "none",
+      "notes": "Use for short context and quality-sensitive code/tool tasks."
+    },
+    "q8_0": {
+      "label": "Q8 KV cache",
+      "status": "stable_candidate",
+      "backend_support": [
+        "llama_cpp"
+      ],
+      "quality_risk": "low",
+      "memory_reduction": "moderate",
+      "notes": "Good default for pure-GPU 7B/8B profiles after benchmarking."
+    },
+    "q4_0": {
+      "label": "Q4 KV cache",
+      "status": "test_required",
+      "backend_support": [
+        "llama_cpp"
+      ],
+      "quality_risk": "medium",
+      "memory_reduction": "high",
+      "notes": "Use for long-context profiles after per-model smoke tests."
+    },
+    "turboquant_3_5bit": {
+      "label": "TurboQuant 3.5-bit KV cache",
+      "status": "research_candidate",
+      "backend_support": [],
+      "quality_risk": "unknown_until_backend_exists",
+      "memory_reduction": "very_high",
+      "notes": "Plan for this as a KV-cache policy, not a model or UI category. Requires upstream/fork/custom backend support before enabling."
+    },
+    "turboquant_2_5bit": {
+      "label": "TurboQuant 2.5-bit KV cache",
+      "status": "research_candidate_high_risk",
+      "backend_support": [],
+      "quality_risk": "high_for_code_and_exact_retrieval_until_benchmarked",
+      "memory_reduction": "extreme",
+      "notes": "Only consider for very long context after TurboQuant backend and quality benchmarks exist."
+    }
+  },
+  "routing_policies": {
+    "default": {
+      "small_chat": {
+        "capability": "chat",
+        "tier_preference": [
+          "pure_gpu",
+          "fast_tiny"
+        ],
+        "kv_policy": "q8_0"
+      },
+      "code_completion": {
+        "capability": "autocomplete",
+        "tier_preference": [
+          "fast_tiny",
+          "pure_gpu"
+        ],
+        "kv_policy": "q8_0"
+      },
+      "multi_file_edit": {
+        "capability": "code_agent",
+        "tier_preference": [
+          "pure_gpu",
+          "hybrid"
+        ],
+        "kv_policy": "q8_0"
+      },
+      "long_repo_review": {
+        "capability": "long_context",
+        "accepted_capabilities": [
+          "long_context",
+          "code_agent",
+          "agent",
+          "coding",
+          "code_review"
+        ],
+        "tier_preference": [
+          "pure_gpu",
+          "hybrid",
+          "moe_candidate"
+        ],
+        "kv_policy": "q4_0"
+      },
+      "deep_reasoning": {
+        "capability": "reasoning",
+        "tier_preference": [
+          "hybrid",
+          "cpu_heavy"
+        ],
+        "kv_policy": "q4_0",
+        "requires_slow_mode": true
+      },
+      "document_ocr": {
+        "capability": "document_ocr",
+        "tier_preference": [
+          "vision",
+          "moe"
+        ],
+        "kv_policy": "q8_0"
+      },
+      "rag_search": {
+        "capability": "embedding",
+        "pipeline": [
+          "embedding",
+          "rerank",
+          "chat"
+        ],
+        "kv_policy": "q8_0"
+      },
+      "long_repo_review_32k": {
+        "capability": "long_context",
+        "accepted_capabilities": [
+          "long_context",
+          "code_agent",
+          "agent",
+          "coding",
+          "code_review"
+        ],
+        "tier_preference": [
+          "pure_gpu",
+          "hybrid",
+          "moe_candidate"
+        ],
+        "kv_policy": "q4_0",
+        "requires_slow_mode": true,
+        "notes": "Use only after benchmark/probe confirms the 32k candidate profile is stable on the target GPU node."
+      },
+      "experimental_turboquant_long_context": {
+        "capability": "long_context",
+        "accepted_capabilities": [
+          "long_context",
+          "code_agent",
+          "agent",
+          "coding",
+          "code_review"
+        ],
+        "tier_preference": [
+          "pure_gpu",
+          "hybrid",
+          "moe_candidate"
+        ],
+        "kv_policy": "turboquant_3_5bit",
+        "requires_experimental": true,
+        "requires_backend_support": "turboquant",
+        "notes": "Planning route only; no current backend exposes TurboQuant KV cache support."
+      },
+      "experimental_moe_code_agent": {
+        "capability": "code_agent",
+        "accepted_capabilities": [
+          "code_agent",
+          "coding",
+          "long_context",
+          "moe"
+        ],
+        "tier_preference": [
+          "moe_candidate",
+          "pure_gpu",
+          "hybrid"
+        ],
+        "kv_policy": "q4_0",
+        "requires_experimental": true,
+        "requires_benchmark": true
+      },
+      "experimental_deep_reasoning_32k": {
+        "capability": "reasoning",
+        "accepted_capabilities": [
+          "reasoning",
+          "plan",
+          "architecture",
+          "long_context"
+        ],
+        "tier_preference": [
+          "hybrid",
+          "moe_candidate",
+          "pure_gpu"
+        ],
+        "kv_policy": "q4_0",
+        "requires_slow_mode": true,
+        "requires_experimental": true
+      }
+    }
+  },
+  "models": {
+    "qwen2.5-coder:7b": {
+      "label": "qwen2.5-coder:7b",
+      "architecture": {
+        "family": "qwen2",
+        "type": "dense",
+        "parameter_size": "7.6B",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "chat",
+        "coding",
+        "agent",
+        "code_agent",
+        "code_review",
+        "long_context"
+      ],
+      "hardware_profile": "rtx2070_8gb_5950x_64gb",
+      "tier": "pure_gpu",
+      "backend_preference": [
+        "llama_cpp",
+        "ollama"
+      ],
+      "storage": {
+        "ollama_tag": "qwen2.5-coder:7b",
+        "gguf_path": "/models/gguf/qwen2.5-coder-7b-q4_k_m.gguf",
+        "desired": true
+      },
+      "serving_profiles": {
+        "fast": {
+          "backend": "llama_cpp",
+          "ctx_size": 8192,
+          "n_gpu_layers": "all",
+          "kv_policy": "q8_0",
+          "parallel": 1
+        },
+        "long": {
+          "backend": "llama_cpp",
+          "ctx_size": 16384,
+          "n_gpu_layers": "auto",
+          "kv_policy": "q4_0",
+          "parallel": 1
+        },
+        "turboquant_candidate": {
+          "backend": "experimental",
+          "ctx_size": 32768,
+          "kv_policy": "turboquant_3_5bit",
+          "enabled": false,
+          "fallback_profile": "long"
+        },
+        "long_32k_candidate": {
+          "backend": "llama_cpp",
+          "ctx_size": 32768,
+          "n_gpu_layers": "auto",
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "requires_benchmark": true,
+          "experimental": true,
+          "status": "candidate",
+          "notes": "Candidate 32k repo/context profile. Must be probed before default promotion."
+        }
+      }
+    },
+    "qwen2.5-coder:xavi-continue-agent": {
+      "label": "qwen2.5-coder:xavi-continue-agent",
+      "architecture": {
+        "family": "qwen2",
+        "type": "dense",
+        "parameter_size": "7.6B",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "agent",
+        "code_agent",
+        "tool_use",
+        "multi_file_edit",
+        "long_context"
+      ],
+      "tier": "pure_gpu",
+      "backend_preference": [
+        "ollama",
+        "llama_cpp"
+      ],
+      "storage": {
+        "ollama_tag": "qwen2.5-coder:xavi-continue-agent",
+        "desired": true,
+        "deployment_scope": "cluster",
+        "preferred_inventory": "xavi-ollama-guard"
+      },
+      "serving_profiles": {
+        "agent": {
+          "backend": "ollama",
+          "ctx_size": 8192,
+          "kv_policy": "backend_default",
+          "parallel": 1
+        },
+        "long_agent": {
+          "backend": "llama_cpp",
+          "ctx_size": 16384,
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "enabled": false
+        },
+        "long_32k_candidate": {
+          "backend": "llama_cpp",
+          "ctx_size": 32768,
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "requires_benchmark": true,
+          "experimental": true,
+          "status": "candidate",
+          "notes": "Agentic 32k context candidate; use only with explicit experimental routing."
+        }
+      }
+    },
+    "qwen2.5:xavi-continue-plan": {
+      "label": "qwen2.5:xavi-continue-plan",
+      "architecture": {
+        "family": "qwen2",
+        "type": "dense",
+        "parameter_size": "7.6B",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "plan",
+        "architecture",
+        "reasoning"
+      ],
+      "tier": "pure_gpu",
+      "backend_preference": [
+        "ollama",
+        "llama_cpp"
+      ],
+      "storage": {
+        "ollama_tag": "qwen2.5:xavi-continue-plan",
+        "desired": true,
+        "deployment_scope": "cluster",
+        "preferred_inventory": "xavi-ollama-guard"
+      },
+      "serving_profiles": {
+        "plan": {
+          "backend": "ollama",
+          "ctx_size": 8192,
+          "kv_policy": "backend_default",
+          "parallel": 1
+        },
+        "long_plan": {
+          "backend": "llama_cpp",
+          "ctx_size": 16384,
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "enabled": false
+        }
+      }
+    },
+    "qwen3:8b": {
+      "label": "qwen3:8b",
+      "architecture": {
+        "family": "qwen3",
+        "type": "dense",
+        "parameter_size": "8.2B",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "chat",
+        "reasoning",
+        "plan"
+      ],
+      "tier": "pure_gpu",
+      "backend_preference": [
+        "llama_cpp",
+        "ollama"
+      ],
+      "storage": {
+        "ollama_tag": "qwen3:8b",
+        "desired": true
+      },
+      "serving_profiles": {
+        "chat": {
+          "backend": "llama_cpp",
+          "ctx_size": 8192,
+          "kv_policy": "q8_0",
+          "parallel": 1
+        },
+        "long_reasoning": {
+          "backend": "llama_cpp",
+          "ctx_size": 16384,
+          "kv_policy": "q4_0",
+          "parallel": 1
+        }
+      }
+    },
+    "qwen3:14b": {
+      "label": "qwen3:14b",
+      "architecture": {
+        "family": "qwen3",
+        "type": "dense",
+        "parameter_size": "14B",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "chat",
+        "reasoning",
+        "plan",
+        "long_context"
+      ],
+      "tier": "hybrid",
+      "backend_preference": [
+        "llama_cpp",
+        "ollama"
+      ],
+      "storage": {
+        "ollama_tag": "qwen3:14b",
+        "desired": true
+      },
+      "serving_profiles": {
+        "reasoning": {
+          "backend": "llama_cpp",
+          "ctx_size": 4096,
+          "kv_policy": "q8_0",
+          "parallel": 1
+        },
+        "long": {
+          "backend": "llama_cpp",
+          "ctx_size": 8192,
+          "kv_policy": "q4_0",
+          "parallel": 1
+        },
+        "turboquant_candidate": {
+          "backend": "experimental",
+          "ctx_size": 16384,
+          "kv_policy": "turboquant_3_5bit",
+          "enabled": false,
+          "fallback_profile": "long"
+        },
+        "long_32k_candidate": {
+          "backend": "llama_cpp",
+          "ctx_size": 32768,
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "requires_benchmark": true,
+          "experimental": true,
+          "status": "candidate",
+          "notes": "Hybrid 14B 32k reasoning candidate; expect slow mode on 8GB VRAM."
+        },
+        "turboquant_32k_candidate": {
+          "backend": "experimental",
+          "ctx_size": 32768,
+          "kv_policy": "turboquant_3_5bit",
+          "parallel": 1,
+          "enabled": false,
+          "requires_benchmark": true,
+          "experimental": true,
+          "status": "backend_missing",
+          "fallback_profile": "long_32k_candidate",
+          "notes": "Do not use until a TurboQuant-capable backend exists."
+        }
+      }
+    },
+    "deepseek-r1:14b": {
+      "label": "deepseek-r1:14b",
+      "architecture": {
+        "family": "deepseek",
+        "type": "dense_distill",
+        "parameter_size": "14B",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "reasoning",
+        "plan",
+        "architecture",
+        "long_context"
+      ],
+      "tier": "hybrid",
+      "backend_preference": [
+        "llama_cpp",
+        "ollama"
+      ],
+      "storage": {
+        "ollama_tag": "deepseek-r1:14b",
+        "desired": true
+      },
+      "serving_profiles": {
+        "reasoning": {
+          "backend": "llama_cpp",
+          "ctx_size": 4096,
+          "kv_policy": "q8_0",
+          "parallel": 1
+        },
+        "long_reasoning": {
+          "backend": "llama_cpp",
+          "ctx_size": 8192,
+          "kv_policy": "q4_0",
+          "parallel": 1
+        },
+        "long_32k_candidate": {
+          "backend": "llama_cpp",
+          "ctx_size": 32768,
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "requires_benchmark": true,
+          "experimental": true,
+          "status": "candidate",
+          "notes": "Hybrid 14B deep reasoning 32k candidate; likely slow on 8GB VRAM."
+        }
+      }
+    },
+    "deepseek-coder-v2-lite": {
+      "label": "deepseek-coder-v2-lite",
+      "architecture": {
+        "family": "deepseek",
+        "type": "moe",
+        "parameter_size": "lite",
+        "active_parameter_size": "moe",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "coding",
+        "code_agent",
+        "reasoning",
+        "long_context",
+        "moe"
+      ],
+      "tier": "moe_candidate",
+      "backend_preference": [
+        "llama_cpp",
+        "ollama"
+      ],
+      "storage": {
+        "ollama_tag": "deepseek-coder-v2:lite",
+        "desired": true
+      },
+      "serving_profiles": {
+        "code_agent": {
+          "backend": "llama_cpp",
+          "ctx_size": 8192,
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "requires_benchmark": true
+        },
+        "long_32k_candidate": {
+          "backend": "llama_cpp",
+          "ctx_size": 32768,
+          "kv_policy": "q4_0",
+          "parallel": 1,
+          "requires_benchmark": true,
+          "experimental": true,
+          "status": "moe_candidate",
+          "notes": "MoE code-agent 32k candidate; benchmark before use."
+        }
+      }
+    },
+    "qwen2.5vl:7b": {
+      "label": "qwen2.5vl:7b",
+      "architecture": {
+        "family": "qwen25vl",
+        "type": "vision_language",
+        "parameter_size": "8.3B",
+        "quantization": "Q4_K_M"
+      },
+      "capabilities": [
+        "vision",
+        "document_ocr",
+        "multimodal"
+      ],
+      "tier": "vision",
+      "backend_preference": [
+        "ollama",
+        "llama_cpp"
+      ],
+      "storage": {
+        "ollama_tag": "qwen2.5vl:7b",
+        "desired": true
+      },
+      "serving_profiles": {
+        "vision": {
+          "backend": "ollama",
+          "ctx_size": 8192,
+          "kv_policy": "backend_default",
+          "parallel": 1
+        },
+        "document_ocr": {
+          "backend": "ollama",
+          "ctx_size": 8192,
+          "kv_policy": "backend_default",
+          "parallel": 1
+        }
+      }
+    },
+    "nomic-embed-text:latest": {
+      "label": "nomic-embed-text:latest",
+      "architecture": {
+        "family": "nomic",
+        "type": "embedding",
+        "parameter_size": "small"
+      },
+      "capabilities": [
+        "embedding"
+      ],
+      "tier": "specialized",
+      "backend_preference": [
+        "ollama",
+        "llama_cpp"
+      ],
+      "storage": {
+        "ollama_tag": "nomic-embed-text:latest",
+        "desired": true
+      },
+      "serving_profiles": {
+        "embedding": {
+          "backend": "ollama",
+          "ctx_size": 2048,
+          "kv_policy": "not_applicable",
+          "parallel": 2
+        }
+      }
+    },
+    "qwen3-reranker:0.6b": {
+      "label": "qwen3-reranker:0.6b",
+      "architecture": {
+        "family": "qwen3",
+        "type": "reranker",
+        "parameter_size": "0.6B"
+      },
+      "capabilities": [
+        "rerank"
+      ],
+      "tier": "specialized",
+      "backend_preference": [
+        "llama_cpp"
+      ],
+      "storage": {
+        "desired": false,
+        "deployment_scope": "candidate",
+        "source": "gguf_or_huggingface",
+        "failed_ollama_tag": "qwen3-reranker:0.6b"
+      },
+      "serving_profiles": {
+        "rerank": {
+          "backend": "llama_cpp",
+          "ctx_size": 2048,
+          "kv_policy": "not_applicable",
+          "parallel": 2,
+          "requires_benchmark": true
+        }
+      }
+    }
+  },
+  "experimental_profiles": {
+    "long_32k_candidate": {
+      "status": "candidate_requires_benchmark",
+      "expected_risk": "medium_high_on_8gb_vram",
+      "promotion_criteria": [
+        "does_not_oom",
+        "ttft_acceptable",
+        "tokens_per_second_recorded",
+        "quality_smoke_passes",
+        "tool_json_smoke_passes"
+      ]
+    },
+    "turboquant_3_5bit": {
+      "status": "backend_missing_research_candidate",
+      "promotion_criteria": [
+        "backend_support_exists",
+        "kv_accuracy_smoke_passes",
+        "long_context_quality_passes"
+      ]
+    },
+    "moe_candidate": {
+      "status": "candidate_requires_benchmark",
+      "promotion_criteria": [
+        "routing_quality_passes",
+        "memory_profile_recorded",
+        "code_agent_smoke_passes"
+      ]
+    }
+  }
+}

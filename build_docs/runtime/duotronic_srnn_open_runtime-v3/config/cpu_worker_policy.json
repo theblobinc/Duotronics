@@ -1,0 +1,13 @@
+{
+  "node": "tbi-production-3",
+  "role": "ryzen-5950x-cpu-worker",
+  "preferred_tasks": [
+    "embedding",
+    "repo_indexing",
+    "reranking",
+    "batch_summaries",
+    "small_quantized_fallback"
+  ],
+  "ollama_port": "18205",
+  "notes": "CPU worker policy placeholder for runtime v3 scheduler integration."
+}

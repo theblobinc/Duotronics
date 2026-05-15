@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Xavi Runtime | Duotronic SRNN</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main>
+    <section class="grid cards" id="health-cards"></section>
+
+    <nav class="runtime-tabs" aria-label="Runtime dashboard sections">
+      <button class="tab-button active" data-tab-target="overview">Overview</button>
+      <button class="tab-button" data-tab-target="inference">Inference</button>
+      <button class="tab-button" data-tab-target="evidence">Evidence</button>
+      <button class="tab-button" data-tab-target="operator">Repo operator</button>
+      <button class="tab-button" data-tab-target="ops">Ops</button>
+      <button class="tab-button" data-tab-target="system">System</button>
+    </nav>
+
+
+    <section class="panel" data-tab-panel="inference">
+      <div class="panel-head">
+        <div>
+          <h2>Inference</h2>
+          <p>Run a prompt through the active model, WG-RNN, NLA witness layer, policy gate, and non-collapse envelope.</p>
+        </div>
+        <div class="token-box">
+          <label for="api-key">Runtime API key</label>
+          <input id="api-key" type="password" placeholder="Bearer token value" autocomplete="off" />
+          <button id="save-key-btn">Save locally</button>
+        </div>
+      </div>
+
+      <!-- Progress indicator (Phase 1) -->
+      <div id="inference-progress-container" class="inference-progress" style="display: none;">
+        <div class="progress-label">Running inference...</div>
+        <div class="progress-track">
+          <div id="inference-progress-bar" class="progress-bar"></div>
+        </div>
+      </div>
+
+      <div class="run-grid">
+        <div>
+          <label for="prompt">Prompt</label>
+          <textarea id="prompt" rows="7">Explain Duotronic non-collapse in one precise paragraph.</textarea>
+        </div>
+        <div class="form-stack">
+          <label for="model">Model</label>
+          <select id="model"></select>
+
+          <label for="action">Requested action</label>
+          <select id="action">
+            <option value="respond">respond</option>
+            <option value="observe">observe</option>
+            <option value="memory_write">memory_write</option>
+            <option value="promote_witness">promote_witness</option>
+          </select>
+
+          <label for="steps">WG-RNN steps</label>
+          <input id="steps" type="number" min="1" max="16" value="1" />
+
+          <label for="quality">Evidence quality</label>
+          <input id="quality" type="number" min="0" max="1" step="0.01" value="0.72" />
+
+          <div class="preset-buttons">
+            <button type="button" onclick="applyPreset('quick-response')" class="preset-btn">⚡ Quick</button>
+            <button type="button" onclick="applyPreset('default')" class="preset-btn">◆ Default</button>
+            <button type="button" onclick="applyPreset('deep-reasoning')" class="preset-btn">🧠 Deep</button>
+            <button type="button" onclick="applyPreset('memory-active')" class="preset-btn">💾 Memory</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 0.5rem;">
+            <button id="run-btn" class="primary">Run inference</button>
+            <button id="cancel-btn" onclick="cancelInference()" title="Cancel current run">✕</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid three" data-tab-panel="inference">
+      <article class="panel">
+        <h2>Model output</h2>
+        <pre id="model-output" class="output">No run yet.</pre>
+      </article>
+
+      <article class="panel">
+        <h2>Policy / non-collapse</h2>
+        <pre id="policy-output" class="output">No run yet.</pre>
+      </article>
+
+      <article class="panel">
+        <h2>History</h2>
+        <div id="inference-history-list" class="inference-history">
+          <div class="history-empty">No runs yet</div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Analytics Dashboard (Phase 5) -->
+    <section class="panel" data-tab-panel="inference">
+      <h2>Analytics</h2>
+      <div id="inference-analytics-panel" class="analytics-grid">
+        <div class="analytics-card">
+          <div class="analytics-label">Total runs</div>
+          <div class="analytics-value">0</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-label">Success rate</div>
+          <div class="analytics-value">0%</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-label">Avg latency</div>
+          <div class="analytics-value">0ms</div>
+        </div>
+        <div class="analytics-card">
+          <div class="analytics-label">Total time</div>
+          <div class="analytics-value">0ms</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two" data-tab-panel="evidence">
+      <article class="panel">
+        <h2>WG-RNN state image</h2>
+        <canvas id="memory-canvas" width="900" height="260"></canvas>
+        <p class="hint">Top row = hidden state h. Bottom row = cell state c. Brighter bars indicate stronger dimensions.</p>
+      </article>
+
+      <article class="panel">
+        <h2>Latest witness</h2>
+        <pre id="witness-output" class="output">No run yet.</pre>
+      </article>
+    </section>
+
+
+    <section class="panel operator-panel" data-tab-panel="operator">
+      <div class="panel-head">
+        <div>
+          <h2>Repo operator / MCP</h2>
+          <p>Create isolated worktrees, apply patches, inspect diffs, run tests, prepare approvals, commit approved worktrees, and integrate approved commits into local main. Push/deploy are intentionally not exposed.</p>
+        </div>
+        <div class="token-box">
+          <label for="mcp-key">Xavi MCP key</label>
+          <input id="mcp-key" type="password" placeholder="XAVI_MCP_API_KEY" autocomplete="off" />
+          <button id="save-mcp-key-btn">Save locally</button>
+        </div>
+      </div>
+
+      <div class="operator-grid">
+        <div class="form-stack">
+          <label for="repo-worktree-id">Worktree ID</label>
+          <input id="repo-worktree-id" placeholder="xavi-ui-change-001" />
+
+          <label for="repo-branch-name">Branch name</label>
+          <input id="repo-branch-name" placeholder="xavi/ui-change-001" />
+
+          <label for="repo-base-ref">Base ref</label>
+          <input id="repo-base-ref" value="HEAD" />
+
+          <label for="repo-target-branch">Target branch</label>
+          <input id="repo-target-branch" value="main" />
+
+          <label for="repo-commit-message">Commit / integration message</label>
+          <input id="repo-commit-message" placeholder="Describe approved change" />
+
+          <label for="repo-commit-sha">Worktree commit SHA</label>
+          <input id="repo-commit-sha" placeholder="auto-filled after repo.commit" />
+
+          <label for="repo-approval-token">Approval token</label>
+          <input id="repo-approval-token" placeholder="auto-filled by prepare buttons" />
+
+          <label for="repo-expected-main-head">Expected main HEAD</label>
+          <input id="repo-expected-main-head" placeholder="auto-filled by prepare_integration" />
+        </div>
+
+        <div>
+          <label for="repo-patch">Unified diff patch</label>
+          <textarea id="repo-patch" rows="18" spellcheck="false">diff --git a/build_docs/runtime/duotronic_srnn_open_runtime-v2/docs/operator_ui_example.md b/build_docs/runtime/duotronic_srnn_open_runtime-v2/docs/operator_ui_example.md
+new file mode 100644
+index 0000000..3c4fd76
+--- /dev/null
++++ b/build_docs/runtime/duotronic_srnn_open_runtime-v2/docs/operator_ui_example.md
+@@ -0,0 +1,3 @@
++# Operator UI example
++
++This is an example patch payload for the Xavi Runtime operator panel.</textarea>
+        </div>
+
+        <div class="operator-buttons">
+          <button id="mcp-health-btn">MCP health</button>
+          <button id="repo-status-btn">Repo status</button>
+          <button id="repo-worktrees-btn">List worktrees</button>
+          <button id="repo-create-worktree-btn">Create worktree</button>
+          <button id="repo-apply-patch-btn">Apply patch</button>
+          <button id="repo-diff-btn">Show diff</button>
+          <button id="repo-run-tests-btn">Run tests</button>
+          <button id="repo-prepare-commit-btn">Prepare commit</button>
+          <button id="repo-commit-btn">Commit worktree</button>
+          <button id="repo-prepare-integration-btn">Prepare integration</button>
+          <button id="repo-integrate-btn">Integrate commit</button>
+          <button id="repo-remove-worktree-btn">Remove worktree</button>
+        </div>
+      </div>
+
+      <div class="grid two operator-output-grid">
+        <article>
+          <h2>Operator output</h2>
+          <pre id="repo-operator-output" class="output small">No MCP operation yet.</pre>
+        </article>
+        <article>
+          <h2>Diff / status output</h2>
+          <pre id="repo-diff-output" class="output small">No diff loaded yet.</pre>
+        </article>
+      </div>
+    </section>
+
+
+
+    <section class="panel operator-panel" data-tab-panel="ops">
+      <div class="panel-head">
+        <div>
+          <h2>Runtime ops / MCP</h2>
+          <p>Run bounded host operations through MCP. Restart and rebuild stay separate maintenance actions, not bundle actions.</p>
+        </div>
+      </div>
+
+      <div class="operator-grid">
+        <div class="form-stack">
+          <label for="ops-log-tail">Log tail lines</label>
+          <input id="ops-log-tail" type="number" min="20" max="1000" value="160" />
+
+          <label for="ops-allowed-command">Allowed command</label>
+          <select id="ops-allowed-command">
+            <option value="runtime_pytest">runtime_pytest</option>
+            <option value="runtime_health_public">runtime_health_public</option>
+            <option value="runtime_health_local">runtime_health_local</option>
+            <option value="podman_ps">podman_ps</option>
+          </select>
+        </div>
+
+        <div class="operator-buttons">
+          <button id="ops-health-btn">Runtime health</button>
+          <button id="ops-ps-btn">Podman ps</button>
+          <button id="ops-logs-btn">Runtime logs</button>
+          <button id="ops-tests-btn">Run tests</button>
+          <button id="ops-git-status-btn">Git status</button>
+          <button id="ops-git-pull-btn">Git pull</button>
+          <button id="ops-allowed-command-btn">Run allowed command</button>
+        </div>
+
+        <pre id="ops-output" class="output small">No ops command yet.</pre>
+      </div>
+    </section>
+
+
+    <section class="grid three" data-tab-panel="overview">
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Models</h2>
+          <button data-reload="models">Reload</button>
+        </div>
+        <div id="models-list" class="list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Modules</h2>
+          <button data-reload="modules">Reload</button>
+        </div>
+        <div id="modules-list" class="list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Corpus</h2>
+          <button data-reload="corpus">Reload</button>
+        </div>
+        <pre id="corpus-output" class="output small"></pre>
+      </article>
+    </section>
+
+    <section class="grid two" data-tab-panel="evidence">
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Recent memory</h2>
+          <button data-reload="memory">Reload</button>
+        </div>
+        <pre id="memory-output" class="output small"></pre>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Witness feed</h2>
+          <button data-reload="witnesses">Reload</button>
+        </div>
+        <pre id="witnesses-output" class="output small"></pre>
+      </article>
+    </section>
+
+    <section class="grid two" data-tab-panel="system">
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Claims / audit</h2>
+          <button data-reload="audit">Reload</button>
+        </div>
+        <pre id="audit-output" class="output small"></pre>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head compact">
+          <h2>Policy / formal status</h2>
+          <button data-reload="policy">Reload</button>
+        </div>
+        <pre id="system-output" class="output small"></pre>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer-bar">
+    <div>
+      <div class="eyebrow">Xavi Runtime</div>
+      <h1>Duotronic SRNN Control Plane</h1>
+    </div>
+    <div class="footer-actions">
+      <span id="status-pill" class="pill muted">loading</span>
+      <button id="refresh-btn">Refresh</button>
+      <a href="/docs" target="_blank" rel="noreferrer">API Docs</a>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
