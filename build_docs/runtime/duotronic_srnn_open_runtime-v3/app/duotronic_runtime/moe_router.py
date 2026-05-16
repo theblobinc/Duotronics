@@ -4,7 +4,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-import httpx
+import urllib.request
 
 
 @dataclass
@@ -120,11 +120,13 @@ class MoERouter:
             profile.last_check = now
             return profile.public()
         try:
-            async with httpx.AsyncClient(timeout=profile.timeout) as client:
-                resp = await client.get(profile.base_url.rstrip("/") + profile.health_endpoint)
-            profile.healthy = resp.status_code == 200
-            profile.status = "ok" if profile.healthy else f"http_{resp.status_code}"
-            profile.last_error = "" if profile.healthy else resp.text[:200]
+            url = profile.base_url.rstrip("/") + profile.health_endpoint
+            with urllib.request.urlopen(url, timeout=profile.timeout) as resp:
+                status_code = int(getattr(resp, "status", resp.getcode()))
+                body = resp.read(200).decode("utf-8", "replace")
+            profile.healthy = status_code == 200
+            profile.status = "ok" if profile.healthy else f"http_{status_code}"
+            profile.last_error = "" if profile.healthy else body
         except Exception as exc:
             profile.healthy = False
             profile.status = "offline"

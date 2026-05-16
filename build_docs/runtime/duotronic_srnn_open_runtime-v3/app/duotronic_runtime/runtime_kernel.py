@@ -45,6 +45,7 @@ class RuntimeKernel:
             state_dim=self.settings.wg_rnn_state_dim,
             slot_dim=self.settings.wg_rnn_slot_dim,
             num_slots=self.settings.wg_rnn_num_slots,
+            data_dir=self.settings.runtime_data_dir / "wgrnn",
         )
         self.nla_factory = NLAWitnessFactory(
             loop_id="loop-main",
@@ -172,6 +173,50 @@ class RuntimeKernel:
             ),
             self.evidence.witness("PolicyDecisionWitness", decision, force="authorize" if decision.get("allowed") else "refuse"),
         ])
+        return result
+
+    def witness_wgrnn_event(self, event: dict[str, Any], *, force: str = "observe", status: str = "recorded") -> dict[str, Any]:
+        witness = self.evidence.witness(
+            "WGRNNRuntimeEventWitness",
+            event,
+            force=force,
+            status=status,
+        )
+        self.store.insert_wgrnn_event(event=event, witness=witness)
+        return witness
+
+    def wgrnn_step_witnessed(self, **kwargs: Any) -> dict[str, Any]:
+        result = self.wgrnn.step(**kwargs)
+        event = result.get("ledger_entry", {}) | {
+            "event": "wgrnn.step",
+            "memory_update": result.get("memory_update"),
+            "namespace": result.get("namespace"),
+            "snapshot": result.get("snapshot"),
+        }
+        result["witness"] = self.witness_wgrnn_event(event, force="observe", status="recorded")
+        return result
+
+    def wgrnn_promote_witnessed(self, **kwargs: Any) -> dict[str, Any]:
+        result = self.wgrnn.promote(**kwargs)
+        event = result.get("ledger_entry", {}) | {"event": "wgrnn.promote", "slot": result.get("slot")}
+        result["witness"] = self.witness_wgrnn_event(event, force="authorize", status="recorded")
+        return result
+
+    def wgrnn_reject_witnessed(self, **kwargs: Any) -> dict[str, Any]:
+        result = self.wgrnn.reject(**kwargs)
+        event = result.get("ledger_entry", {}) | {"event": "wgrnn.reject", "slot": result.get("slot")}
+        result["witness"] = self.witness_wgrnn_event(event, force="refuse", status="recorded")
+        return result
+
+    def wgrnn_quarantine_witnessed(self, **kwargs: Any) -> dict[str, Any]:
+        result = self.wgrnn.quarantine(**kwargs)
+        event = result.get("ledger_entry", {}) | {"event": "wgrnn.quarantine", "slot": result.get("slot")}
+        result["witness"] = self.witness_wgrnn_event(event, force="observe", status="recorded")
+        return result
+
+    def wgrnn_replay_verify_witnessed(self, **kwargs: Any) -> dict[str, Any]:
+        result = self.wgrnn.verify_replay(**kwargs)
+        result["witness"] = self.witness_wgrnn_event({"event": "wgrnn.replay_verify", **result}, force="verify", status="recorded")
         return result
 
     def submit_claim(self, body: dict[str, Any]) -> dict[str, Any]:

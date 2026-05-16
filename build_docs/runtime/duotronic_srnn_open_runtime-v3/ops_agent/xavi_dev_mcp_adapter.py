@@ -50,6 +50,58 @@ def fetch_json(url: str, timeout: int = 15) -> Any:
     with urllib.request.urlopen(url, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
+
+def runtime_mcp_rpc(method: str, params: dict[str, Any] | None = None, timeout: int = 30, auth_header: str | None = None) -> dict[str, Any]:
+    payload = json.dumps({"jsonrpc": "2.0", "id": method, "method": method, "params": params or {}}).encode()
+    headers = {"content-type": "application/json"}
+    if auth_header:
+        headers["authorization"] = auth_header
+    req = urllib.request.Request(
+        RUNTIME_URL + "/mcp",
+        data=payload,
+        headers=headers,
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode())
+
+
+def runtime_mcp_tools(auth_header: str | None = None) -> list[dict[str, Any]]:
+    try:
+        response = runtime_mcp_rpc("tools/list", {}, timeout=10, auth_header=auth_header)
+        tools = response.get("result", {}).get("tools", [])
+        if isinstance(tools, list):
+            return tools
+    except Exception:
+        return []
+    return []
+
+
+def merged_tools(auth_header: str | None = None) -> list[dict[str, Any]]:
+    seen: set[str] = set()
+    merged: list[dict[str, Any]] = []
+    for tool in TOOLS + runtime_mcp_tools(auth_header):
+        name = tool.get("name") if isinstance(tool, dict) else None
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        normalized = dict(tool)
+        # Adapter uses MCP inputSchema; runtime uses inputSchema too via mcp_protocol.
+        if "input_schema" in normalized and "inputSchema" not in normalized:
+            normalized["inputSchema"] = normalized.pop("input_schema")
+        merged.append(normalized)
+    return merged
+
+
+def runtime_mcp_tool_call(name: str, args: dict[str, Any], auth_header: str | None = None) -> Any:
+    response = runtime_mcp_rpc("tools/call", {"name": name, "arguments": args}, timeout=120, auth_header=auth_header)
+    if "error" in response:
+        raise RuntimeError(json.dumps(response["error"], sort_keys=True))
+    result = response.get("result", {})
+    if isinstance(result, dict) and "structuredContent" in result:
+        return result["structuredContent"]
+    return result
+
 def call_ops(command: str, args: dict[str, Any] | None = None, timeout: int = 60) -> Any:
     payload = json.dumps({"command": command, "args": args or {}}).encode()
     req = urllib.request.Request(
@@ -753,7 +805,7 @@ async def mcp_root(request: Request) -> JSONResponse:
             return JSONResponse({})
 
         if method == "tools/list":
-            return JSONResponse(rpc_result(req_id, {"tools": TOOLS}))
+            return JSONResponse(rpc_result(req_id, {"tools": merged_tools(request.headers.get("authorization"))}))
 
         if method == "resources/list":
             return JSONResponse(rpc_result(req_id, {"resources": [], "nextCursor": None}))
@@ -868,7 +920,9 @@ async def mcp_root(request: Request) -> JSONResponse:
                 result = run_fixed(["git", "diff", "--", str(V3_DIR.relative_to(REPO_ROOT))], REPO_ROOT, timeout=60)
 
             else:
-                if _EXT_HANDLE is not None:
+                if isinstance(name, str) and name.startswith("runtime."):
+                    result = runtime_mcp_tool_call(name, args, request.headers.get("authorization"))
+                elif _EXT_HANDLE is not None:
                     handled, result = _EXT_HANDLE(name, args)
                     if not handled:
                         return JSONResponse(rpc_error(req_id, -32601, f"Unknown tool: {name}"))

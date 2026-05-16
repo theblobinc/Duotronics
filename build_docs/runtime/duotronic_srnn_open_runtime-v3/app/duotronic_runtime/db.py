@@ -259,6 +259,79 @@ class Store:
                 )
             conn.commit()
 
+    def insert_wgrnn_event(self, *, event: dict[str, Any], witness: dict[str, Any] | None = None) -> None:
+        """Persist standalone WG-RNN events outside full run bundles."""
+        update = None
+        if isinstance(event, dict):
+            update = event.get("memory_update") or event.get("update")
+            if not update and isinstance(event.get("ledger_entry"), dict):
+                update = event["ledger_entry"].get("update")
+        with self.connect() as conn:
+            if isinstance(update, dict) and update.get("update_id"):
+                conn.execute(
+                    """
+                    INSERT INTO wgrnn_memory_updates
+                    (update_id, run_id, loop_id, node_id, slot_id, update_kind, trust_status, authority_t, confidence, contradiction, affected_slot_ids, replay_identity_ref, state_digest, payload, created_at_ms)
+                    VALUES (%s,NULL,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    ON CONFLICT (update_id) DO UPDATE SET
+                      trust_status=EXCLUDED.trust_status,
+                      authority_t=EXCLUDED.authority_t,
+                      confidence=EXCLUDED.confidence,
+                      contradiction=EXCLUDED.contradiction,
+                      state_digest=EXCLUDED.state_digest,
+                      payload=EXCLUDED.payload
+                    """,
+                    (
+                        update["update_id"], update["loop_id"], update["node_id"], update["slot_id"],
+                        update["update_kind"], update["trust_status"], update["authority_t"],
+                        update["confidence"], update["contradiction"], json.dumps(update["affected_slot_ids"]),
+                        update["replay_identity_ref"], update["state_digest"], json.dumps(update), update["created_at_ms"],
+                    ),
+                )
+                cell_id = f"cell_{update['loop_id']}_{update['node_id']}_{update['slot_id']}"
+                conn.execute(
+                    """
+                    INSERT INTO memory_cells (cell_id, loop_id, node_id, slot_id, state_digest, trust_status, authority_t, latest_update_id, payload)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    ON CONFLICT (loop_id, node_id, slot_id) DO UPDATE SET
+                      state_digest=EXCLUDED.state_digest,
+                      trust_status=EXCLUDED.trust_status,
+                      authority_t=EXCLUDED.authority_t,
+                      latest_update_id=EXCLUDED.latest_update_id,
+                      payload=EXCLUDED.payload,
+                      updated_at=now()
+                    """,
+                    (cell_id, update["loop_id"], update["node_id"], update["slot_id"], update["state_digest"], update["trust_status"], update["authority_t"], update["update_id"], json.dumps(event)),
+                )
+            conn.execute(
+                "INSERT INTO audit_events (event_type, severity, run_id, witness_id, update_id, payload) VALUES (%s,%s,NULL,%s,%s,%s)",
+                (
+                    str(event.get("event", "wgrnn.event")),
+                    "info",
+                    (witness or {}).get("witness_id"),
+                    update.get("update_id") if isinstance(update, dict) else None,
+                    json.dumps(event),
+                ),
+            )
+            if witness:
+                conn.execute(
+                    """
+                    INSERT INTO evidence_witnesses
+                    (witness_id, witness_type, force, observer_id, status, corpus, payload_digest, payload, run_id, created_at_ms)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,NULL,%s)
+                    ON CONFLICT (witness_id) DO UPDATE SET
+                      status=EXCLUDED.status,
+                      payload=EXCLUDED.payload
+                    """,
+                    (
+                        witness["witness_id"], witness["witness_type"], witness.get("force", "observe"),
+                        witness.get("observer_id", "unknown"), witness.get("status", "recorded"),
+                        json.dumps(witness.get("corpus", {})), witness.get("payload_digest", ""),
+                        json.dumps(witness.get("payload", {})), witness.get("created_at_ms", 0),
+                    ),
+                )
+            conn.commit()
+
     def insert_witness(self, witness: dict[str, Any], run_id: str | None = None) -> None:
         with self.connect() as conn:
             conn.execute(

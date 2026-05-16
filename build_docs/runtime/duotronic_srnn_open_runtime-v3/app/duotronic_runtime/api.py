@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -12,6 +12,7 @@ from .runtime_kernel import RuntimeKernel
 from .http_mcp import register_xavi_runtime_mcp
 from .mcp_protocol import register_real_mcp_protocol
 from .actions_api import register_xavi_runtime_actions
+from .providers import stream_ollama_generate
 
 
 class RunRequest(BaseModel):
@@ -20,6 +21,22 @@ class RunRequest(BaseModel):
     requested_action: str = "observe"
     model_name: str | None = None
     evidence_quality: float = Field(default=0.72, ge=0.0, le=1.0)
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: Any = ""
+
+
+class ChatCompletionRequest(BaseModel):
+    model: str | None = None
+    messages: list[ChatMessage] = Field(default_factory=list)
+    prompt: str | None = None
+    temperature: float | None = None
+    top_p: float | None = None
+    max_tokens: int | None = Field(default=None, ge=1, le=32768)
+    stream: bool = False
+    show_reasoning: bool = True
 
 
 class ModelRegisterRequest(BaseModel):
@@ -104,12 +121,114 @@ class SelfDevelopRequest(BaseModel):
     repo_ref: str = "mounted-workspace"
 
 
+class WGRNNStepRequest(BaseModel):
+    prompt: str = Field(..., min_length=1)
+    response_text: str = ""
+    requested_action: str = "observe"
+    evidence_quality: float = Field(default=0.72, ge=0.0, le=1.0)
+    user_id: str | None = None
+    agent_id: str | None = None
+    thread_id: str | None = None
+    tags: list[str] = Field(default_factory=list)
+
+
+class WGRNNNamespaceRequest(BaseModel):
+    user_id: str | None = None
+    agent_id: str | None = None
+    thread_id: str | None = None
+
+
+class WGRNNInspectRequest(WGRNNNamespaceRequest):
+    include_slots: bool = False
+    status: str | None = None
+    limit: int = Field(default=128, ge=1, le=512)
+
+
+class WGRNNRetrieveRequest(WGRNNNamespaceRequest):
+    query: str = Field(..., min_length=1)
+    top_k: int = Field(default=8, ge=1, le=64)
+    include_empty: bool = False
+
+
+class WGRNNSlotActionRequest(WGRNNNamespaceRequest):
+    slot_id: int = Field(..., ge=0)
+    reason: str = "manual"
+
+
+class WGRNNLedgerRequest(WGRNNNamespaceRequest):
+    limit: int = Field(default=50, ge=1, le=500)
+
+
 def require_api_key(settings: Settings, authorization: str | None) -> None:
     if not settings.runtime_api_key:
         return
     expected = f"Bearer {settings.runtime_api_key}"
     if authorization != expected:
         raise HTTPException(status_code=401, detail="missing or invalid bearer token")
+
+
+def _messages_to_prompt(messages: list[ChatMessage], prompt: str | None = None) -> str:
+    if prompt:
+        return prompt
+    parts: list[str] = []
+    for msg in messages:
+        content = msg.content
+        if isinstance(content, list):
+            text_parts = []
+            for item in content:
+                if isinstance(item, dict) and item.get("type") == "text":
+                    text_parts.append(str(item.get("text", "")))
+                elif isinstance(item, str):
+                    text_parts.append(item)
+            content_text = "\n".join(text_parts)
+        else:
+            content_text = str(content or "")
+        if content_text:
+            parts.append(f"{msg.role}: {content_text}")
+    return "\n".join(parts).strip()
+
+
+def _sse(data: dict[str, Any]) -> str:
+    import json
+    return "data: " + json.dumps(data, ensure_ascii=False) + "\n\n"
+
+
+def _done_sse() -> str:
+    return "data: [DONE]\n\n"
+
+
+def _openai_chat_response(req: ChatCompletionRequest, provider_result: dict[str, Any]) -> dict[str, Any]:
+    import time
+    import uuid
+    content = provider_result.get("response_text") or ""
+    reasoning = provider_result.get("reasoning_text") or ""
+    if not content and reasoning:
+        content = "I generated reasoning output but did not reach a final answer before the output limit. See reasoning_content."
+    display_content = content
+    if reasoning and req.show_reasoning:
+        # LibreChat's current message renderer already understands this fenced
+        # format and displays it with the Thinking component. Keep the structured
+        # reasoning fields too for clients that support native reasoning_content.
+        display_content = f":::thinking\n{reasoning.strip()}\n:::\n\n{content}".strip()
+    message: dict[str, Any] = {"role": "assistant", "content": display_content}
+    if reasoning and req.show_reasoning:
+        message["reasoning_content"] = reasoning
+        message["thinking"] = reasoning
+        message["metadata"] = {"xavi_reasoning": True, "reasoning_tokens_observed": len(reasoning.split())}
+    if provider_result.get("tool_calls"):
+        message["tool_calls"] = provider_result["tool_calls"]
+    metrics = provider_result.get("provider_metrics") or {}
+    eval_count = metrics.get("eval_count") or 0
+    prompt_count = metrics.get("prompt_eval_count") or 0
+    return {
+        "id": "chatcmpl-" + uuid.uuid4().hex,
+        "object": "chat.completion",
+        "created": int(time.time()),
+        "model": req.model or provider_result.get("model", {}).get("name") or "unknown",
+        "choices": [{"index": 0, "message": message, "finish_reason": metrics.get("done_reason") or "stop"}],
+        "usage": {"prompt_tokens": int(prompt_count or 0), "completion_tokens": int(eval_count or 0), "total_tokens": int((prompt_count or 0) + (eval_count or 0))},
+        "xavi": {"provider_status": provider_result.get("provider_status"), "capabilities_observed": provider_result.get("capabilities_observed", {}), "provider_metrics": metrics},
+    }
 
 
 def create_app() -> FastAPI:
@@ -141,6 +260,102 @@ def create_app() -> FastAPI:
     @app.get("/health")
     def health() -> dict[str, Any]:
         return kernel.health()
+
+    async def _stream_chat_completions(req: ChatCompletionRequest, prompt: str):
+        import time
+        import uuid
+        chunk_id = "chatcmpl-" + uuid.uuid4().hex
+        created = int(time.time())
+        model_name = req.model or "unknown"
+        yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}]})
+        if req.model and req.model.startswith("wg-rnn:"):
+            mode = req.model.split(":", 1)[1] if ":" in req.model else "runtime"
+            requested_action = "memory_write" if mode == "memory" else "observe"
+            wgrnn_result = kernel.wgrnn.step(prompt=prompt, response_text="", requested_action=requested_action, evidence_quality=0.72)
+            text = f"WG-RNN {mode} step completed. trust_status={wgrnn_result['memory_update']['trust_status']}; authority={wgrnn_result['memory_update']['authority_t']}; slot={wgrnn_result['memory_update']['slot_id']}."
+            yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"content": text}, "finish_reason": None}], "wgrnn": wgrnn_result})
+            yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]})
+            yield _done_sse()
+            return
+        model_record = kernel.model_provider.registry.get(req.model)
+        if model_record.get("provider") != "ollama":
+            provider_result = await kernel.model_provider.complete(prompt=prompt, model_name=req.model)
+            content = _openai_chat_response(req, provider_result)["choices"][0]["message"].get("content", "")
+            if content:
+                yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"content": content}, "finish_reason": None}]})
+            yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}]})
+            yield _done_sse()
+            return
+        in_reasoning = False
+        async for chunk in stream_ollama_generate(settings, prompt=prompt, model=model_record):
+            reasoning = chunk.get("reasoning_text") or ""
+            text = chunk.get("response_text") or ""
+            if reasoning and req.show_reasoning:
+                if not in_reasoning:
+                    in_reasoning = True
+                    yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"content": ":::thinking\n"}, "finish_reason": None}]})
+                yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"content": reasoning}, "finish_reason": None}]})
+            if text:
+                if in_reasoning:
+                    in_reasoning = False
+                    yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"content": "\n:::\n\n"}, "finish_reason": None}]})
+                yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"content": text}, "finish_reason": None}]})
+            if chunk.get("done"):
+                if in_reasoning:
+                    yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {"content": "\n:::\n\n"}, "finish_reason": None}]})
+                yield _sse({"id": chunk_id, "object": "chat.completion.chunk", "created": created, "model": model_name, "choices": [{"index": 0, "delta": {}, "finish_reason": chunk.get("done_reason") or "stop"}]})
+                yield _done_sse()
+                return
+        yield _done_sse()
+
+    @app.post("/v1/chat/completions")
+    async def chat_completions(req: ChatCompletionRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        prompt = _messages_to_prompt(req.messages, req.prompt)
+        if not prompt:
+            raise HTTPException(status_code=422, detail="messages or prompt required")
+        if req.stream:
+            return StreamingResponse(_stream_chat_completions(req, prompt), media_type="text/event-stream")
+        if req.model and req.model.startswith("wg-rnn:"):
+            mode = req.model.split(":", 1)[1] if ":" in req.model else "runtime"
+            requested_action = "memory_write" if mode == "memory" else "observe"
+            wgrnn_result = kernel.wgrnn.step(
+                prompt=prompt,
+                response_text="",
+                requested_action=requested_action,
+                evidence_quality=0.72,
+            )
+            provider_result = {
+                "model": {"name": req.model, "provider": "wgrnn", "model": req.model},
+                "response_text": (
+                    f"WG-RNN {mode} step completed. "
+                    f"trust_status={wgrnn_result['memory_update']['trust_status']}; "
+                    f"authority={wgrnn_result['memory_update']['authority_t']}; "
+                    f"slot={wgrnn_result['memory_update']['slot_id']}."
+                ),
+                "reasoning_text": "",
+                "tool_calls": [],
+                "capabilities_observed": {"has_visible_response": True, "has_reasoning": False, "has_tool_calls": False, "reasoning_only": False},
+                "provider_status": "wgrnn",
+                "provider_metrics": {"eval_count": 0, "prompt_eval_count": 0, "done_reason": "stop"},
+                "wgrnn": wgrnn_result,
+            }
+            return _openai_chat_response(req, provider_result) | {"wgrnn": wgrnn_result}
+        try:
+            provider_result = await kernel.model_provider.complete(prompt=prompt, model_name=req.model)
+        except RuntimeError as exc:
+            message = str(exc)
+            if "timeout" in message:
+                raise HTTPException(status_code=504, detail={"error": "model_provider_timeout", "message": message}) from exc
+            if "ollama_" in message or "llama_cpp_" in message:
+                raise HTTPException(status_code=502, detail={"error": "model_provider_error", "message": message}) from exc
+            raise
+        return _openai_chat_response(req, provider_result)
+
+    @app.post("/v1/chat/completions/with-reasoning")
+    async def chat_completions_with_reasoning(req: ChatCompletionRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        req.show_reasoning = True
+        return await chat_completions(req, authorization)
 
     @app.post("/v1/run")
     async def run(req: RunRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
@@ -254,6 +469,77 @@ def create_app() -> FastAPI:
     def turboquant_index_reset(authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
         return kernel.turbo_quant.reset_index()
+
+    @app.get("/v1/wgrnn/status")
+    def wgrnn_status(user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None, include_slots: bool = False) -> dict[str, Any]:
+        return kernel.wgrnn.snapshot(include_slots=include_slots, user_id=user_id, agent_id=agent_id, thread_id=thread_id)
+
+    @app.post("/v1/wgrnn/step")
+    def wgrnn_step(req: WGRNNStepRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.wgrnn_step_witnessed(
+            prompt=req.prompt,
+            response_text=req.response_text,
+            requested_action=req.requested_action,
+            evidence_quality=req.evidence_quality,
+            user_id=req.user_id,
+            agent_id=req.agent_id,
+            thread_id=req.thread_id,
+            tags=req.tags,
+        )
+
+    @app.post("/v1/wgrnn/inspect")
+    def wgrnn_inspect(req: WGRNNInspectRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        snapshot = kernel.wgrnn.snapshot(include_slots=req.include_slots, user_id=req.user_id, agent_id=req.agent_id, thread_id=req.thread_id)
+        slots = kernel.wgrnn.inspect_slots(status=req.status, limit=req.limit)
+        return {"snapshot": snapshot, "slots": slots}
+
+    @app.post("/v1/wgrnn/retrieve")
+    def wgrnn_retrieve(req: WGRNNRetrieveRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.wgrnn.retrieve(
+            req.query,
+            top_k=req.top_k,
+            include_empty=req.include_empty,
+            user_id=req.user_id,
+            agent_id=req.agent_id,
+            thread_id=req.thread_id,
+        )
+
+    @app.post("/v1/wgrnn/promote")
+    def wgrnn_promote(req: WGRNNSlotActionRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        try:
+            return kernel.wgrnn_promote_witnessed(slot_id=req.slot_id, reason=req.reason, user_id=req.user_id, agent_id=req.agent_id, thread_id=req.thread_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/wgrnn/reject")
+    def wgrnn_reject(req: WGRNNSlotActionRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        try:
+            return kernel.wgrnn_reject_witnessed(slot_id=req.slot_id, reason=req.reason, user_id=req.user_id, agent_id=req.agent_id, thread_id=req.thread_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/wgrnn/quarantine")
+    def wgrnn_quarantine(req: WGRNNSlotActionRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        try:
+            return kernel.wgrnn_quarantine_witnessed(slot_id=req.slot_id, reason=req.reason, user_id=req.user_id, agent_id=req.agent_id, thread_id=req.thread_id)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/wgrnn/ledger")
+    def wgrnn_ledger(req: WGRNNLedgerRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.wgrnn.ledger_tail(limit=req.limit, user_id=req.user_id, agent_id=req.agent_id, thread_id=req.thread_id)
+
+    @app.post("/v1/wgrnn/replay-verify")
+    def wgrnn_replay_verify(req: WGRNNNamespaceRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.wgrnn_replay_verify_witnessed(user_id=req.user_id, agent_id=req.agent_id, thread_id=req.thread_id)
 
     @app.get("/v1/moe/status")
     async def moe_status(force: bool = False) -> dict[str, Any]:
