@@ -12,7 +12,7 @@ from .runtime_kernel import RuntimeKernel
 from .http_mcp import register_xavi_runtime_mcp
 from .mcp_protocol import register_real_mcp_protocol
 from .actions_api import register_xavi_runtime_actions
-from .providers import stream_ollama_generate
+from .providers import complete_ollama_generate, stream_ollama_generate
 
 
 class RunRequest(BaseModel):
@@ -342,7 +342,11 @@ def create_app() -> FastAPI:
             }
             return _openai_chat_response(req, provider_result) | {"wgrnn": wgrnn_result}
         try:
-            provider_result = await kernel.model_provider.complete(prompt=prompt, model_name=req.model)
+            model_record = kernel.model_provider.registry.get(req.model)
+            if model_record.get("provider") == "ollama":
+                provider_result = await complete_ollama_generate(settings, prompt=prompt, model=model_record)
+            else:
+                provider_result = await kernel.model_provider.complete(prompt=prompt, model_name=req.model)
         except RuntimeError as exc:
             message = str(exc)
             if "timeout" in message:
@@ -403,7 +407,43 @@ def create_app() -> FastAPI:
 
     @app.get("/v1/models")
     def models() -> dict[str, Any]:
-        return {"items": kernel.model_provider.registry.list_models()}
+        models = kernel.model_provider.registry.list_models()
+        data: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for model in models:
+            if not model.get("enabled", True):
+                continue
+            model_id = str(model.get("name") or model.get("model") or "").strip()
+            if not model_id or model_id in seen:
+                continue
+            seen.add(model_id)
+            data.append(
+                {
+                    "id": model_id,
+                    "object": "model",
+                    "created": 0,
+                    "owned_by": str(model.get("provider") or "xavi"),
+                    "permission": [],
+                    "root": str(model.get("model") or model_id),
+                    "parent": None,
+                }
+            )
+            if model_id.startswith("ollama:"):
+                raw_id = model_id.removeprefix("ollama:")
+                if raw_id and raw_id not in seen:
+                    seen.add(raw_id)
+                    data.append(
+                        {
+                            "id": raw_id,
+                            "object": "model",
+                            "created": 0,
+                            "owned_by": "ollama",
+                            "permission": [],
+                            "root": raw_id,
+                            "parent": model_id,
+                        }
+                    )
+        return {"object": "list", "data": data}
 
     @app.get("/v1/models/catalog")
     def model_catalog() -> dict[str, Any]:
