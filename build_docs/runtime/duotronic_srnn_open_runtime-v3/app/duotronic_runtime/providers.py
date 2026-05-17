@@ -385,11 +385,26 @@ async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict
                     data = json.loads(line)
                 except Exception:
                     continue
-                normalized = extract_model_response(data)
+                message = data.get("message") if isinstance(data, dict) else None
+                if isinstance(message, dict):
+                    # Preserve token whitespace exactly for streamed chunks. The
+                    # general response normalizer trims strings, which is fine for
+                    # completed responses but corrupts streaming by turning chunks
+                    # like " mass" into "mass" before LibreChat concatenates them.
+                    text = str(message.get("content") or "")
+                    reasoning = str(
+                        message.get("thinking")
+                        or message.get("reasoning")
+                        or message.get("reasoning_content")
+                        or ""
+                    )
+                else:
+                    text = str(data.get("response") or "")
+                    reasoning = str(data.get("thinking") or data.get("reasoning") or "")
                 yield {
                     "raw": data,
-                    "response_text": normalized["response_text"],
-                    "reasoning_text": normalized["reasoning_text"],
+                    "response_text": text,
+                    "reasoning_text": reasoning,
                     "done": bool(data.get("done")),
                     "done_reason": data.get("done_reason"),
                     "model": name,
