@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
@@ -19,6 +20,11 @@ class McpJsonRpcRequest(BaseModel):
     params: dict[str, Any] | None = None
 
 
+MCP_TEXT_MAX_CHARS = 24_000
+MCP_STRUCTURED_MAX_CHARS = 48_000
+MCP_STRUCTURED_PREVIEW_CHARS = 8_000
+
+
 def _authorize(
     settings: Settings,
     authorization: str | None,
@@ -29,15 +35,80 @@ def _authorize(
     _require_mcp_key(settings, authorization, x_xavi_mcp_key or x_api_key)
 
 
+def _json_safe(value: Any) -> Any:
+    """Convert runtime/tool results into JSON-serializable MCP payloads."""
+    try:
+        return jsonable_encoder(value)
+    except Exception:
+        return json.loads(json.dumps(value, default=str))
+
+
+def _json_text(value: Any, *, indent: int | None = None) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, default=str, indent=indent)
+
+
+def _clip_text(text: str, max_chars: int) -> tuple[str, bool]:
+    if len(text) <= max_chars:
+        return text, False
+
+    omitted = len(text) - max_chars
+    suffix = (
+        f"\n\n... [truncated {omitted} chars; "
+        "narrow the MCP tool request with limit/filter arguments.]"
+    )
+    return text[:max_chars].rstrip() + suffix, True
+
+
+def _jsonrpc_response(payload: dict[str, Any]) -> JSONResponse:
+    return JSONResponse(_json_safe(payload))
+
+
 def _jsonrpc_result(request_id: str | int | None, result: Any) -> JSONResponse:
-    return JSONResponse({"jsonrpc": "2.0", "id": request_id, "result": result})
+    return _jsonrpc_response({"jsonrpc": "2.0", "id": request_id, "result": result})
 
 
 def _jsonrpc_error(request_id: str | int | None, code: int, message: str, data: Any = None) -> JSONResponse:
     error: dict[str, Any] = {"code": code, "message": message}
     if data is not None:
         error["data"] = data
-    return JSONResponse({"jsonrpc": "2.0", "id": request_id, "error": error})
+    return _jsonrpc_response({"jsonrpc": "2.0", "id": request_id, "error": error})
+
+
+def _mcp_tool_response(result: Any) -> dict[str, Any]:
+    """Build a ChatGPT-safe MCP tools/call response."""
+    safe_result = _json_safe(result)
+    compact = _json_text(safe_result)
+    pretty = _json_text(safe_result, indent=2)
+    text, text_truncated = _clip_text(pretty, MCP_TEXT_MAX_CHARS)
+
+    structured_content = safe_result
+    structured_truncated = False
+
+    if len(compact) > MCP_STRUCTURED_MAX_CHARS:
+        preview, _ = _clip_text(compact, MCP_STRUCTURED_PREVIEW_CHARS)
+        structured_content = {
+            "truncated": True,
+            "reason": "mcp_structured_content_too_large",
+            "original_json_chars": len(compact),
+            "preview": preview,
+        }
+        structured_truncated = True
+
+    payload: dict[str, Any] = {
+        "content": [{"type": "text", "text": text}],
+        "structuredContent": structured_content,
+        "isError": False,
+    }
+
+    if text_truncated or structured_truncated:
+        payload["_meta"] = {
+            "xaviRuntimeResponseTruncated": True,
+            "originalJsonChars": len(compact),
+            "textMaxChars": MCP_TEXT_MAX_CHARS,
+            "structuredMaxChars": MCP_STRUCTURED_MAX_CHARS,
+        }
+
+    return payload
 
 
 def _mcp_tools() -> list[dict[str, Any]]:
@@ -139,15 +210,7 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
                     {"error": exc.__class__.__name__, "message": str(exc), "tool": tool_name},
                 )
 
-            text = json.dumps(result, indent=2, sort_keys=True, default=str)
-            return _jsonrpc_result(
-                req.id,
-                {
-                    "content": [{"type": "text", "text": text}],
-                    "structuredContent": result,
-                    "isError": False,
-                },
-            )
+            return _jsonrpc_result(req.id, _mcp_tool_response(result))
 
         if method == "resources/list":
             return _jsonrpc_result(req.id, {"resources": []})
