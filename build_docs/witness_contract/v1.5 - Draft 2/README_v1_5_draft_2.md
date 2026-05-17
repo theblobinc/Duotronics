@@ -7,20 +7,6 @@
 
 ---
 
-## 0. Program-level entry points
-
-Before reading the v1.5 release notes below, new readers should anchor on:
-
-1. `duotronic_program_charter_v1_0.md` — program scope, separation rule, and relationship to the legacy chapter material.
-2. `v1_5_draft_2_reading_guide.md` — corpus map and reading order by role.
-3. `duotronic_canonical_implementation_target_v0_1.md` — canonical implementation target status (currently TBD).
-4. `refs/duotronic_source_architecture_overview_v1_7.md` — architecture map.
-5. `refs/duotronic_glossary_v1_0.md` — terminology authority.
-
-The rest of this README focuses on what v1.5 Draft 2 *adds* on top of the v1.4 Draft 5 corpus.
-
----
-
 ## Draft 2 addition: Witness-Gated Recurrent Cell
 
 v1.5 Draft 2 adds the WG-RNN research profile:
@@ -43,19 +29,8 @@ It adds:
 8. hard policy clamps for write, decay, quarantine, and promotion gates
 9. replayable local online adaptation without global backpropagation
 10. fixtures and a worked music-preference memory example
-11. a PyTorch implementation skeleton (`refs/examples/duotronic_wgrnn_pytorch_skeleton_v1_0.md`)
-12. a closure and implementation roadmap (`v1_5_draft_2_next_steps.md`)
 
 WG-RNN v1.0 is research-only until promoted through benchmark evidence, replay fixtures, retention diagnostics, purge tests, and policy approval.
-
-## Draft 2 additions: Rho kernel and multi-view learning
-
-v1.5 Draft 2 also incorporates two bounded research profiles:
-
-1. `refs/duotronic_rho_padovan_recurrent_memory_kernel_v0_1.md` — an optional plastic-ratio / Padovan recurrence kernel for branch-local memory, ranking diagnostics, and canonical-shadow experiments.
-2. `refs/duotronic_multi_view_learning_engine_contract_v0_1.md` — an additive concept-routing layer that preserves multiple valid views of the same concept and exposes formal guardrails in learning explanations.
-
-Both profiles are experimental. The rho kernel must remain feature-flagged and non-canonical unless replay parity, ranking stability, diagnostics, and policy approval are present. The multi-view learning engine must not replace canonical witness extraction or synthesis; it routes and explains concepts above those layers.
 
 ## 1. What v1.5 adds
 
@@ -86,8 +61,6 @@ Raw machine metrics are not scheduling authority.
 Connected nodes are not trusted by default.
 Task delegation is an action candidate until policy approves it.
 DBP transport must be S2 for authority-bearing semantic use.
-Transport failure zeros delegation authority immediately.
-Cluster-wide learning mode is enforced at delegation time, not node time.
 ```
 
 ---
@@ -268,14 +241,12 @@ v1.5 adds distributed scheduling and DBP cluster federation on top of that trust
 2. Implement `NodeHello` / `NodeAccept`.
 3. Implement resource metric evidence and `ResourceAvailabilityWitness`.
 4. Implement heartbeat every 5 seconds and 30-second stale invalidation.
-5. Implement command lane `delegate_task` with weighted least-load scheduler (§20 of delegation contract).
-6. Implement transport failure handling, retry/timeout/downgrade rules (§21 of delegation contract).
-7. Implement cluster-wide learning mode enforcement at delegation time (§22 of delegation contract).
-8. Implement a no-op task and `TaskOutcomeWitness`.
-9. Implement CPU-bound model task delegation.
-10. Add GPU worker detection and GPU-specific scheduling.
-11. Add `TaskQueueWitness` and least-loaded scheduling.
-12. Run the v1.5 conformance fixtures.
+5. Implement command lane `delegate_task`.
+6. Implement a no-op task and `TaskOutcomeWitness`.
+7. Implement CPU-bound model task delegation.
+8. Add GPU worker detection and GPU-specific scheduling.
+9. Add `TaskQueueWitness` and least-loaded scheduling.
+10. Run the v1.5 conformance fixtures.
 
 
 ## Draft 2 WG-RNN memory loop
@@ -300,14 +271,31 @@ Fast recurrent state is computation.
 Persistent memory authority requires witness features, replay, and policy.
 ```
 
-### Contamination prevention
+## Draft 2 WG-RNN self-training and guardrails
 
-Explicit guardrails enforce this boundary:
+The WG-RNN processes chronological evidence one step at a time and may update its own persistent memory slots locally at each step, without GPU backpropagation or global loss functions.
 
-1. fast state (`h_t`, `c_t`) must never be used as a canonical witness fact or as the sole provenance of a persistent memory write;
-2. scheduler feedback (task outcomes, queue pressure, load data) re-enters the system only through the full evidence canonicalization flow;
-3. memory slots must not self-confirm their own beliefs — every canonical fact cited as promotion evidence must trace to an independent evidence source outside the memory bank;
-4. gate thresholds must not drift autonomously — all threshold changes require a `PolicyChangeProposal`;
-5. profile-learning tasks may not rewrite policy indirectly through task outcome payloads.
+See `refs/duotronic_witness_gated_recurrent_cell_contract_v1_0.md`:
 
-These rules are specified in section 27 of the WG-RNN contract.
+- **Section 26** specifies the chronological self-training loop, what the cell may update per step, what it must not update, and how this differs from GPU training.
+- **Section 27** specifies the architectural barriers preventing unbounded self-modification: write gate requires witness features, policy clamps override all gate values, gate thresholds are locked by policy, stable memory requires explicit promotion, and fast state cannot become canonical truth.
+
+Key rule:
+
+```text
+The cell may continuously update candidate memory from incoming chronological evidence.
+It may not continuously promote that memory to stable status without replay, retention
+diagnostics, contradiction checks, purge lineage validation, and policy approval.
+Self-confirmation is forbidden.
+```
+
+## Draft 2 distributed scheduling additions
+
+See `refs/duotronic_distributed_task_delegation_and_resource_witness_contract_v1_0.md`:
+
+- **Section 20** defines the reference capability-filtered least-loaded-first scheduler, cluster-wide learning mode semantics, and conflict resolution precedence table.
+- **Section 21** defines retry and exponential backoff on transport failure, lease timeout handling, node downgrade thresholds, resource normalization formulas, and node identity/authentication requirements.
+
+See `duotronic_v1_5_distributed_self_governing_recurrent_network_addendum.md`:
+
+- **Section 9** states the normative recurrent-memory guardrails for the distributed case: fast state is computation only, memory cannot self-confirm, scheduler feedback must not contaminate evidence quality, task outcomes cannot rewrite policy autonomously.

@@ -182,7 +182,82 @@ Demonstration goals:
 
 ---
 
-## 9. Non-claims
+## 9. Recurrent-memory guardrails
+
+> **Status tag:** normative
+
+This section states the hard boundaries between fast recurrent computation and authoritative persistent memory in a distributed Duotronic cluster.
+
+These rules apply to WG-RNN cells, DW-SSM state, lookup memory, or any other recurrent or persistent-state component in the cluster.
+
+### 9.1 Fast recurrent state is computation only
+
+Fast hidden state `h_t` and fast cell state `c_t` in any recurrent component are temporary computation artifacts.
+
+They must not be:
+
+1. stored as `CanonicalWitnessFact` without extraction through the full evidence pipeline;
+2. used to directly approve a `SlotPromotionRequest`;
+3. broadcast to other nodes as authoritative evidence;
+4. used to override a policy gate or clamp;
+5. fed back as the sole input to the next step's witness feature vector without external canonical evidence.
+
+### 9.2 Persistent memory cannot self-confirm
+
+A memory slot or lookup record must not raise its own stability or authority based solely on the cell's own prior outputs.
+
+Self-confirmation is forbidden. Stability requires:
+
+1. canonical witness facts from external evidence;
+2. a successful replay trace;
+3. retention diagnostics from the standard profile;
+4. policy approval.
+
+### 9.3 Scheduler feedback must not contaminate evidence quality
+
+Task outcomes, resource witness values, queue pressure scores, or any scheduling-layer signal must not be injected directly into a recurrent cell as raw input for persistent memory updates.
+
+Scheduling feedback must travel through:
+
+```text
+TaskOutcomeWitness
+-> EvidenceBundle
+-> CandidateWitness
+-> canonicalization
+-> CanonicalWitnessFact
+-> WitnessFeatureVector
+```
+
+before it may influence memory gates in a WG-RNN or DW-SSM.
+
+### 9.4 Task outcomes cannot rewrite policy autonomously
+
+A `TaskOutcomeWitness` may produce evidence that a policy change is warranted. It may not directly modify any policy threshold, trust limit, or runtime mode.
+
+Proposed policy changes from task outcomes must follow:
+
+1. `PolicyChangeProposal`;
+2. coordinator review;
+3. human review if policy requires;
+4. new policy snapshot;
+5. broadcast and acknowledgment before taking effect.
+
+### 9.5 Cluster-wide state synchronization boundary
+
+Coordinator lookup memory and recurrent state may be updated with task outcome evidence.
+
+The following are still required even in the distributed case:
+
+1. canonicalization of outcome evidence before any state update;
+2. policy gate before update affects scheduling authority;
+3. replay identity binding that includes the remote node ID and transport replay identity;
+4. the authority formula applies: `min(profile_requested, normalizer_confidence, policy_limit)`.
+
+If a node is later revoked, any recurrent or lookup state derived solely from that node's output must be reviewed, demoted, or quarantined per policy.
+
+---
+
+## 10. Non-claims
 
 v1.5 does not prescribe one scheduler, orchestrator, database, model runtime, or Rust implementation.
 
