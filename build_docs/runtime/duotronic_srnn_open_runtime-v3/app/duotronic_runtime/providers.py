@@ -4,12 +4,13 @@ import json
 import os
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, AsyncIterator
 
 import httpx
 
 from .config import Settings
 from .prompting import DUOTRONIC_RUNTIME_SYSTEM_PROMPT, build_runtime_prompt
+from .response_normalizer import extract_model_response
 
 
 def expand_env(value: Any) -> Any:
@@ -125,6 +126,15 @@ class ModelRegistry:
             for r in enabled:
                 if r.get("name") == name:
                     return r
+            # OpenAI-compatible clients often submit raw Ollama tags such as
+            # "mistral:7b" even though auto-discovered registry records are named
+            # "ollama:mistral:7b". Resolve those tags directly instead of falling
+            # back to the default/runtime-wrapped model path.
+            if not str(name).startswith("ollama:"):
+                prefixed = f"ollama:{name}"
+                for r in enabled:
+                    if r.get("name") == prefixed or r.get("model") == name:
+                        return r
         for r in enabled:
             if r.get("default"):
                 return r
@@ -202,7 +212,25 @@ class ModelProvider:
             raise RuntimeError(f"ollama_http_error:{name}:{base}:{exc.response.status_code}") from exc
         except httpx.HTTPError as exc:
             raise RuntimeError(f"ollama_transport_error:{name}:{base}:{exc.__class__.__name__}") from exc
-        return {"model": model | {"model": name}, "response_text": data.get("response", ""), "provider_status": "ollama"}
+        normalized = extract_model_response(data)
+        return {
+            "model": model | {"model": name},
+            "response_text": normalized["response_text"],
+            "reasoning_text": normalized["reasoning_text"],
+            "tool_calls": normalized["tool_calls"],
+            "capabilities_observed": normalized["capabilities_observed"],
+            "provider_native_fields": normalized["native_fields"],
+            "provider_status": "ollama",
+            "provider_metrics": {
+                "total_duration": data.get("total_duration"),
+                "load_duration": data.get("load_duration"),
+                "prompt_eval_count": data.get("prompt_eval_count"),
+                "prompt_eval_duration": data.get("prompt_eval_duration"),
+                "eval_count": data.get("eval_count"),
+                "eval_duration": data.get("eval_duration"),
+                "done_reason": data.get("done_reason"),
+            },
+        }
 
     async def _llama_cpp(self, prompt: str, model: dict[str, Any]) -> dict[str, Any]:
         base = model.get("base_url") or self.settings.llama_cpp_base_url
@@ -233,5 +261,117 @@ class ModelProvider:
             raise RuntimeError(f"llama_cpp_http_error:{name}:{base}:{exc.response.status_code}") from exc
         except httpx.HTTPError as exc:
             raise RuntimeError(f"llama_cpp_transport_error:{name}:{base}:{exc.__class__.__name__}") from exc
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
-        return {"model": model | {"model": name}, "response_text": content, "provider_status": "llama_cpp"}
+        normalized = extract_model_response(data)
+        return {
+            "model": model | {"model": name},
+            "response_text": normalized["response_text"],
+            "reasoning_text": normalized["reasoning_text"],
+            "tool_calls": normalized["tool_calls"],
+            "capabilities_observed": normalized["capabilities_observed"],
+            "provider_native_fields": normalized["native_fields"],
+            "provider_status": "llama_cpp",
+        }
+
+
+async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None) -> AsyncIterator[dict[str, Any]]:
+    """Yield normalized chunks from Ollama /api/generate streaming JSON lines."""
+    base = model.get("base_url") or settings.ollama_host
+    name = model.get("model") or settings.ollama_default_model
+    timeout = httpx.Timeout(
+        connect=10.0,
+        read=float(getattr(settings, "ollama_timeout_seconds", 180.0)),
+        write=30.0,
+        pool=10.0,
+    )
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        async with client.stream(
+            "POST",
+            f"{str(base).rstrip('/')}/api/generate",
+            json={
+                "model": name,
+                "prompt": prompt,
+                "system": DUOTRONIC_RUNTIME_SYSTEM_PROMPT,
+                "stream": True,
+                "options": options or {
+                    "temperature": 0.15,
+                    "top_p": 0.85,
+                    "repeat_penalty": 1.08,
+                },
+            },
+        ) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line:
+                    continue
+                try:
+                    data = json.loads(line)
+                except Exception:
+                    continue
+                normalized = extract_model_response(data)
+                yield {
+                    "raw": data,
+                    "response_text": normalized["response_text"],
+                    "reasoning_text": normalized["reasoning_text"],
+                    "done": bool(data.get("done")),
+                    "done_reason": data.get("done_reason"),
+                    "model": name,
+                }
+
+
+async def complete_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Return one direct Ollama completion for OpenAI-v1-compatible clients.
+
+    This intentionally avoids the Duotronic runtime prompt wrapper. LibreChat and
+    other OpenAI-compatible clients expect /v1/chat/completions to behave like a
+    plain model gateway unless they pick an explicit Xavi/WG-RNN model.
+    """
+    base = model.get("base_url") or settings.ollama_host
+    name = model.get("model") or settings.ollama_default_model
+    timeout = httpx.Timeout(
+        connect=10.0,
+        read=float(getattr(settings, "ollama_timeout_seconds", 180.0)),
+        write=30.0,
+        pool=10.0,
+    )
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            r = await client.post(
+                f"{base.rstrip('/')}/api/generate",
+                json={
+                    "model": name,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": options or {
+                        "temperature": 0.15,
+                        "top_p": 0.85,
+                        "repeat_penalty": 1.08,
+                    },
+                },
+            )
+            r.raise_for_status()
+            data = r.json()
+    except httpx.TimeoutException as exc:
+        raise RuntimeError(f"ollama_timeout:{name}:{base}") from exc
+    except httpx.HTTPStatusError as exc:
+        raise RuntimeError(f"ollama_http_error:{name}:{base}:{exc.response.status_code}") from exc
+    except httpx.HTTPError as exc:
+        raise RuntimeError(f"ollama_transport_error:{name}:{base}:{exc.__class__.__name__}") from exc
+    normalized = extract_model_response(data)
+    return {
+        "model": model | {"model": name},
+        "response_text": normalized["response_text"],
+        "reasoning_text": normalized["reasoning_text"],
+        "tool_calls": normalized["tool_calls"],
+        "capabilities_observed": normalized["capabilities_observed"],
+        "provider_native_fields": normalized["native_fields"],
+        "provider_status": "ollama_direct",
+        "provider_metrics": {
+            "total_duration": data.get("total_duration"),
+            "load_duration": data.get("load_duration"),
+            "prompt_eval_count": data.get("prompt_eval_count"),
+            "prompt_eval_duration": data.get("prompt_eval_duration"),
+            "eval_count": data.get("eval_count"),
+            "eval_duration": data.get("eval_duration"),
+            "done_reason": data.get("done_reason"),
+        },
+    }

@@ -143,6 +143,102 @@ def _tool_manifest() -> list[dict[str, Any]]:
                 },
             },
         },
+
+        {
+            "name": "runtime.wgrnn_status",
+            "description": "Inspect WG-RNN recurrent state summary for a namespace.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": ["string", "null"]},
+                    "agent_id": {"type": ["string", "null"]},
+                    "thread_id": {"type": ["string", "null"]},
+                    "include_slots": {"type": "boolean", "default": False},
+                },
+            },
+        },
+        {
+            "name": "runtime.wgrnn_inspect",
+            "description": "Inspect WG-RNN slots, optionally filtered by trust status.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "user_id": {"type": ["string", "null"]},
+                    "agent_id": {"type": ["string", "null"]},
+                    "thread_id": {"type": ["string", "null"]},
+                    "status": {"type": ["string", "null"], "enum": ["empty", "candidate", "quarantine", "promoted", "rejected", None]},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 512, "default": 128},
+                },
+            },
+        },
+        {
+            "name": "runtime.wgrnn_retrieve",
+            "description": "Retrieve nearest WG-RNN memory slots for a namespace/query.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                    "query": {"type": "string", "minLength": 1},
+                    "top_k": {"type": "integer", "minimum": 1, "maximum": 64, "default": 8},
+                    "include_empty": {"type": "boolean", "default": False},
+                    "user_id": {"type": ["string", "null"]},
+                    "agent_id": {"type": ["string", "null"]},
+                    "thread_id": {"type": ["string", "null"]},
+                },
+            },
+        },
+        {
+            "name": "runtime.wgrnn_step",
+            "description": "Create a witnessed WG-RNN observation/memory step for a namespace.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                    "prompt": {"type": "string", "minLength": 1},
+                    "response_text": {"type": "string", "default": ""},
+                    "requested_action": {"type": "string", "enum": ["observe", "memory_write", "promote_witness", "external_action"], "default": "observe"},
+                    "evidence_quality": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.72},
+                    "user_id": {"type": ["string", "null"]},
+                    "agent_id": {"type": ["string", "null"]},
+                    "thread_id": {"type": ["string", "null"]},
+                    "tags": {"type": "array", "items": {"type": "string"}, "default": []},
+                },
+            },
+        },
+        {
+            "name": "runtime.wgrnn_promote",
+            "description": "Promote a WG-RNN candidate/quarantined slot and write a witness.",
+            "read_only": False,
+            "input_schema": {"type": "object", "required": ["slot_id"], "properties": {"slot_id": {"type": "integer", "minimum": 0}, "reason": {"type": "string", "default": "manual_promote"}, "user_id": {"type": ["string", "null"]}, "agent_id": {"type": ["string", "null"]}, "thread_id": {"type": ["string", "null"]}}},
+        },
+        {
+            "name": "runtime.wgrnn_reject",
+            "description": "Reject a WG-RNN slot and write a witness.",
+            "read_only": False,
+            "input_schema": {"type": "object", "required": ["slot_id"], "properties": {"slot_id": {"type": "integer", "minimum": 0}, "reason": {"type": "string", "default": "manual_reject"}, "user_id": {"type": ["string", "null"]}, "agent_id": {"type": ["string", "null"]}, "thread_id": {"type": ["string", "null"]}}},
+        },
+        {
+            "name": "runtime.wgrnn_quarantine",
+            "description": "Quarantine a WG-RNN slot and write a witness.",
+            "read_only": False,
+            "input_schema": {"type": "object", "required": ["slot_id"], "properties": {"slot_id": {"type": "integer", "minimum": 0}, "reason": {"type": "string", "default": "manual_quarantine"}, "user_id": {"type": ["string", "null"]}, "agent_id": {"type": ["string", "null"]}, "thread_id": {"type": ["string", "null"]}}},
+        },
+        {
+            "name": "runtime.wgrnn_ledger",
+            "description": "Read WG-RNN ledger tail for a namespace.",
+            "read_only": True,
+            "input_schema": {"type": "object", "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 500, "default": 50}, "user_id": {"type": ["string", "null"]}, "agent_id": {"type": ["string", "null"]}, "thread_id": {"type": ["string", "null"]}}},
+        },
+        {
+            "name": "runtime.wgrnn_replay_verify",
+            "description": "Verify WG-RNN ledger hash-chain replay integrity for a namespace and write a verification witness.",
+            "read_only": False,
+            "input_schema": {"type": "object", "properties": {"user_id": {"type": ["string", "null"]}, "agent_id": {"type": ["string", "null"]}, "thread_id": {"type": ["string", "null"]}}},
+        },
         *repo_tool_manifest(),
         *ops_tool_manifest(),
         *dev_tool_manifest(),
@@ -161,6 +257,7 @@ def _resources() -> list[dict[str, str]]:
         {"uri": "xavi-runtime://corpus", "name": "Corpus inspection"},
         {"uri": "xavi-runtime://policy", "name": "Policy explanation"},
         {"uri": "xavi-runtime://formal", "name": "Formal observer status"},
+        {"uri": "xavi-runtime://wgrnn", "name": "WG-RNN state and slots"},
         *repo_resources(),
     ]
 
@@ -203,6 +300,70 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
     if tool == "runtime.formal_status":
         return kernel.formal.status()
+
+
+    if tool == "runtime.wgrnn_status":
+        return kernel.wgrnn.snapshot(
+            include_slots=bool(args.get("include_slots", False)),
+            user_id=args.get("user_id"),
+            agent_id=args.get("agent_id"),
+            thread_id=args.get("thread_id"),
+        )
+
+    if tool == "runtime.wgrnn_inspect":
+        snapshot = kernel.wgrnn.snapshot(
+            include_slots=False,
+            user_id=args.get("user_id"),
+            agent_id=args.get("agent_id"),
+            thread_id=args.get("thread_id"),
+        )
+        return {
+            "snapshot": snapshot,
+            "slots": kernel.wgrnn.inspect_slots(status=args.get("status"), limit=_safe_limit(args, 128)),
+        }
+
+    if tool == "runtime.wgrnn_retrieve":
+        query = str(args.get("query", "")).strip()
+        if not query:
+            raise HTTPException(status_code=422, detail="runtime.wgrnn_retrieve requires args.query")
+        return kernel.wgrnn.retrieve(
+            query,
+            top_k=max(1, min(int(args.get("top_k", 8)), 64)),
+            include_empty=bool(args.get("include_empty", False)),
+            user_id=args.get("user_id"),
+            agent_id=args.get("agent_id"),
+            thread_id=args.get("thread_id"),
+        )
+
+    if tool == "runtime.wgrnn_step":
+        prompt = str(args.get("prompt", "")).strip()
+        if not prompt:
+            raise HTTPException(status_code=422, detail="runtime.wgrnn_step requires args.prompt")
+        return kernel.wgrnn_step_witnessed(
+            prompt=prompt,
+            response_text=str(args.get("response_text", "")),
+            requested_action=str(args.get("requested_action", "observe")),
+            evidence_quality=float(args.get("evidence_quality", 0.72)),
+            user_id=args.get("user_id"),
+            agent_id=args.get("agent_id"),
+            thread_id=args.get("thread_id"),
+            tags=list(args.get("tags", [])),
+        )
+
+    if tool == "runtime.wgrnn_promote":
+        return kernel.wgrnn_promote_witnessed(slot_id=int(args["slot_id"]), reason=str(args.get("reason", "manual_promote")), user_id=args.get("user_id"), agent_id=args.get("agent_id"), thread_id=args.get("thread_id"))
+
+    if tool == "runtime.wgrnn_reject":
+        return kernel.wgrnn_reject_witnessed(slot_id=int(args["slot_id"]), reason=str(args.get("reason", "manual_reject")), user_id=args.get("user_id"), agent_id=args.get("agent_id"), thread_id=args.get("thread_id"))
+
+    if tool == "runtime.wgrnn_quarantine":
+        return kernel.wgrnn_quarantine_witnessed(slot_id=int(args["slot_id"]), reason=str(args.get("reason", "manual_quarantine")), user_id=args.get("user_id"), agent_id=args.get("agent_id"), thread_id=args.get("thread_id"))
+
+    if tool == "runtime.wgrnn_ledger":
+        return kernel.wgrnn.ledger_tail(limit=max(1, min(int(args.get("limit", 50)), 500)), user_id=args.get("user_id"), agent_id=args.get("agent_id"), thread_id=args.get("thread_id"))
+
+    if tool == "runtime.wgrnn_replay_verify":
+        return kernel.wgrnn_replay_verify_witnessed(user_id=args.get("user_id"), agent_id=args.get("agent_id"), thread_id=args.get("thread_id"))
 
     if tool == "runtime.run_inference":
         prompt = str(args.get("prompt", "")).strip()
@@ -256,6 +417,7 @@ async def _read_resource(kernel: RuntimeKernel, uri: str) -> dict[str, Any]:
         "xavi-runtime://corpus": ("runtime.corpus", {}),
         "xavi-runtime://policy": ("runtime.policy", {}),
         "xavi-runtime://formal": ("runtime.formal_status", {}),
+        "xavi-runtime://wgrnn": ("runtime.wgrnn_status", {"include_slots": True}),
     }
 
     if uri == "xavi-runtime://repo/status":
