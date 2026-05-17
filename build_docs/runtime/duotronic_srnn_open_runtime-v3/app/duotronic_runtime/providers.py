@@ -120,20 +120,83 @@ class ModelRegistry:
                 existing_names.add(name)
         return records
 
+    def _model_tag(self, record: dict[str, Any]) -> str:
+        return str(record.get("model") or record.get("name") or "").strip()
+
+    def _is_non_chat_model(self, record: dict[str, Any]) -> bool:
+        tag = self._model_tag(record).lower()
+        name = str(record.get("name") or "").lower()
+        haystack = f"{name} {tag}"
+        # Ollama exposes embedding-only models through /api/tags. They are valid
+        # inventory entries but should not be advertised to OpenAI chat clients.
+        non_chat_markers = ("embed", "embedding", "nomic-embed")
+        return any(marker in haystack for marker in non_chat_markers)
+
+    def _has_reachable_chat_backend(self, record: dict[str, Any]) -> bool:
+        provider = str(record.get("provider") or "")
+        if provider != "ollama":
+            return False
+        base = str(record.get("base_url") or self.settings.ollama_host or "")
+        # In the runtime container this backend is currently unreachable and
+        # produces immediate ConnectError responses. Do not advertise those aliases
+        # to LibreChat; keep explicit calls possible for debugging.
+        if "host.containers.internal" in base:
+            return False
+        return True
+
+    def is_openai_chat_visible(self, record: dict[str, Any]) -> bool:
+        if not record.get("enabled", True):
+            return False
+        if self._is_non_chat_model(record):
+            return False
+        return self._has_reachable_chat_backend(record)
+
+    def list_openai_chat_models(self) -> list[dict[str, Any]]:
+        """Return model records safe to advertise from OpenAI /v1/models.
+
+        This is intentionally stricter than list_models(): inventory may include
+        echo providers, embedding models, disabled models, and aliases pointing at
+        unreachable development backends. Those records are useful for ops but make
+        OpenAI-compatible clients select broken models.
+        """
+        visible: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for record in self.list_models():
+            if not self.is_openai_chat_visible(record):
+                continue
+            name = str(record.get("name") or "")
+            if name and name not in seen:
+                visible.append(record)
+                seen.add(name)
+        return visible
+
     def get(self, name: str | None = None) -> dict[str, Any]:
         enabled = [r for r in self.list_models() if r.get("enabled", True)]
         if name:
-            for r in enabled:
-                if r.get("name") == name:
-                    return r
-            # OpenAI-compatible clients often submit raw Ollama tags such as
-            # "mistral:7b" even though auto-discovered registry records are named
-            # "ollama:mistral:7b". Resolve those tags directly instead of falling
-            # back to the default/runtime-wrapped model path.
-            if not str(name).startswith("ollama:"):
-                prefixed = f"ollama:{name}"
+            requested = str(name)
+            # Exact runtime names always win, except raw Ollama tags are handled
+            # below so a configured Xavi alias cannot shadow a discovered direct
+            # Ollama model with the same underlying tag.
+            if requested.startswith("ollama:"):
                 for r in enabled:
-                    if r.get("name") == prefixed or r.get("model") == name:
+                    if r.get("name") == requested:
+                        return r
+            else:
+                prefixed = f"ollama:{requested}"
+                # Prefer the discovered direct local Ollama record first.
+                for r in enabled:
+                    if r.get("name") == prefixed and self.is_openai_chat_visible(r):
+                        return r
+                # Then exact configured alias names.
+                for r in enabled:
+                    if r.get("name") == requested:
+                        return r
+                # Finally, model tag matches, preferring reachable chat backends.
+                for r in enabled:
+                    if self._model_tag(r) == requested and self.is_openai_chat_visible(r):
+                        return r
+                for r in enabled:
+                    if self._model_tag(r) == requested:
                         return r
         for r in enabled:
             if r.get("default"):

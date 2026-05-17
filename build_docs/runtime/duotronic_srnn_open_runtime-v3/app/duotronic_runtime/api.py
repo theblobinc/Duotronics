@@ -407,7 +407,7 @@ def create_app() -> FastAPI:
 
     @app.get("/v1/models")
     def models() -> dict[str, Any]:
-        models = kernel.model_provider.registry.list_models()
+        models = kernel.model_provider.registry.list_openai_chat_models()
         data: list[dict[str, Any]] = []
         seen: set[str] = set()
         for model in models:
