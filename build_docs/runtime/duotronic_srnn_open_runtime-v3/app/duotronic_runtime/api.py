@@ -167,25 +167,55 @@ def require_api_key(settings: Settings, authorization: str | None) -> None:
         raise HTTPException(status_code=401, detail="missing or invalid bearer token")
 
 
+def _message_content_to_text(content: Any) -> str:
+    if isinstance(content, list):
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_parts.append(str(item.get("text", "")))
+            elif isinstance(item, str):
+                text_parts.append(item)
+        return "\n".join(text_parts)
+    return str(content or "")
+
+
 def _messages_to_prompt(messages: list[ChatMessage], prompt: str | None = None) -> str:
     if prompt:
         return prompt
     parts: list[str] = []
     for msg in messages:
-        content = msg.content
-        if isinstance(content, list):
-            text_parts = []
-            for item in content:
-                if isinstance(item, dict) and item.get("type") == "text":
-                    text_parts.append(str(item.get("text", "")))
-                elif isinstance(item, str):
-                    text_parts.append(item)
-            content_text = "\n".join(text_parts)
-        else:
-            content_text = str(content or "")
+        content_text = _message_content_to_text(msg.content)
         if content_text:
             parts.append(f"{msg.role}: {content_text}")
     return "\n".join(parts).strip()
+
+
+def _messages_for_ollama_chat(messages: list[ChatMessage], prompt: str | None = None) -> list[dict[str, str]]:
+    formatting_guard = (
+        "You are a helpful assistant in a chat UI. Answer the user's question directly. "
+        "Use normal spaces between words and clean Markdown. Do not output runtime policy, "
+        "evidence labels, audit labels, source-code placeholders, file paths, or template text "
+        "unless the user explicitly asks for them."
+    )
+    out: list[dict[str, str]] = [{"role": "system", "content": formatting_guard}]
+    if prompt:
+        out.append({"role": "user", "content": prompt})
+        return out
+    for msg in messages:
+        role = msg.role if msg.role in {"system", "user", "assistant", "tool"} else "user"
+        content_text = _message_content_to_text(msg.content).strip()
+        if not content_text:
+            continue
+        if role == "system":
+            # Preserve caller system guidance while keeping our UI formatting guard first.
+            out.append({"role": "system", "content": content_text})
+        elif role == "tool":
+            out.append({"role": "user", "content": content_text})
+        else:
+            out.append({"role": role, "content": content_text})
+    if len(out) == 1:
+        out.append({"role": "user", "content": ""})
+    return out
 
 
 def _sse(data: dict[str, Any]) -> str:
@@ -287,7 +317,12 @@ def create_app() -> FastAPI:
             yield _done_sse()
             return
         in_reasoning = False
-        async for chunk in stream_ollama_generate(settings, prompt=prompt, model=model_record):
+        async for chunk in stream_ollama_generate(
+            settings,
+            prompt=prompt,
+            model=model_record,
+            messages=_messages_for_ollama_chat(req.messages, req.prompt),
+        ):
             reasoning = chunk.get("reasoning_text") or ""
             text = chunk.get("response_text") or ""
             if reasoning and req.show_reasoning:
@@ -344,7 +379,12 @@ def create_app() -> FastAPI:
         try:
             model_record = kernel.model_provider.registry.get(req.model)
             if model_record.get("provider") == "ollama":
-                provider_result = await complete_ollama_generate(settings, prompt=prompt, model=model_record)
+                provider_result = await complete_ollama_generate(
+                    settings,
+                    prompt=prompt,
+                    model=model_record,
+                    messages=_messages_for_ollama_chat(req.messages, req.prompt),
+                )
             else:
                 provider_result = await kernel.model_provider.complete(prompt=prompt, model_name=req.model)
         except RuntimeError as exc:

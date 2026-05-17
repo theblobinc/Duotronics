@@ -77,3 +77,22 @@ def test_raw_tag_prefers_reachable_discovered_ollama_over_dead_alias(tmp_path: P
 
     assert record["name"] == "ollama:qwen2.5-coder:7b"
     assert record["base_url"] == "http://ollama:11434"
+
+
+def test_openai_chat_models_hide_custom_xavi_completion_tags(tmp_path: Path) -> None:
+    registry_path = tmp_path / "models.json"
+    registry_path.write_text('{"models": [{"name": "ollama-default", "provider": "ollama", "model": "llama3.2:1b", "base_url": "http://ollama:11434", "enabled": true, "default": true}]}')
+    settings = SimpleNamespace(ollama_enabled=True, ollama_host="http://ollama:11434")
+    registry = ModelRegistry(registry_path, settings)  # type: ignore[arg-type]
+    registry._ollama_cache = [
+        {"name": "ollama:qwen3:4b", "provider": "ollama", "model": "qwen3:4b", "base_url": "http://ollama:11434", "enabled": True, "discovered": True},
+        {"name": "ollama:qwen2.5-coder:xavi-continue-agent", "provider": "ollama", "model": "qwen2.5-coder:xavi-continue-agent", "base_url": "http://ollama:11434", "enabled": True, "discovered": True},
+        {"name": "ollama:xavi-copilot-agent:latest", "provider": "ollama", "model": "xavi-copilot-agent:latest", "base_url": "http://ollama:11434", "enabled": True, "discovered": True},
+    ]
+    registry._ollama_cache_ts = 10**12
+
+    names = {r["name"] for r in registry.list_openai_chat_models()}
+
+    assert "ollama:qwen3:4b" in names
+    assert "ollama:qwen2.5-coder:xavi-continue-agent" not in names
+    assert "ollama:xavi-copilot-agent:latest" not in names

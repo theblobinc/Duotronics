@@ -130,7 +130,21 @@ class ModelRegistry:
         # Ollama exposes embedding-only models through /api/tags. They are valid
         # inventory entries but should not be advertised to OpenAI chat clients.
         non_chat_markers = ("embed", "embedding", "nomic-embed")
-        return any(marker in haystack for marker in non_chat_markers)
+        if any(marker in haystack for marker in non_chat_markers):
+            return True
+        # Hide custom policy/code-completion Modelfile variants from generic chat
+        # discovery. These tags are useful for agent tooling but produce poor
+        # LibreChat output when selected as plain assistant models.
+        custom_completion_markers = (
+            "xavi-agent",
+            "xavi-continue",
+            "xavi-copilot-agent",
+            "continue-autocomplete",
+            "continue-background",
+            "continue-agent",
+            "continue-plan",
+        )
+        return any(marker in haystack for marker in custom_completion_markers)
 
     def _has_reachable_chat_backend(self, record: dict[str, Any]) -> bool:
         provider = str(record.get("provider") or "")
@@ -336,10 +350,11 @@ class ModelProvider:
         }
 
 
-async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None) -> AsyncIterator[dict[str, Any]]:
-    """Yield normalized chunks from Ollama /api/generate streaming JSON lines."""
+async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, str]] | None = None) -> AsyncIterator[dict[str, Any]]:
+    """Yield normalized chunks from Ollama /api/chat streaming JSON lines."""
     base = model.get("base_url") or settings.ollama_host
     name = model.get("model") or settings.ollama_default_model
+    chat_messages = messages or [{"role": "user", "content": prompt}]
     timeout = httpx.Timeout(
         connect=10.0,
         read=float(getattr(settings, "ollama_timeout_seconds", 180.0)),
@@ -349,12 +364,12 @@ async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict
     async with httpx.AsyncClient(timeout=timeout) as client:
         async with client.stream(
             "POST",
-            f"{str(base).rstrip('/')}/api/generate",
+            f"{str(base).rstrip('/')}/api/chat",
             json={
                 "model": name,
-                "prompt": prompt,
-                "system": DUOTRONIC_RUNTIME_SYSTEM_PROMPT,
+                "messages": chat_messages,
                 "stream": True,
+                "think": False,
                 "options": options or {
                     "temperature": 0.15,
                     "top_p": 0.85,
@@ -381,15 +396,17 @@ async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict
                 }
 
 
-async def complete_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Return one direct Ollama completion for OpenAI-v1-compatible clients.
+async def complete_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, str]] | None = None) -> dict[str, Any]:
+    """Return one direct Ollama chat completion for OpenAI-v1-compatible clients.
 
-    This intentionally avoids the Duotronic runtime prompt wrapper. LibreChat and
-    other OpenAI-compatible clients expect /v1/chat/completions to behave like a
-    plain model gateway unless they pick an explicit Xavi/WG-RNN model.
+    Use Ollama /api/chat instead of /api/generate so each model receives its
+    native chat-template structure. This prevents raw prompt/template artifacts,
+    smashed-together role labels, and hidden runtime/policy prompt leakage in
+    LibreChat, Continue, Roo, and VS Code clients.
     """
     base = model.get("base_url") or settings.ollama_host
     name = model.get("model") or settings.ollama_default_model
+    chat_messages = messages or [{"role": "user", "content": prompt}]
     timeout = httpx.Timeout(
         connect=10.0,
         read=float(getattr(settings, "ollama_timeout_seconds", 180.0)),
@@ -399,11 +416,12 @@ async def complete_ollama_generate(settings: Settings, *, prompt: str, model: di
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(
-                f"{base.rstrip('/')}/api/generate",
+                f"{base.rstrip('/')}/api/chat",
                 json={
                     "model": name,
-                    "prompt": prompt,
+                    "messages": chat_messages,
                     "stream": False,
+                    "think": False,
                     "options": options or {
                         "temperature": 0.15,
                         "top_p": 0.85,
