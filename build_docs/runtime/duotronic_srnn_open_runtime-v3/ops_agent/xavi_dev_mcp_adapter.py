@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import subprocess
+import time
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -101,6 +103,82 @@ def runtime_mcp_tool_call(name: str, args: dict[str, Any], auth_header: str | No
     if isinstance(result, dict) and "structuredContent" in result:
         return result["structuredContent"]
     return result
+
+def _ledger_digest(value: Any) -> str:
+    data = json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
+    return "sha256:" + hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+
+def _ledger_preview(value: Any, limit: int = 240) -> str:
+    text = json.dumps(value, sort_keys=True, default=str)
+    if len(text) <= limit:
+        return text
+    return text[:limit] + f"...[truncated {len(text) - limit} chars]"
+
+
+def _ledger_session_context(request: Request) -> dict[str, str]:
+    headers = request.headers
+    explicit_session = (
+        headers.get("x-xavi-session-id")
+        or headers.get("x-mcp-session-id")
+        or headers.get("mcp-session-id")
+    )
+    device_id = (
+        headers.get("x-xavi-device-id")
+        or headers.get("x-device-id")
+        or headers.get("user-agent")
+        or "unknown-device"
+    )
+    agent_id = headers.get("x-xavi-agent-id") or headers.get("x-agent-id") or "mcp-client"
+
+    if explicit_session:
+        session_id = explicit_session.strip()
+    else:
+        fingerprint = _ledger_digest({
+            "device_id": device_id,
+            "agent_id": agent_id,
+            "client": headers.get("user-agent", ""),
+        }).split(":", 1)[1][:16]
+        session_id = f"mcp-{agent_id}-{fingerprint}"
+
+    return {
+        "session_id": session_id[:160],
+        "device_id_digest": _ledger_digest(device_id),
+        "agent_id": agent_id[:120],
+    }
+
+
+def _ledger_append_safe(
+    *,
+    request: Request,
+    event_type: str,
+    actor: str,
+    content: dict[str, Any],
+    tags: list[str] | None = None,
+) -> None:
+    if os.environ.get("XAVI_MCP_LEDGER_CAPTURE", "1").lower() in {"0", "false", "no"}:
+        return
+    try:
+        ctx = _ledger_session_context(request)
+        runtime_mcp_tool_call(
+            "runtime.session_append",
+            {
+                "session_id": ctx["session_id"],
+                "event_type": event_type,
+                "actor": actor,
+                "content": {
+                    **content,
+                    "device_id_digest": ctx["device_id_digest"],
+                    "agent_id": ctx["agent_id"],
+                    "capture_mode": "digest_only",
+                },
+                "tags": sorted(set((tags or []) + ["mcp-auto-capture"])),
+            },
+            request.headers.get("authorization"),
+        )
+    except Exception:
+        return
+
 
 def call_ops(command: str, args: dict[str, Any] | None = None, timeout: int = 60) -> Any:
     payload = json.dumps({"command": command, "args": args or {}}).encode()
@@ -813,6 +891,19 @@ async def mcp_root(request: Request) -> JSONResponse:
         if method == "tools/call":
             name = params.get("name")
             args = params.get("arguments") or {}
+            started_ms = int(time.time() * 1000)
+            _ledger_append_safe(
+                request=request,
+                event_type="mcp_call_start",
+                actor="adapter",
+                content={
+                    "tool_name": name,
+                    "request_id_digest": _ledger_digest(req_id),
+                    "args_digest": _ledger_digest(args),
+                    "args_preview": _ledger_preview(args),
+                },
+                tags=["mcp", "tool-call", str(name or "unknown")],
+            )
 
             if name in DISABLED_TOOL_NAMES:
                 return JSONResponse(rpc_error(
@@ -943,6 +1034,21 @@ async def mcp_root(request: Request) -> JSONResponse:
                 else:
                     return JSONResponse(rpc_error(req_id, -32601, f"Unknown tool: {name}"))
 
+            duration_ms = int(time.time() * 1000) - started_ms
+            _ledger_append_safe(
+                request=request,
+                event_type="mcp_call_result",
+                actor="adapter",
+                content={
+                    "tool_name": name,
+                    "request_id_digest": _ledger_digest(req_id),
+                    "result_digest": _ledger_digest(result),
+                    "result_preview": _ledger_preview(result),
+                    "status": "ok",
+                    "duration_ms": duration_ms,
+                },
+                tags=["mcp", "tool-result", str(name or "unknown")],
+            )
             return JSONResponse(rpc_result(req_id, {
                 "content": [{"type": "text", "text": _tool_text_content(result)}],
                 "isError": False,
