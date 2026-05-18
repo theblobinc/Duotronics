@@ -115,3 +115,16 @@ def test_routes_embeddings_to_embedding_model():
 
     assert route["selected"]["name"] == "ollama:nomic-embed-text:latest"
     assert route["selected"]["modalities"] == ["embedding"]
+
+
+def test_inference_route_mcp_schema_exposes_route_inputs():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+
+    assert '"name": "runtime.inference_route"' in mcp
+    assert '"task": {"type": "string", "default": "chat"}' in mcp
+    assert '"capability": {"type": ["string", "null"]}' in mcp
+    assert '"needs_tools": {"type": "boolean", "default": False}' in mcp
+    assert '"max_candidates": {"type": "integer", "minimum": 1, "maximum": 32, "default": 8}' in mcp

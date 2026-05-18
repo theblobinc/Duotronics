@@ -97,5 +97,7 @@ def test_operation_plan_http_and_mcp_surface_names_are_wired():
     assert '@app.post("/v1/operations/plan")' in api
     assert 'from .operation_runtime import plan_operation_witnessed' in api
     assert '"name": "runtime.operation_plan"' in mcp
+    assert '"required": ["goal"]' in mcp
+    assert '"max_candidates": {"type": "integer", "minimum": 1, "maximum": 32, "default": 6}' in mcp
     assert 'if tool == "runtime.operation_plan"' in mcp
     assert 'return plan_operation_witnessed(' in mcp
