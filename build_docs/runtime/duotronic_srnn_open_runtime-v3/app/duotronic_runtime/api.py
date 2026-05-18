@@ -163,6 +163,12 @@ class OperationPlanRequestModel(BaseModel):
     max_candidates: int = Field(default=6, ge=1, le=32)
 
 
+
+class ClientProfileRequestModel(BaseModel):
+    profile: str = Field(..., min_length=1)
+    overrides: dict[str, Any] = Field(default_factory=dict)
+
+
 class WGRNNStepRequest(BaseModel):
     prompt: str = Field(..., min_length=1)
     response_text: str = ""
@@ -345,6 +351,17 @@ def create_app() -> FastAPI:
         from .client_profiles import client_profiles
 
         return {"schema_version": "client-profiles-v1", "profiles": client_profiles()}
+
+    @app.post("/v1/client-profiles/route")
+    def client_profile_route(req: ClientProfileRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        from .client_profiles import profile_payload
+        from .inference_router import plan_inference_route
+
+        payload = profile_payload(req.profile, mode="route", overrides=req.overrides)
+        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+        route = plan_inference_route(report, payload)
+        return {"schema_version": "client-profile-route-v1", "profile": req.profile, "payload": payload, "route": route}
 
     @app.post("/v1/inference/route")
     def inference_route(req: InferenceRouteRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:

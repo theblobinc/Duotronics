@@ -117,3 +117,13 @@ def test_client_profiles_mcp_surface_is_wired():
     assert 'from .client_profiles import client_profiles' in mcp
     assert '"schema_version": "client-profiles-v1"' in mcp
     assert '"profiles": client_profiles()' in mcp
+
+def test_client_profile_route_http_surface_is_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    api = (root / "app/duotronic_runtime/api.py").read_text()
+
+    assert '@app.post("/v1/client-profiles/route")' in api
+    assert 'profile_payload(req.profile, mode="route", overrides=req.overrides)' in api
+    assert '"schema_version": "client-profile-route-v1"' in api
