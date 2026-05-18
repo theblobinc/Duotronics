@@ -138,6 +138,16 @@ def _tool_manifest() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "runtime.session_index",
+            "description": "List runtime session ledger sessions and latest digests.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": False,
+            },
+        },
+        {
             "name": "runtime.session_append",
             "description": "Append an event to the hash-chained runtime session ledger.",
             "read_only": False,
@@ -461,6 +471,11 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
     if tool == "runtime.modules":
         return kernel.modules.capability_report()
+
+    if tool == "runtime.session_index":
+        from .session_ledger import SessionLedger
+
+        return SessionLedger().index()
 
     if tool == "runtime.session_append":
         from .session_ledger import SessionLedger

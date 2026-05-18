@@ -117,6 +117,20 @@ class SessionLedger:
             "events": events[-limit:],
         }
 
+    def index(self) -> dict[str, Any]:
+        path = self.root / "index.json"
+        if not path.exists():
+            return {"schema_version": "session-ledger-index-v1", "sessions": {}}
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return {"schema_version": "session-ledger-index-v1", "sessions": {}, "corrupt": True}
+        if not isinstance(data, dict):
+            return {"schema_version": "session-ledger-index-v1", "sessions": {}, "corrupt": True}
+        data.setdefault("schema_version", "session-ledger-index-v1")
+        data.setdefault("sessions", {})
+        return data
+
     def summary(self, *, session_id: str) -> dict[str, Any]:
         events = self._read_events(session_id)
         event_types = Counter(event.get("event_type") for event in events)

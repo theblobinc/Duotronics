@@ -110,3 +110,25 @@ def test_session_ledger_mcp_surface_is_wired():
     assert 'if tool == "runtime.session_summary"' in mcp
     assert 'if tool == "runtime.session_verify"' in mcp
     assert 'from .session_ledger import SessionLedger' in mcp
+
+
+def test_session_ledger_index_contract(tmp_path):
+    ledger = SessionLedger(tmp_path)
+    event = ledger.append(session_id="s1", event_type="plan", actor="agent", content={})
+
+    index = ledger.index()
+
+    assert index["schema_version"] == "session-ledger-index-v1"
+    assert index["sessions"]["s1"]["latest_sequence"] == 1
+    assert index["sessions"]["s1"]["latest_event_digest"] == event["event_digest"]
+
+
+def test_session_ledger_mcp_index_surface_is_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+
+    assert '"name": "runtime.session_index"' in mcp
+    assert 'if tool == "runtime.session_index"' in mcp
+    assert "return SessionLedger().index()" in mcp
