@@ -84,3 +84,18 @@ def test_operation_plan_digest_is_stable():
     second = plan_operation(sample_report(), payload)
 
     assert first["plan_digest"] == second["plan_digest"]
+
+
+def test_operation_plan_http_and_mcp_surface_names_are_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    api = (root / "app/duotronic_runtime/api.py").read_text()
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+
+    assert 'class OperationPlanRequestModel' in api
+    assert '@app.post("/v1/operations/plan")' in api
+    assert 'from .operation_planner import plan_operation' in api
+    assert '"name": "runtime.operation_plan"' in mcp
+    assert 'if tool == "runtime.operation_plan"' in mcp
+    assert 'return plan_operation(report, args)' in mcp

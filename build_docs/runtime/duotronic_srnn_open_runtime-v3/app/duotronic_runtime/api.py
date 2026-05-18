@@ -154,6 +154,15 @@ class InferenceRouteRequestModel(BaseModel):
     max_candidates: int = Field(default=8, ge=1, le=32)
 
 
+class OperationPlanRequestModel(BaseModel):
+    goal: str = Field(..., min_length=1)
+    intent: str = "logic"
+    constraints: list[str] = Field(default_factory=list)
+    prefer_remote: bool = True
+    require_live_backend: bool = False
+    max_candidates: int = Field(default=6, ge=1, le=32)
+
+
 class WGRNNStepRequest(BaseModel):
     prompt: str = Field(..., min_length=1)
     response_text: str = ""
@@ -337,6 +346,14 @@ def create_app() -> FastAPI:
 
         report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
         return plan_inference_route(report, req.model_dump())
+
+    @app.post("/v1/operations/plan")
+    def operation_plan(req: OperationPlanRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        from .operation_planner import plan_operation
+
+        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+        return plan_operation(report, req.model_dump())
 
     async def _stream_chat_completions(req: ChatCompletionRequest, prompt: str):
         import time

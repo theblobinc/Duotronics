@@ -72,6 +72,12 @@ def _tool_manifest() -> list[dict[str, Any]]:
             "input_schema": {"type": "object", "properties": {}},
         },
         {
+            "name": "runtime.operation_plan",
+            "description": "Plan a read-only logical runtime operation from a goal and intent.",
+            "read_only": True,
+            "input_schema": {"type": "object", "properties": {}},
+        },
+        {
             "name": "runtime.modules",
             "description": "List registered runtime modules and capabilities.",
             "read_only": True,
@@ -293,6 +299,13 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
         tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
         report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
         return plan_inference_route(report, args)
+
+    if tool == "runtime.operation_plan":
+        from .operation_planner import plan_operation
+
+        tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
+        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+        return plan_operation(report, args)
 
     if tool == "runtime.modules":
         return kernel.modules.capability_report()
