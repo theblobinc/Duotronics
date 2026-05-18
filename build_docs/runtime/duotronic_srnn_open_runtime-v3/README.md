@@ -48,6 +48,13 @@ curl -s http://127.0.0.1:8080/v1/corpus/inspect | python -m json.tool
 curl -s http://127.0.0.1:8080/v1/corpus/plan | python -m json.tool
 ```
 
+Inspect unified model/tool/backend capabilities:
+
+```bash
+curl -s http://127.0.0.1:8080/v1/capabilities \
+  -H "authorization: Bearer $RUNTIME_API_KEY" | python -m json.tool
+```
+
 ## Profiles
 
 ```bash
@@ -74,6 +81,7 @@ podman compose --profile ui --env-file .env up --build
 
 `.vscode/mcp.example.json` launches the stdio MCP server through Podman. Tools include:
 
+- `runtime.capabilities` (unified model/tool/backend capability inventory)
 - `runtime_health`
 - `run_cognition`
 - `submit_claim`

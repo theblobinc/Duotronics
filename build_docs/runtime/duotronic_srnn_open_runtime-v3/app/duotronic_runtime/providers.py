@@ -9,6 +9,7 @@ from typing import Any, AsyncIterator
 import httpx
 
 from .config import Settings
+from .model_capabilities import enrich_model_record, is_chat_capable
 from .prompting import DUOTRONIC_RUNTIME_SYSTEM_PROMPT, build_runtime_prompt
 from .response_normalizer import extract_model_response
 
@@ -26,11 +27,14 @@ class ModelRegistry:
         self.records = self._load()
         self._ollama_cache: list[dict[str, Any]] = []
         self._ollama_cache_ts: float = 0.0
+        self._openai_compatible_cache: list[dict[str, Any]] = []
+        self._openai_compatible_cache_ts: float = 0.0
         self._OLLAMA_CACHE_TTL = 30.0
+        self._OPENAI_COMPATIBLE_CACHE_TTL = 30.0
 
     def _load(self) -> list[dict[str, Any]]:
         if not self.path.exists():
-            return [{"name": "sandbox-echo", "provider": "echo", "default": True, "enabled": True}]
+            return [enrich_model_record({"name": "sandbox-echo", "provider": "echo", "default": True, "enabled": True})]
         data = json.loads(self.path.read_text())
         out = []
         for record in data.get("models", []):
@@ -40,7 +44,7 @@ class ModelRegistry:
                 rec["enabled"] = os.environ.get(str(enabled_env), "false").lower() in {"1", "true", "yes", "on"}
             else:
                 rec["enabled"] = bool(rec.get("enabled", True))
-            out.append(rec)
+            out.append(enrich_model_record(rec))
         return out
 
     def _discover_ollama_models(self) -> list[dict[str, Any]]:
@@ -94,31 +98,96 @@ class ModelRegistry:
                 continue
 
             discovered.append(
-                {
-                    "name": runtime_name,
-                    "provider": "ollama",
-                    "model": tag,
-                    "base_url": working_base,
-                    "enabled": True,
-                    "default": False,
-                    "description": "Discovered from Ollama /api/tags",
-                    "discovered": True,
-                }
+                enrich_model_record(
+                    {
+                        "name": runtime_name,
+                        "provider": "ollama",
+                        "model": tag,
+                        "base_url": working_base,
+                        "enabled": True,
+                        "default": False,
+                        "description": "Discovered from Ollama /api/tags",
+                        "discovered": True,
+                        "metadata": {"source": "ollama_tags", "raw": item},
+                    }
+                )
             )
 
         self._ollama_cache = discovered
         self._ollama_cache_ts = time.monotonic()
         return discovered
 
+    def _discover_openai_compatible_models(self) -> list[dict[str, Any]]:
+        """Return transient records from enabled OpenAI-compatible backends."""
+        now = time.monotonic()
+        if now - self._openai_compatible_cache_ts < self._OPENAI_COMPATIBLE_CACHE_TTL:
+            return self._openai_compatible_cache
+
+        providers: list[dict[str, Any]] = []
+        if getattr(self.settings, "llama_cpp_enabled", False):
+            providers.append(
+                {
+                    "provider": "llama_cpp",
+                    "base_url": str(getattr(self.settings, "llama_cpp_base_url", "") or "").rstrip("/"),
+                    "default_model": getattr(self.settings, "llama_cpp_default_model", "local-gguf"),
+                }
+            )
+
+        discovered: list[dict[str, Any]] = []
+        existing_names = {str(r.get("name") or "") for r in self.records}
+        for provider in providers:
+            base = provider.get("base_url") or ""
+            if not base:
+                continue
+            models: list[dict[str, Any]] = []
+            try:
+                timeout = httpx.Timeout(5.0, connect=2.0)
+                with httpx.Client(timeout=timeout) as client:
+                    r = client.get(f"{base}/models")
+                    r.raise_for_status()
+                    data = r.json()
+                    raw_models = data.get("data", data.get("models", [])) if isinstance(data, dict) else []
+                    models = [item for item in raw_models if isinstance(item, dict)]
+            except Exception:
+                models = [{"id": provider.get("default_model"), "source": "configured_default_unprobed"}]
+
+            for item in models:
+                model_id = str(item.get("id") or item.get("name") or item.get("model") or provider.get("default_model") or "").strip()
+                if not model_id:
+                    continue
+                runtime_name = f"{provider['provider']}:{model_id}"
+                if runtime_name in existing_names:
+                    continue
+                discovered.append(
+                    enrich_model_record(
+                        {
+                            "name": runtime_name,
+                            "provider": provider["provider"],
+                            "model": model_id,
+                            "base_url": base,
+                            "enabled": True,
+                            "default": False,
+                            "description": f"Discovered from {provider['provider']} OpenAI-compatible /v1/models",
+                            "discovered": True,
+                            "endpoint_type": "openai_v1",
+                            "metadata": {"source": "openai_compatible_models", "raw": item},
+                        }
+                    )
+                )
+
+        self._openai_compatible_cache = discovered
+        self._openai_compatible_cache_ts = time.monotonic()
+        return discovered
+
     def list_models(self) -> list[dict[str, Any]]:
         records = list(self.records)
         existing_names = {str(r.get("name") or "") for r in records}
-        for record in self._discover_ollama_models():
+        for record in self._discover_ollama_models() + self._discover_openai_compatible_models():
             name = str(record.get("name") or "")
             if name and name not in existing_names:
-                records.append(record)
+                records.append(enrich_model_record(record))
                 existing_names.add(name)
-        return records
+        return [enrich_model_record(record) for record in records]
 
     def _model_tag(self, record: dict[str, Any]) -> str:
         return str(record.get("model") or record.get("name") or "").strip()
@@ -127,8 +196,10 @@ class ModelRegistry:
         tag = self._model_tag(record).lower()
         name = str(record.get("name") or "").lower()
         haystack = f"{name} {tag}"
-        # Ollama exposes embedding-only models through /api/tags. They are valid
-        # inventory entries but should not be advertised to OpenAI chat clients.
+        # Inventory can contain embeddings, image generators, runners, and custom
+        # agent tags. Only advertise records that have an actual text/chat surface.
+        if not is_chat_capable(record):
+            return True
         non_chat_markers = ("embed", "embedding", "nomic-embed")
         if any(marker in haystack for marker in non_chat_markers):
             return True
@@ -148,7 +219,7 @@ class ModelRegistry:
 
     def _has_reachable_chat_backend(self, record: dict[str, Any]) -> bool:
         provider = str(record.get("provider") or "")
-        if provider != "ollama":
+        if provider not in {"ollama", "llama_cpp", "openai_compatible", "openai"}:
             return False
         base = str(record.get("base_url") or self.settings.ollama_host or "")
         # In the runtime container this backend is currently unreachable and

@@ -33,7 +33,8 @@ class ToolRuntime:
         return path
 
     def record_witness(self, witness_type: str, payload: dict[str, Any], *, status: str = "recorded", observer_id: str = "tool-runtime") -> dict[str, Any]:
-        witness = self.kernel.evidence.witness(witness_type, payload, force="observe", status=status, observer_id=observer_id)
+        payload = {**payload, "observer_id": observer_id}
+        witness = self.kernel.evidence.witness(witness_type, payload, force="observe", status=status)
         self.kernel.store.insert_witness(witness)
         return witness
 
@@ -169,6 +170,70 @@ class ToolRuntime:
         payload = {"prompt": prompt, "prompt_digest": sha256_ref(prompt), "size": size, "model": model, "n": n, "images": images, "errors": errors, "enabled": bool(endpoint), "created_at_ms": int(time.time() * 1000)}
         witness = self.record_witness("MediaGenerationWitness", payload, status="accepted" if images else "recorded", observer_id="image_generation.local")
         return {"ok": bool(images), "witness": witness, **payload}
+
+    def capability_report(self, models: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+        models = models or []
+        tools = self.openai_tools()
+
+        normalized_models: list[dict[str, Any]] = []
+        model_capabilities: dict[str, list[str]] = {}
+        modalities: dict[str, list[str]] = {}
+        providers: dict[str, int] = {}
+
+        for model in models:
+            name = str(model.get("name") or model.get("model") or "unknown").strip() or "unknown"
+            provider = str(model.get("provider") or "unknown").strip() or "unknown"
+            caps = sorted({str(item) for item in (model.get("capabilities") or []) if item})
+            mods = sorted({str(item) for item in (model.get("modalities") or []) if item})
+            providers[provider] = providers.get(provider, 0) + 1
+            model_capabilities[name] = caps
+            modalities[name] = mods
+            normalized_models.append({**model, "name": name, "provider": provider, "capabilities": caps, "modalities": mods})
+
+        tool_capabilities = {
+            "code_interpreter_execute": ["artifact_output", "code_execution", "code_interpreter"],
+            "image_generate": ["artifact_output", "image_generation"],
+            "xavi_search_evidence": ["evidence_retrieval", "search"],
+        }
+
+        all_capabilities = sorted(
+            {cap for caps in model_capabilities.values() for cap in caps} | {cap for caps in tool_capabilities.values() for cap in caps}
+        )
+
+        backends = {
+            "code_interpreter": {"configured": bool(os.environ.get("CODE_INTERPRETER_URL", "")), "env": "CODE_INTERPRETER_URL"},
+            "image_generation": {
+                "configured": bool(self.settings.stable_diffusion_url or os.environ.get("STABLE_DIFFUSION_URL") or os.environ.get("IMAGE_GENERATION_URL")),
+                "env": "STABLE_DIFFUSION_URL|IMAGE_GENERATION_URL",
+            },
+            "search": {
+                "configured": bool(self.settings.xavi_search_url or os.environ.get("XAVI_SEARCH_URL") or os.environ.get("SEARCH_API_URL")),
+                "env": "XAVI_SEARCH_URL|SEARCH_API_URL",
+            },
+        }
+
+        payload = {
+            "schema_version": "capabilities-v1",
+            "models": normalized_models,
+            "model_count": len(normalized_models),
+            "providers": dict(sorted(providers.items(), key=lambda item: item[0])),
+            "model_capabilities": model_capabilities,
+            "modalities": modalities,
+            "tools": tools,
+            "tool_capabilities": tool_capabilities,
+            "capabilities": all_capabilities,
+            "backends": backends,
+            "created_at_ms": int(time.time() * 1000),
+        }
+
+        digest_payload = {
+            "schema_version": payload["schema_version"],
+            "models": [{"name": m.get("name"), "provider": m.get("provider"), "capabilities": m.get("capabilities"), "modalities": m.get("modalities")} for m in normalized_models],
+            "tool_capabilities": tool_capabilities,
+            "backends": backends,
+        }
+        payload["capabilities_digest"] = sha256_ref(json.dumps(digest_payload, sort_keys=True, default=str))
+        return payload
 
     def openai_tools(self) -> list[dict[str, Any]]:
         return [

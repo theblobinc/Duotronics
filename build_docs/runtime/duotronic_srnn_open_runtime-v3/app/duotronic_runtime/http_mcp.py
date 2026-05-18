@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from .config import Settings
 from .runtime_kernel import RuntimeKernel
+from .tool_services import ToolRuntime
 from .repo_mcp import XaviRepoTools, repo_resources, repo_tool_manifest
 from .ops_mcp import XaviOpsTools, ops_tool_manifest
 from .dev_bundle_mcp import XaviDevBundleTools, dev_tool_manifest
@@ -55,6 +56,12 @@ def _tool_manifest() -> list[dict[str, Any]]:
         {
             "name": "runtime.models",
             "description": "List configured model providers and defaults.",
+            "read_only": True,
+            "input_schema": {"type": "object", "properties": {}},
+        },
+        {
+            "name": "runtime.capabilities",
+            "description": "Return normalized model, provider, tool, modality, and backend capability inventory.",
             "read_only": True,
             "input_schema": {"type": "object", "properties": {}},
         },
@@ -269,6 +276,10 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
     if tool == "runtime.models":
         return {"items": kernel.model_provider.registry.list_models()}
+
+    if tool == "runtime.capabilities":
+        tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
+        return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
 
     if tool == "runtime.modules":
         return kernel.modules.capability_report()

@@ -313,6 +313,11 @@ def create_app() -> FastAPI:
     def health() -> dict[str, Any]:
         return kernel.health()
 
+    @app.get("/v1/capabilities")
+    def runtime_capabilities(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+
     async def _stream_chat_completions(req: ChatCompletionRequest, prompt: str):
         import time
         import uuid
