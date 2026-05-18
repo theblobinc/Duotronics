@@ -66,6 +66,12 @@ def _tool_manifest() -> list[dict[str, Any]]:
             "input_schema": {"type": "object", "properties": {}},
         },
         {
+            "name": "runtime.client_profiles",
+            "description": "List stable client route profiles for LibreChat and OpenClaw.",
+            "read_only": True,
+            "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
+        {
             "name": "runtime.inference_route",
             "description": "Plan a read-only model/tool route for a requested inference task or capability.",
             "read_only": True,
@@ -318,6 +324,11 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
     if tool == "runtime.capabilities":
         tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
         return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+
+    if tool == "runtime.client_profiles":
+        from .client_profiles import client_profiles
+
+        return {"schema_version": "client-profiles-v1", "profiles": client_profiles()}
 
     if tool == "runtime.inference_route":
         from .inference_router import plan_inference_route

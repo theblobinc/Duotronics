@@ -102,3 +102,18 @@ def test_client_profiles_http_surface_is_wired():
     assert 'from .client_profiles import client_profiles' in api
     assert '"schema_version": "client-profiles-v1"' in api
     assert '"profiles": client_profiles()' in api
+
+
+def test_client_profiles_mcp_surface_is_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+
+    assert '"name": "runtime.client_profiles"' in mcp
+    assert '"description": "List stable client route profiles for LibreChat and OpenClaw."' in mcp
+    assert '"additionalProperties": False' in mcp
+    assert 'if tool == "runtime.client_profiles"' in mcp
+    assert 'from .client_profiles import client_profiles' in mcp
+    assert '"schema_version": "client-profiles-v1"' in mcp
+    assert '"profiles": client_profiles()' in mcp
