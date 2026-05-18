@@ -363,6 +363,22 @@ def create_app() -> FastAPI:
         route = plan_inference_route(report, payload)
         return {"schema_version": "client-profile-route-v1", "profile": req.profile, "payload": payload, "route": route}
 
+    @app.post("/v1/client-profiles/operation")
+    def client_profile_operation(req: ClientProfileRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        from .client_profiles import profile_payload
+        from .operation_runtime import plan_operation_witnessed
+
+        payload = profile_payload(req.profile, mode="operation", overrides=req.overrides)
+        if not payload.get("goal"):
+            payload["goal"] = f"Plan runtime operation for profile {req.profile}"
+        plan = plan_operation_witnessed(
+            tools_runtime,
+            payload,
+            models=kernel.model_provider.registry.list_models(),
+        )
+        return {"schema_version": "client-profile-operation-v1", "profile": req.profile, "payload": payload, "plan": plan}
+
     @app.post("/v1/inference/route")
     def inference_route(req: InferenceRouteRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)

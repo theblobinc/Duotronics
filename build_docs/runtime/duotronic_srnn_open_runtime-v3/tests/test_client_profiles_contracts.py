@@ -127,3 +127,30 @@ def test_client_profile_route_http_surface_is_wired():
     assert '@app.post("/v1/client-profiles/route")' in api
     assert 'profile_payload(req.profile, mode="route", overrides=req.overrides)' in api
     assert '"schema_version": "client-profile-route-v1"' in api
+
+
+def test_client_profile_operation_http_surface_is_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    api = (root / "app/duotronic_runtime/api.py").read_text()
+
+    assert '@app.post("/v1/client-profiles/operation")' in api
+    assert 'profile_payload(req.profile, mode="operation", overrides=req.overrides)' in api
+    assert '"schema_version": "client-profile-operation-v1"' in api
+
+
+def test_client_profile_route_operation_mcp_surfaces_are_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+
+    assert '"name": "runtime.client_profile_route"' in mcp
+    assert '"name": "runtime.client_profile_operation"' in mcp
+    assert 'if tool == "runtime.client_profile_route"' in mcp
+    assert 'if tool == "runtime.client_profile_operation"' in mcp
+    assert 'profile_payload(profile, mode="route", overrides=overrides)' in mcp
+    assert 'profile_payload(profile, mode="operation", overrides=overrides)' in mcp
+    assert '"schema_version": "client-profile-route-v1"' in mcp
+    assert '"schema_version": "client-profile-operation-v1"' in mcp

@@ -72,6 +72,34 @@ def _tool_manifest() -> list[dict[str, Any]]:
             "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
         },
         {
+            "name": "runtime.client_profile_route",
+            "description": "Resolve a named client profile into a read-only inference route.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["profile"],
+                "properties": {
+                    "profile": {"type": "string", "minLength": 1},
+                    "overrides": {"type": "object", "default": {}},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.client_profile_operation",
+            "description": "Resolve a named client profile into a witnessed read-only operation plan.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["profile"],
+                "properties": {
+                    "profile": {"type": "string", "minLength": 1},
+                    "overrides": {"type": "object", "default": {}},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
             "name": "runtime.inference_route",
             "description": "Plan a read-only model/tool route for a requested inference task or capability.",
             "read_only": True,
@@ -329,6 +357,35 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
         from .client_profiles import client_profiles
 
         return {"schema_version": "client-profiles-v1", "profiles": client_profiles()}
+
+    if tool == "runtime.client_profile_route":
+        from .client_profiles import profile_payload
+        from .inference_router import plan_inference_route
+
+        profile = str(args.get("profile", "")).strip()
+        overrides = args.get("overrides") or {}
+        payload = profile_payload(profile, mode="route", overrides=overrides)
+        tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
+        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+        route = plan_inference_route(report, payload)
+        return {"schema_version": "client-profile-route-v1", "profile": profile, "payload": payload, "route": route}
+
+    if tool == "runtime.client_profile_operation":
+        from .client_profiles import profile_payload
+        from .operation_runtime import plan_operation_witnessed
+
+        profile = str(args.get("profile", "")).strip()
+        overrides = args.get("overrides") or {}
+        payload = profile_payload(profile, mode="operation", overrides=overrides)
+        if not payload.get("goal"):
+            payload["goal"] = f"Plan runtime operation for profile {profile}"
+        tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
+        plan = plan_operation_witnessed(
+            tools_runtime,
+            payload,
+            models=kernel.model_provider.registry.list_models(),
+        )
+        return {"schema_version": "client-profile-operation-v1", "profile": profile, "payload": payload, "plan": plan}
 
     if tool == "runtime.inference_route":
         from .inference_router import plan_inference_route
