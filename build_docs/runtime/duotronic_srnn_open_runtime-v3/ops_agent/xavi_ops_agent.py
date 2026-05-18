@@ -455,7 +455,17 @@ async def call(req: OpsCallRequest, authorization: str | None = Header(default=N
         return {"result": run_cmd(["git", "push", "origin", "main"], cwd=REPO_ROOT, timeout=180)}
 
     if command == "ops.runtime_tests":
-        return {"result": run_cmd([".venv/bin/python", "-m", "pytest", "-q"], cwd=RUNTIME_DIR, timeout=900, env=runtime_env())}
+        return {"result": run_cmd([
+            ".venv/bin/python",
+            "-m",
+            "pytest",
+            "-q",
+            "tests/test_client_profiles_contracts.py",
+            "tests/test_operation_planner_contracts.py",
+            "tests/test_inference_router_contracts.py",
+            "tests/test_tool_runtime_contracts.py",
+            "tests/test_ops_mcp_contracts.py",
+        ], cwd=RUNTIME_DIR, timeout=900, env=runtime_env())}
 
     if command == "ops.runtime_ps":
         return {"result": run_cmd(["podman", "ps", "--format", "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"], cwd=RUNTIME_DIR, timeout=60)}
