@@ -204,6 +204,16 @@ class ToolRuntime:
                 "fallback_status": "recorded",
                 "disabled_error": None,
             },
+            "operation_plan": {
+                "witness_type": "OperationPlanWitness",
+                "observer_id": "operation_planner.local",
+                "capabilities": ["logic", "operation_planning", "witness_contract"],
+                "backend_env": [],
+                "bounds": {"read_only": True, "execution_mode": "planned_only"},
+                "success_status": "accepted",
+                "fallback_status": "recorded",
+                "disabled_error": None,
+            },
         }
 
     def capability_report(self, models: list[dict[str, Any]] | None = None) -> dict[str, Any]:
@@ -225,11 +235,8 @@ class ToolRuntime:
             modalities[name] = mods
             normalized_models.append({**model, "name": name, "provider": provider, "capabilities": caps, "modalities": mods})
 
-        tool_capabilities = {
-            "code_interpreter_execute": ["artifact_output", "code_execution", "code_interpreter"],
-            "image_generate": ["artifact_output", "image_generation"],
-            "xavi_search_evidence": ["evidence_retrieval", "search"],
-        }
+        tool_contracts = self.tool_contracts()
+        tool_capabilities = {name: list(contract["capabilities"]) for name, contract in tool_contracts.items()}
 
         all_capabilities = sorted(
             {cap for caps in model_capabilities.values() for cap in caps} | {cap for caps in tool_capabilities.values() for cap in caps}

@@ -157,7 +157,8 @@ def test_openai_tools_have_matching_witness_contracts(tmp_path):
     tool_names = {tool["function"]["name"] for tool in runtime.openai_tools()}
     contracts = runtime.tool_contracts()
 
-    assert set(contracts) == tool_names
+    assert tool_names <= set(contracts)
+    assert "operation_plan" not in tool_names
     for name, contract in contracts.items():
         assert contract["witness_type"].endswith("Witness")
         assert contract["observer_id"]
@@ -175,6 +176,8 @@ def test_capability_report_includes_tool_contracts(tmp_path):
     assert report["tool_contracts"]["code_interpreter_execute"]["witness_type"] == "CodeExecutionWitness"
     assert report["tool_contracts"]["image_generate"]["witness_type"] == "MediaGenerationWitness"
     assert report["tool_contracts"]["xavi_search_evidence"]["witness_type"] == "SearchResultWitness"
+    assert report["tool_contracts"]["operation_plan"]["witness_type"] == "OperationPlanWitness"
+    assert "operation_planning" in report["tool_capabilities"]["operation_plan"]
 
 
 def test_capability_report_digest_is_stable_with_tool_contracts(tmp_path):
