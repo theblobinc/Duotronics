@@ -142,6 +142,18 @@ class ImageGenerationRequest(BaseModel):
     n: int = Field(default=1, ge=1, le=4)
 
 
+class InferenceRouteRequestModel(BaseModel):
+    task: str = "chat"
+    capability: str | None = None
+    modalities: list[str] = Field(default_factory=list)
+    prefer_provider: str | None = None
+    prefer_remote: bool = True
+    needs_tools: bool = False
+    needs_vision: bool = False
+    require_live_backend: bool = False
+    max_candidates: int = Field(default=8, ge=1, le=32)
+
+
 class WGRNNStepRequest(BaseModel):
     prompt: str = Field(..., min_length=1)
     response_text: str = ""
@@ -317,6 +329,14 @@ def create_app() -> FastAPI:
     def runtime_capabilities(authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
         return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+
+    @app.post("/v1/inference/route")
+    def inference_route(req: InferenceRouteRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        from .inference_router import plan_inference_route
+
+        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+        return plan_inference_route(report, req.model_dump())
 
     async def _stream_chat_completions(req: ChatCompletionRequest, prompt: str):
         import time

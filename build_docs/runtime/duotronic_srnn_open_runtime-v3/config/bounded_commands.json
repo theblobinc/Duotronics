@@ -2055,6 +2055,30 @@
       ],
       "cwd": "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
       "timeout": 30
+    },
+    "runtime_v3_route_tests": {
+      "title": "Run runtime v3 route tests",
+      "description": "Run inference routing contract tests.",
+      "argv": [
+        "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_inference_router_contracts.py"
+      ],
+      "cwd": "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
+      "timeout": 300
+    },
+    "fix_inference_router_digest": {
+      "title": "Fix inference router digest",
+      "description": "Patch inference_router.py so route_digest hashes canonical JSON rather than a raw dict.",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path\np=Path('/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/app/duotronic_runtime/inference_router.py')\ns=p.read_text()\ns=s.replace('result[\"route_digest\"] = sha256_ref({k: v for k, v in result.items() if k != \"route_digest\"})','result[\"route_digest\"] = sha256_ref(__import__(\"json\").dumps({k: v for k, v in result.items() if k != \"route_digest\"}, sort_keys=True, default=str))')\np.write_text(s)"
+      ],
+      "cwd": "/var/www/xavi/Duotronics",
+      "timeout": 30
     }
   }
 }
