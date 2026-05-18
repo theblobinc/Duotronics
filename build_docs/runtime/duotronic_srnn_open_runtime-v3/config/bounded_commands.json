@@ -1993,6 +1993,68 @@
       ],
       "cwd": "/var/www/xavi/Duotronics",
       "timeout": 120
+    },
+    "runtime_v3_contracts": {
+      "title": "Run runtime v3 contracts",
+      "description": "Run the runtime v3 tool runtime and ops MCP contract pytest suites.",
+      "argv": [
+        "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_tool_runtime_contracts.py",
+        "tests/test_ops_mcp_contracts.py"
+      ],
+      "cwd": "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
+      "timeout": 300
+    },
+    "git_add_runtime_tool_contracts_patch": {
+      "title": "Stage runtime tool contracts patch",
+      "description": "Stage the runtime tool contracts patch files for commit.",
+      "argv": [
+        "git",
+        "add",
+        "build_docs/runtime/duotronic_srnn_open_runtime-v3/app/duotronic_runtime/tool_services.py",
+        "build_docs/runtime/duotronic_srnn_open_runtime-v3/tests/test_tool_runtime_contracts.py",
+        "build_docs/runtime/duotronic_srnn_open_runtime-v3/config/bounded_commands.json",
+        "build_docs/runtime/duotronic_srnn_open_runtime-v3/compose.yaml"
+      ],
+      "cwd": "/var/www/xavi/Duotronics",
+      "timeout": 60
+    },
+    "git_commit_runtime_tool_contracts_patch": {
+      "title": "Commit runtime tool contracts patch",
+      "description": "Commit staged runtime tool contract infrastructure changes.",
+      "argv": [
+        "git",
+        "commit",
+        "-m",
+        "Add witnessed runtime tool contracts"
+      ],
+      "cwd": "/var/www/xavi/Duotronics",
+      "timeout": 120
+    },
+    "runtime_v3_capabilities_probe": {
+      "title": "Probe runtime v3 capabilities",
+      "description": "Probe the runtime v3 /v1/capabilities endpoint from localhost.",
+      "argv": [
+        "curl",
+        "-fsS",
+        "http://127.0.0.1:8080/v1/capabilities"
+      ],
+      "cwd": "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
+      "timeout": 30
+    },
+    "runtime_v3_capabilities_summary": {
+      "title": "Summarize runtime v3 capabilities",
+      "description": "Probe /v1/capabilities using the local runtime API key and print a compact non-secret summary.",
+      "argv": [
+        "python3",
+        "-c",
+        "import json, os, urllib.request\nfrom pathlib import Path\nroot = Path('/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3')\nkey = ''\nfor line in (root / '.env').read_text().splitlines():\n    if line.startswith('RUNTIME_API_KEY='):\n        key = line.split('=', 1)[1].strip()\nreq = urllib.request.Request('http://127.0.0.1:8080/v1/capabilities')\nif key:\n    req.add_header('Authorization', 'Bearer ' + key)\nwith urllib.request.urlopen(req, timeout=20) as resp:\n    data = json.load(resp)\nsummary = {\n    'schema_version': data.get('schema_version'),\n    'model_count': data.get('model_count'),\n    'providers': data.get('providers'),\n    'capabilities': data.get('capabilities'),\n    'tool_contracts': sorted((data.get('tool_contracts') or {}).keys()),\n    'backends': data.get('backends'),\n    'capabilities_digest': data.get('capabilities_digest'),\n}\nprint(json.dumps(summary, indent=2, sort_keys=True))"
+      ],
+      "cwd": "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
+      "timeout": 30
     }
   }
 }

@@ -80,6 +80,7 @@ services:
       POLICY_PACK_PATH: /runtime/config/policy_pack.json
       XAVI_REPO_ROOT: /workspace/Duotronics
       XAVI_WORKTREE_ROOT: /runtime/data/worktrees
+      CODE_INTERPRETER_URL: ${CODE_INTERPRETER_URL:-http://host.containers.internal:8000}
     command: ["python", "-m", "duotronic_runtime.main"]
     volumes:
       - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.2.2:/runtime/corpus:Z"

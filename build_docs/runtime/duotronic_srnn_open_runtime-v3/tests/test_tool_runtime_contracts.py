@@ -146,5 +146,50 @@ def test_capability_report_combines_model_and_tool_capabilities(tmp_path):
     assert report["model_capabilities"]["ollama:qwen2.5-coder:3b"] == ["chat", "code_generation"]
     assert report["modalities"]["ollama:nomic-embed-text:latest"] == ["embedding"]
     assert report["tool_capabilities"]["code_interpreter_execute"] == ["artifact_output", "code_execution", "code_interpreter"]
+    assert report["tool_contracts"]["code_interpreter_execute"]["witness_type"] == "CodeExecutionWitness"
     assert report["backends"]["code_interpreter"]["env"] == "CODE_INTERPRETER_URL"
     assert report["capabilities_digest"].startswith("sha256:")
+
+
+def test_openai_tools_have_matching_witness_contracts(tmp_path):
+    runtime, _kernel = make_runtime(tmp_path)
+
+    tool_names = {tool["function"]["name"] for tool in runtime.openai_tools()}
+    contracts = runtime.tool_contracts()
+
+    assert set(contracts) == tool_names
+    for name, contract in contracts.items():
+        assert contract["witness_type"].endswith("Witness")
+        assert contract["observer_id"]
+        assert contract["capabilities"] == sorted(contract["capabilities"])
+        assert contract["success_status"] == "accepted"
+        assert contract["fallback_status"] == "recorded"
+
+
+def test_capability_report_includes_tool_contracts(tmp_path):
+    runtime, _kernel = make_runtime(tmp_path)
+
+    report = runtime.capability_report(models=[])
+
+    assert "tool_contracts" in report
+    assert report["tool_contracts"]["code_interpreter_execute"]["witness_type"] == "CodeExecutionWitness"
+    assert report["tool_contracts"]["image_generate"]["witness_type"] == "MediaGenerationWitness"
+    assert report["tool_contracts"]["xavi_search_evidence"]["witness_type"] == "SearchResultWitness"
+
+
+def test_capability_report_digest_is_stable_with_tool_contracts(tmp_path):
+    runtime, _kernel = make_runtime(tmp_path)
+    models = [
+        {
+            "name": "ollama:qwen2.5-coder:3b",
+            "provider": "ollama",
+            "capabilities": ["code_generation", "chat"],
+            "modalities": ["text"],
+        }
+    ]
+
+    first = runtime.capability_report(models=models)
+    second = runtime.capability_report(models=models)
+
+    assert first["capabilities_digest"] == second["capabilities_digest"]
+    assert first["tool_contracts"] == second["tool_contracts"]

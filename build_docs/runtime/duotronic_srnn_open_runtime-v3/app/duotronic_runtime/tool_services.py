@@ -66,17 +66,18 @@ class ToolRuntime:
         return json.loads(meta_path.read_text())
 
     def code_disabled(self, *, language: str, code: str) -> dict[str, Any]:
+        contract = self.tool_contracts()["code_interpreter_execute"]
         payload = {
             "language": language,
             "code_digest": sha256_ref(code),
             "status": "requires_sandbox_backend",
             "message": "Code interpreter API is wired, but no hardened execution sandbox backend is configured yet.",
-            "required_backend": "CODE_INTERPRETER_URL",
-            "sandbox": {"network": False, "host_access": False},
+            "required_backend": contract["backend_env"][0],
+            "sandbox": {"network": contract["bounds"].get("network", False), "host_access": contract["bounds"].get("host_access", False)},
             "created_at_ms": int(time.time() * 1000),
         }
-        witness = self.record_witness("CodeExecutionWitness", payload, status="recorded", observer_id="code_interpreter.local")
-        return {"ok": False, "error": "code_interpreter_backend_not_configured", "witness": witness, **payload}
+        witness = self.record_witness(contract["witness_type"], payload, status=contract["fallback_status"], observer_id=contract["observer_id"])
+        return {"ok": False, "error": contract["disabled_error"], "witness": witness, **payload}
 
     async def code_execute(self, *, language: str, code: str, timeout_seconds: int = 30, stdin: str = "") -> dict[str, Any]:
         endpoint = os.environ.get("CODE_INTERPRETER_URL", "")
@@ -171,6 +172,40 @@ class ToolRuntime:
         witness = self.record_witness("MediaGenerationWitness", payload, status="accepted" if images else "recorded", observer_id="image_generation.local")
         return {"ok": bool(images), "witness": witness, **payload}
 
+    def tool_contracts(self) -> dict[str, dict[str, Any]]:
+        return {
+            "code_interpreter_execute": {
+                "witness_type": "CodeExecutionWitness",
+                "observer_id": "code_interpreter.local",
+                "capabilities": ["artifact_output", "code_execution", "code_interpreter"],
+                "backend_env": ["CODE_INTERPRETER_URL"],
+                "bounds": {"timeout_seconds": {"minimum": 1, "maximum": 60}, "network": False, "host_access": False},
+                "success_status": "accepted",
+                "fallback_status": "recorded",
+                "disabled_error": "code_interpreter_backend_not_configured",
+            },
+            "image_generate": {
+                "witness_type": "MediaGenerationWitness",
+                "observer_id": "image_generation.local",
+                "capabilities": ["artifact_output", "image_generation"],
+                "backend_env": ["STABLE_DIFFUSION_URL", "IMAGE_GENERATION_URL"],
+                "bounds": {"n": {"minimum": 1, "maximum": 4}, "timeout_seconds": 120},
+                "success_status": "accepted",
+                "fallback_status": "recorded",
+                "disabled_error": "image_generation_backend_not_configured",
+            },
+            "xavi_search_evidence": {
+                "witness_type": "SearchResultWitness",
+                "observer_id": "search.xavi",
+                "capabilities": ["evidence_retrieval", "search"],
+                "backend_env": ["XAVI_SEARCH_URL", "SEARCH_API_URL"],
+                "bounds": {"top_k": {"minimum": 1, "maximum": 10}, "timeout_seconds": 20},
+                "success_status": "accepted",
+                "fallback_status": "recorded",
+                "disabled_error": None,
+            },
+        }
+
     def capability_report(self, models: list[dict[str, Any]] | None = None) -> dict[str, Any]:
         models = models or []
         tools = self.openai_tools()
@@ -221,6 +256,7 @@ class ToolRuntime:
             "modalities": modalities,
             "tools": tools,
             "tool_capabilities": tool_capabilities,
+            "tool_contracts": self.tool_contracts(),
             "capabilities": all_capabilities,
             "backends": backends,
             "created_at_ms": int(time.time() * 1000),
