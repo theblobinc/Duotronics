@@ -66,6 +66,12 @@ def _tool_manifest() -> list[dict[str, Any]]:
             "input_schema": {"type": "object", "properties": {}},
         },
         {
+            "name": "runtime.inference_route",
+            "description": "Plan a read-only model/tool route for a requested inference task or capability.",
+            "read_only": True,
+            "input_schema": {"type": "object", "properties": {}},
+        },
+        {
             "name": "runtime.modules",
             "description": "List registered runtime modules and capabilities.",
             "read_only": True,
@@ -280,6 +286,13 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
     if tool == "runtime.capabilities":
         tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
         return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+
+    if tool == "runtime.inference_route":
+        from .inference_router import plan_inference_route
+
+        tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
+        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+        return plan_inference_route(report, args)
 
     if tool == "runtime.modules":
         return kernel.modules.capability_report()

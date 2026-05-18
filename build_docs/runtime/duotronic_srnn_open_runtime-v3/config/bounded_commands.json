@@ -2079,6 +2079,17 @@
       ],
       "cwd": "/var/www/xavi/Duotronics",
       "timeout": 30
+    },
+    "apply_route_mcp_surface": {
+      "title": "Apply route MCP surface",
+      "description": "Add the read-only inference route planner to runtime MCP manifest and dispatcher.",
+      "argv": [
+        "python3",
+        "-c",
+        "from pathlib import Path\np=Path('/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/app/duotronic_runtime/http_mcp.py')\ns=p.read_text()\nname='runtime.'+'inference_route'\nmanifest='''        {\\n            \"name\": name,\\n            \"description\": \"Plan a read-only model/tool route for a requested inference task or capability.\",\\n            \"read_only\": True,\\n            \"input_schema\": {\"type\": \"object\", \"properties\": {}},\\n        },\\n'''.replace('name', repr(name), 1)\nanchor='''        {\\n            \"name\": \"runtime.modules\",\\n            \"description\": \"List registered runtime modules and capabilities.\",\\n            \"read_only\": True,\\n            \"input_schema\": {\"type\": \"object\", \"properties\": {}},\\n        },\\n'''\nif name not in s:\n    s=s.replace(anchor, manifest+anchor, 1)\nbranch='''    if tool == name:\\n        from .inference_router import plan_inference_route\\n\\n        tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)\\n        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())\\n        return plan_inference_route(report, args)\\n\\n'''.replace('name', repr(name), 1)\nanchor2='''    if tool == \"runtime.modules\":\\n        return kernel.modules.capability_report()\\n\\n'''\nif 'plan_inference_route(report, args)' not in s:\n    s=s.replace(anchor2, branch+anchor2, 1)\np.write_text(s)"
+      ],
+      "cwd": "/var/www/xavi/Duotronics",
+      "timeout": 30
     }
   }
 }
