@@ -461,6 +461,7 @@ async def call(req: OpsCallRequest, authorization: str | None = Header(default=N
             "pytest",
             "-q",
             "tests/test_client_profiles_contracts.py",
+            "tests/test_session_ledger_contracts.py",
             "tests/test_operation_planner_contracts.py",
             "tests/test_inference_router_contracts.py",
             "tests/test_tool_runtime_contracts.py",
