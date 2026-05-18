@@ -926,17 +926,19 @@ async def mcp_root(request: Request) -> JSONResponse:
                     handled, result = _EXT_HANDLE(name, args)
                     if not handled and isinstance(name, str) and (
                         name.startswith("repo.")
-                        or name.startswith("ops.")
                         or name == "dev.apply_change_bundle"
                     ):
+                        result = runtime_mcp_tool_call(name, args, request.headers.get("authorization"))
+                    elif not handled and isinstance(name, str) and name.startswith("ops."):
                         result = call_ops(name, args, timeout=300)
                     elif not handled:
                         return JSONResponse(rpc_error(req_id, -32601, f"Unknown tool: {name}"))
                 elif isinstance(name, str) and (
                     name.startswith("repo.")
-                    or name.startswith("ops.")
                     or name == "dev.apply_change_bundle"
                 ):
+                    result = runtime_mcp_tool_call(name, args, request.headers.get("authorization"))
+                elif isinstance(name, str) and name.startswith("ops."):
                     result = call_ops(name, args, timeout=300)
                 else:
                     return JSONResponse(rpc_error(req_id, -32601, f"Unknown tool: {name}"))
