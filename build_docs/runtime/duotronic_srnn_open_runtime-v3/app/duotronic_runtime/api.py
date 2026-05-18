@@ -339,6 +339,13 @@ def create_app() -> FastAPI:
         require_api_key(settings, authorization)
         return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
 
+    @app.get("/v1/client-profiles")
+    def client_route_profiles(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        from .client_profiles import client_profiles
+
+        return {"schema_version": "client-profiles-v1", "profiles": client_profiles()}
+
     @app.post("/v1/inference/route")
     def inference_route(req: InferenceRouteRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)

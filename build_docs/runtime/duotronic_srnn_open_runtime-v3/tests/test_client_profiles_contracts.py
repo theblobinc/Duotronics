@@ -90,3 +90,15 @@ def test_unknown_profile_and_mode_are_rejected():
         profile_payload("missing.profile")
     with pytest.raises(ValueError):
         profile_payload("openclaw.agent", mode="missing")
+
+
+def test_client_profiles_http_surface_is_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    api = (root / "app/duotronic_runtime/api.py").read_text()
+
+    assert '@app.get("/v1/client-profiles")' in api
+    assert 'from .client_profiles import client_profiles' in api
+    assert '"schema_version": "client-profiles-v1"' in api
+    assert '"profiles": client_profiles()' in api
