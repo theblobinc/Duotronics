@@ -301,11 +301,14 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
         return plan_inference_route(report, args)
 
     if tool == "runtime.operation_plan":
-        from .operation_planner import plan_operation
+        from .operation_runtime import plan_operation_witnessed
 
         tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
-        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
-        return plan_operation(report, args)
+        return plan_operation_witnessed(
+            tools_runtime,
+            args,
+            models=kernel.model_provider.registry.list_models(),
+        )
 
     if tool == "runtime.modules":
         return kernel.modules.capability_report()

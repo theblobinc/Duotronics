@@ -350,10 +350,13 @@ def create_app() -> FastAPI:
     @app.post("/v1/operations/plan")
     def operation_plan(req: OperationPlanRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
-        from .operation_planner import plan_operation
+        from .operation_runtime import plan_operation_witnessed
 
-        report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
-        return plan_operation(report, req.model_dump())
+        return plan_operation_witnessed(
+            tools_runtime,
+            req.model_dump(),
+            models=kernel.model_provider.registry.list_models(),
+        )
 
     async def _stream_chat_completions(req: ChatCompletionRequest, prompt: str):
         import time
