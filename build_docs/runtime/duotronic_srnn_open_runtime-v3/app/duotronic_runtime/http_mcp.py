@@ -138,6 +138,61 @@ def _tool_manifest() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "runtime.session_append",
+            "description": "Append an event to the hash-chained runtime session ledger.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["session_id", "event_type", "actor"],
+                "properties": {
+                    "session_id": {"type": "string", "minLength": 1},
+                    "event_type": {"type": "string", "minLength": 1},
+                    "actor": {"type": "string", "minLength": 1},
+                    "content": {"type": "object", "default": {}},
+                    "tags": {"type": "array", "items": {"type": "string"}, "default": []},
+                    "witness_id": {"type": ["string", "null"]},
+                    "supersedes": {"type": "array", "items": {"type": "string"}, "default": []},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.session_tail",
+            "description": "Read recent events from a runtime session ledger.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["session_id"],
+                "properties": {
+                    "session_id": {"type": "string", "minLength": 1},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 20},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.session_summary",
+            "description": "Summarize a runtime session ledger.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["session_id"],
+                "properties": {"session_id": {"type": "string", "minLength": 1}},
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.session_verify",
+            "description": "Verify runtime session ledger hash-chain integrity.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["session_id"],
+                "properties": {"session_id": {"type": "string", "minLength": 1}},
+                "additionalProperties": False,
+            },
+        },
+        {
             "name": "runtime.modules",
             "description": "List registered runtime modules and capabilities.",
             "read_only": True,
@@ -406,6 +461,41 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
     if tool == "runtime.modules":
         return kernel.modules.capability_report()
+
+    if tool == "runtime.session_append":
+        from .session_ledger import SessionLedger
+
+        ledger = SessionLedger()
+        return ledger.append(
+            session_id=str(args.get("session_id", "default")),
+            event_type=str(args.get("event_type", "event")),
+            actor=str(args.get("actor", "unknown")),
+            content=args.get("content") if isinstance(args.get("content"), dict) else {},
+            tags=args.get("tags") if isinstance(args.get("tags"), list) else [],
+            witness_id=args.get("witness_id"),
+            supersedes=args.get("supersedes") if isinstance(args.get("supersedes"), list) else [],
+        )
+
+    if tool == "runtime.session_tail":
+        from .session_ledger import SessionLedger
+
+        ledger = SessionLedger()
+        return ledger.tail(
+            session_id=str(args.get("session_id", "default")),
+            limit=_safe_limit(args, default=20),
+        )
+
+    if tool == "runtime.session_summary":
+        from .session_ledger import SessionLedger
+
+        ledger = SessionLedger()
+        return ledger.summary(session_id=str(args.get("session_id", "default")))
+
+    if tool == "runtime.session_verify":
+        from .session_ledger import SessionLedger
+
+        ledger = SessionLedger()
+        return ledger.verify(session_id=str(args.get("session_id", "default")))
 
     if tool == "runtime.memory":
         return {"items": kernel.store.fetch_recent("memory_cells", _safe_limit(args))}

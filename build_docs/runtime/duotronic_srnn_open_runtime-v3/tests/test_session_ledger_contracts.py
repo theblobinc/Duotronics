@@ -93,3 +93,20 @@ def test_session_ledger_writes_index(tmp_path):
     assert index["schema_version"] == "session-ledger-index-v1"
     assert index["sessions"]["s1"]["latest_sequence"] == 1
     assert index["sessions"]["s1"]["latest_event_digest"] == event["event_digest"]
+
+
+def test_session_ledger_mcp_surface_is_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+
+    assert '"name": "runtime.session_append"' in mcp
+    assert '"name": "runtime.session_tail"' in mcp
+    assert '"name": "runtime.session_summary"' in mcp
+    assert '"name": "runtime.session_verify"' in mcp
+    assert 'if tool == "runtime.session_append"' in mcp
+    assert 'if tool == "runtime.session_tail"' in mcp
+    assert 'if tool == "runtime.session_summary"' in mcp
+    assert 'if tool == "runtime.session_verify"' in mcp
+    assert 'from .session_ledger import SessionLedger' in mcp
