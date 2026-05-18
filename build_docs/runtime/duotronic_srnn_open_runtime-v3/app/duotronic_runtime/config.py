@@ -90,6 +90,12 @@ class Settings:
     xavi_ops_url: str = os.environ.get("XAVI_OPS_URL", "http://host.containers.internal:8091")
     xavi_ops_api_key: str = os.environ.get("XAVI_OPS_API_KEY", "")
 
+    xavi_search_url: str = os.environ.get("XAVI_SEARCH_URL", os.environ.get("SEARCH_API_URL", ""))
+    xavi_search_api_key: str = os.environ.get("XAVI_SEARCH_API_KEY", os.environ.get("SEARCH_API_KEY", ""))
+    stable_diffusion_url: str = os.environ.get("STABLE_DIFFUSION_URL", os.environ.get("IMAGE_GENERATION_URL", ""))
+    code_interpreter_enabled: bool = bool_env("CODE_INTERPRETER_ENABLED", True)
+    tools_enabled: bool = bool_env("XAVI_TOOLS_ENABLED", True)
+
 
 def get_settings() -> Settings:
     return Settings()

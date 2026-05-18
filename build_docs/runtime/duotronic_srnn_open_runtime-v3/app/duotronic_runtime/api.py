@@ -13,6 +13,7 @@ from .http_mcp import register_xavi_runtime_mcp
 from .mcp_protocol import register_real_mcp_protocol
 from .actions_api import register_xavi_runtime_actions
 from .providers import complete_ollama_generate, stream_ollama_generate
+from .tool_services import ToolRuntime
 
 
 class RunRequest(BaseModel):
@@ -119,6 +120,26 @@ class EvidenceClaimRequest(BaseModel):
 class SelfDevelopRequest(BaseModel):
     task: str = Field(..., min_length=1)
     repo_ref: str = "mounted-workspace"
+
+
+class CodeExecuteRequest(BaseModel):
+    language: str = "python"
+    code: str = Field(..., min_length=1, max_length=200000)
+    timeout_seconds: int = Field(default=30, ge=1, le=60)
+    stdin: str = ""
+
+
+class SearchEvidenceRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+    top_k: int = Field(default=5, ge=1, le=10)
+    engine: str = "xavi"
+
+
+class ImageGenerationRequest(BaseModel):
+    prompt: str = Field(..., min_length=1)
+    size: str = "1024x1024"
+    model: str | None = None
+    n: int = Field(default=1, ge=1, le=4)
 
 
 class WGRNNStepRequest(BaseModel):
@@ -271,6 +292,7 @@ def create_app() -> FastAPI:
     register_xavi_runtime_mcp(app, kernel, settings)
     register_real_mcp_protocol(app, kernel, settings)
     register_xavi_runtime_actions(app, kernel, settings)
+    tools_runtime = ToolRuntime(settings=settings, kernel=kernel)
 
     @app.on_event("startup")
     def startup() -> None:
@@ -419,6 +441,50 @@ def create_app() -> FastAPI:
             if "ollama_" in message or "llama_cpp_" in message:
                 raise HTTPException(status_code=502, detail={"error": "model_provider_error", "message": message}) from exc
             raise
+
+    @app.get("/v1/tools")
+    def tools(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return {
+            "object": "list",
+            "data": tools_runtime.openai_tools(),
+            "capabilities": ["code_interpreter", "image_generation", "xavi_search_evidence"],
+        }
+
+    @app.post("/v1/tools/code/execute")
+    async def code_execute(req: CodeExecuteRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        if not settings.code_interpreter_enabled:
+            raise HTTPException(status_code=503, detail="code_interpreter_disabled")
+        return await tools_runtime.code_execute(language=req.language, code=req.code, timeout_seconds=req.timeout_seconds, stdin=req.stdin)
+
+    @app.post("/v1/tools/search/xavi")
+    async def search_xavi(req: SearchEvidenceRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return await tools_runtime.search_xavi(query=req.query, top_k=req.top_k, engine=req.engine)
+
+    @app.post("/v1/tools/search/evidence")
+    async def search_evidence(req: SearchEvidenceRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return await tools_runtime.search_xavi(query=req.query, top_k=req.top_k, engine=req.engine)
+
+    @app.post("/v1/images/generations")
+    async def image_generations(req: ImageGenerationRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        result = await tools_runtime.generate_image(prompt=req.prompt, size=req.size, model=req.model, n=req.n)
+        return {
+            "created": int(result.get("created_at_ms", 0) / 1000),
+            "data": [{"url": img.get("url"), "b64_json": None, "revised_prompt": req.prompt} for img in result.get("images", [])],
+            "xavi": result,
+        }
+
+    @app.get("/v1/tools/artifacts/{artifact_id}")
+    def get_tool_artifact(artifact_id: str, authorization: str | None = Header(default=None)) -> FileResponse:
+        require_api_key(settings, authorization)
+        meta = tools_runtime.get_artifact(artifact_id)
+        if not meta:
+            raise HTTPException(status_code=404, detail="artifact_not_found")
+        return FileResponse(meta["path"], media_type=meta.get("media_type") or "application/octet-stream", filename=meta.get("filename"))
 
     @app.get("/v1/witnesses")
     def witnesses(limit: int = 20) -> dict[str, Any]:

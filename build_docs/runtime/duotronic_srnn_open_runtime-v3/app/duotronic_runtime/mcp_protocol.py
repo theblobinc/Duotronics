@@ -29,14 +29,24 @@ def _authorize(
     _require_mcp_key(settings, authorization, x_xavi_mcp_key or x_api_key)
 
 
+def _json_compatible(value: Any) -> Any:
+    """Return a JSON-compatible copy of values from tool/runtime internals.
+
+    Some runtime stores return datetime/Path-like values. JSON-RPC responses must not
+    pass those raw objects through structuredContent, otherwise Starlette's
+    JSONResponse fails while rendering an otherwise successful tool result.
+    """
+    return json.loads(json.dumps(value, default=str))
+
+
 def _jsonrpc_result(request_id: str | int | None, result: Any) -> JSONResponse:
-    return JSONResponse({"jsonrpc": "2.0", "id": request_id, "result": result})
+    return JSONResponse({"jsonrpc": "2.0", "id": request_id, "result": _json_compatible(result)})
 
 
 def _jsonrpc_error(request_id: str | int | None, code: int, message: str, data: Any = None) -> JSONResponse:
     error: dict[str, Any] = {"code": code, "message": message}
     if data is not None:
-        error["data"] = data
+        error["data"] = _json_compatible(data)
     return JSONResponse({"jsonrpc": "2.0", "id": request_id, "error": error})
 
 

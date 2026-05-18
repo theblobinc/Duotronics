@@ -1982,6 +1982,17 @@
       ],
       "cwd": "/var/www/xavi/librechat",
       "timeout": 180
+    },
+    "probe-runtime-tools-endpoints": {
+      "title": "Probe runtime tools endpoints",
+      "description": "Probe /v1/tools, search evidence, image fallback, and code interpreter fallback without printing secrets",
+      "argv": [
+        "bash",
+        "-lc",
+        "set -euo pipefail\ncd build_docs/runtime/duotronic_srnn_open_runtime-v3\nset -a; . ./.env; set +a\n.venv/bin/python - <<'PY'\nimport json, os, urllib.request\nbase='http://127.0.0.1:8080'\nheaders={'content-type':'application/json','authorization':'Bearer '+os.environ.get('RUNTIME_API_KEY','')}\ndef post(path, body):\n    req=urllib.request.Request(base+path, data=json.dumps(body).encode(), headers=headers, method='POST')\n    return json.load(urllib.request.urlopen(req, timeout=30))\ndef get(path):\n    req=urllib.request.Request(base+path, headers=headers, method='GET')\n    return json.load(urllib.request.urlopen(req, timeout=30))\ntools=get('/v1/tools')\nprint('tools_count=', len(tools.get('data', [])))\nprint('tool_names=', ','.join(t['function']['name'] for t in tools.get('data', [])))\ns=post('/v1/tools/search/evidence', {'query':'test search wiring', 'top_k':2})\nprint('search_ok=', s.get('ok'), 'witness=', s.get('witness',{}).get('witness_type'), 'source=', s.get('source'), 'results=', len(s.get('results', [])))\ni=post('/v1/images/generations', {'prompt':'a small blue square', 'n':1})\nprint('image_ok=', i.get('xavi',{}).get('ok'), 'witness=', i.get('xavi',{}).get('witness',{}).get('witness_type'), 'enabled=', i.get('xavi',{}).get('enabled'))\nc=post('/v1/tools/code/execute', {'language':'python', 'code':'print(2+2)'})\nprint('code_ok=', c.get('ok'), 'error=', c.get('error'), 'witness=', c.get('witness',{}).get('witness_type'))\nPY\ngit -C /var/www/xavi/Duotronics checkout -- build_docs/runtime/duotronic_srnn_open_runtime-v3/config/bounded_commands.json >/dev/null 2>&1 || true"
+      ],
+      "cwd": "/var/www/xavi/Duotronics",
+      "timeout": 120
     }
   }
 }
