@@ -131,6 +131,82 @@ class SessionLedger:
         data.setdefault("sessions", {})
         return data
 
+    def search(
+        self,
+        *,
+        session_id: str | None = None,
+        query: str | None = None,
+        event_type: str | None = None,
+        actor: str | None = None,
+        tag: str | None = None,
+        tool_name: str | None = None,
+        limit: int = 20,
+    ) -> dict[str, Any]:
+        limit = max(1, min(int(limit), 100))
+        q = str(query or "").strip().lower()
+        wanted_event_type = str(event_type or "").strip()
+        wanted_actor = str(actor or "").strip()
+        wanted_tag = str(tag or "").strip()
+        wanted_tool = str(tool_name or "").strip()
+
+        if session_id:
+            session_ids = [str(session_id).strip() or "default"]
+        else:
+            session_ids = sorted((self.index().get("sessions") or {}).keys())
+
+        matches: list[dict[str, Any]] = []
+        for sid in session_ids:
+            for event in reversed(self._read_events(sid)):
+                content = event.get("content") if isinstance(event.get("content"), dict) else {}
+                tags = event.get("tags") if isinstance(event.get("tags"), list) else []
+                if wanted_event_type and event.get("event_type") != wanted_event_type:
+                    continue
+                if wanted_actor and event.get("actor") != wanted_actor:
+                    continue
+                if wanted_tag and wanted_tag not in tags:
+                    continue
+                if wanted_tool and content.get("tool_name") != wanted_tool and wanted_tool not in tags:
+                    continue
+                haystack = _canonical_json({
+                    "event_type": event.get("event_type"),
+                    "actor": event.get("actor"),
+                    "tags": tags,
+                    "content": content,
+                }).lower()
+                if q and q not in haystack:
+                    continue
+
+                preview = content.get("summary") or content.get("result_preview") or content.get("args_preview") or _canonical_json(content)[:240]
+                matches.append({
+                    "session_id": event.get("session_id"),
+                    "sequence": event.get("sequence"),
+                    "event_type": event.get("event_type"),
+                    "actor": event.get("actor"),
+                    "created_at_ms": event.get("created_at_ms"),
+                    "event_digest": event.get("event_digest"),
+                    "previous_event_digest": event.get("previous_event_digest"),
+                    "content_digest": event.get("content_digest"),
+                    "tags": tags,
+                    "tool_name": content.get("tool_name"),
+                    "preview": str(preview)[:320],
+                })
+                if len(matches) >= limit:
+                    return {
+                        "schema_version": "session-ledger-search-v1",
+                        "query": query,
+                        "session_id": session_id,
+                        "count": len(matches),
+                        "matches": matches,
+                    }
+
+        return {
+            "schema_version": "session-ledger-search-v1",
+            "query": query,
+            "session_id": session_id,
+            "count": len(matches),
+            "matches": matches,
+        }
+
     def summary(self, *, session_id: str) -> dict[str, Any]:
         events = self._read_events(session_id)
         event_types = Counter(event.get("event_type") for event in events)

@@ -132,3 +132,58 @@ def test_session_ledger_mcp_index_surface_is_wired():
     assert '"name": "runtime.session_index"' in mcp
     assert 'if tool == "runtime.session_index"' in mcp
     assert "return SessionLedger().index()" in mcp
+
+
+def test_session_ledger_search_filters_by_tag_tool_and_text(tmp_path):
+    ledger = SessionLedger(tmp_path)
+    ledger.append(
+        session_id="s1",
+        event_type="mcp_call_result",
+        actor="adapter",
+        content={"tool_name": "runtime.session_tail", "result_preview": "found buildout checkpoint"},
+        tags=["mcp-auto-capture", "tool-result"],
+        created_at_ms=3000,
+    )
+    ledger.append(
+        session_id="s1",
+        event_type="plan",
+        actor="agent",
+        content={"summary": "unrelated planning note"},
+        tags=["planning"],
+        created_at_ms=3001,
+    )
+
+    by_tool = ledger.search(session_id="s1", tool_name="runtime.session_tail")
+    by_tag = ledger.search(session_id="s1", tag="planning")
+    by_text = ledger.search(session_id="s1", query="checkpoint")
+
+    assert by_tool["schema_version"] == "session-ledger-search-v1"
+    assert by_tool["count"] == 1
+    assert by_tool["matches"][0]["tool_name"] == "runtime.session_tail"
+    assert by_tag["count"] == 1
+    assert by_tag["matches"][0]["event_type"] == "plan"
+    assert by_text["count"] == 1
+    assert "checkpoint" in by_text["matches"][0]["preview"]
+
+
+def test_session_ledger_search_across_indexed_sessions(tmp_path):
+    ledger = SessionLedger(tmp_path)
+    ledger.append(session_id="a", event_type="plan", actor="agent", content={"summary": "alpha"})
+    ledger.append(session_id="b", event_type="plan", actor="agent", content={"summary": "beta"})
+
+    result = ledger.search(query="beta")
+
+    assert result["count"] == 1
+    assert result["matches"][0]["session_id"] == "b"
+
+
+def test_session_ledger_mcp_search_surface_is_wired():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+
+    assert '"name": "runtime.session_search"' in mcp
+    assert '"name": "runtime.session_find"' in mcp
+    assert 'if tool in {"runtime.session_search", "runtime.session_find"}' in mcp
+    assert "return SessionLedger().search(" in mcp

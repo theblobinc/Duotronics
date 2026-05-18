@@ -167,6 +167,42 @@ def _tool_manifest() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "runtime.session_search",
+            "description": "Search compact runtime session ledger records by session, tag, event type, actor, tool, or text.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "session_id": {"type": ["string", "null"]},
+                    "query": {"type": ["string", "null"]},
+                    "event_type": {"type": ["string", "null"]},
+                    "actor": {"type": ["string", "null"]},
+                    "tag": {"type": ["string", "null"]},
+                    "tool_name": {"type": ["string", "null"]},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.session_find",
+            "description": "Alias for runtime.session_search.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "session_id": {"type": ["string", "null"]},
+                    "query": {"type": ["string", "null"]},
+                    "event_type": {"type": ["string", "null"]},
+                    "actor": {"type": ["string", "null"]},
+                    "tag": {"type": ["string", "null"]},
+                    "tool_name": {"type": ["string", "null"]},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
             "name": "runtime.session_tail",
             "description": "Read recent events from a runtime session ledger.",
             "read_only": True,
@@ -489,6 +525,19 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
             tags=args.get("tags") if isinstance(args.get("tags"), list) else [],
             witness_id=args.get("witness_id"),
             supersedes=args.get("supersedes") if isinstance(args.get("supersedes"), list) else [],
+        )
+
+    if tool in {"runtime.session_search", "runtime.session_find"}:
+        from .session_ledger import SessionLedger
+
+        return SessionLedger().search(
+            session_id=args.get("session_id"),
+            query=args.get("query"),
+            event_type=args.get("event_type"),
+            actor=args.get("actor"),
+            tag=args.get("tag"),
+            tool_name=args.get("tool_name"),
+            limit=_safe_limit(args, default=20),
         )
 
     if tool == "runtime.session_tail":
