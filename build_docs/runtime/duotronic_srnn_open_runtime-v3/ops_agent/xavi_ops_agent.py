@@ -353,6 +353,11 @@ def command_manifest() -> list[dict[str, Any]]:
         {"name": "ops.v3_restart_runtime_only", "description": "Recreate only the runtime v3 container.", "danger": "high"},
         {"name": "ops.v3_git_status", "description": "Show git status for the Duotronics repo.", "danger": "low"},
         {"name": "ops.v3_git_diff", "description": "Show git diff for runtime v3 changes.", "danger": "low"},
+        {"name": "ops.nginx_status", "description": "Read nginx active/enabled status.", "danger": "low"},
+        {"name": "ops.nginx_test", "description": "Run nginx configuration test.", "danger": "low"},
+        {"name": "ops.nginx_reload", "description": "Validate config, then reload nginx.", "danger": "medium"},
+        {"name": "ops.nginx_restart", "description": "Validate config, then restart nginx.", "danger": "high"},
+        {"name": "ops.nginx_start", "description": "Start nginx and verify active status.", "danger": "medium"},
         {"name": "ops.allowed_command", "description": "Run one named allowlisted command.", "danger": "varies"},
     ]
 
@@ -405,6 +410,35 @@ ALLOWED_COMMANDS: dict[str, dict[str, Any]] = {
         "timeout": 60,
     },
 }
+
+
+ALLOWED_COMMANDS.update({
+    "nginx_status": {
+        "cmd": ["/usr/bin/bash", "-lc", "/usr/bin/systemctl is-active nginx; /usr/bin/systemctl is-enabled nginx"],
+        "cwd": REPO_ROOT,
+        "timeout": 30,
+    },
+    "nginx_test": {
+        "cmd": ["/usr/bin/sudo", "-n", "/usr/sbin/nginx", "-t"],
+        "cwd": REPO_ROOT,
+        "timeout": 30,
+    },
+    "nginx_reload": {
+        "cmd": ["/usr/bin/bash", "-lc", "set -euo pipefail; sudo -n /usr/sbin/nginx -t; sudo -n /usr/bin/systemctl reload nginx; /usr/bin/systemctl is-active nginx"],
+        "cwd": REPO_ROOT,
+        "timeout": 45,
+    },
+    "nginx_restart": {
+        "cmd": ["/usr/bin/bash", "-lc", "set -euo pipefail; sudo -n /usr/sbin/nginx -t; sudo -n /usr/bin/systemctl restart nginx; /usr/bin/systemctl is-active nginx"],
+        "cwd": REPO_ROOT,
+        "timeout": 60,
+    },
+    "nginx_start": {
+        "cmd": ["/usr/bin/bash", "-lc", "set -euo pipefail; sudo -n /usr/bin/systemctl start nginx; /usr/bin/systemctl is-active nginx"],
+        "cwd": REPO_ROOT,
+        "timeout": 45,
+    },
+})
 
 
 app = FastAPI(title="Xavi Runtime Host Ops Agent", version="0.1.0")
@@ -567,6 +601,20 @@ async def call(req: OpsCallRequest, authorization: str | None = Header(default=N
                 cwd=RUNTIME_DIR,
                 timeout=1200,
                 env={"COMPOSE_PROFILES": "models"},
+            )
+        }
+
+    if command.startswith("ops.nginx_"):
+        name = command.removeprefix("ops.")
+        if name not in ALLOWED_COMMANDS:
+            raise HTTPException(status_code=404, detail=f"unknown nginx ops command: {name}")
+        spec = ALLOWED_COMMANDS[name]
+        return {
+            "result": run_cmd(
+                list(spec["cmd"]),
+                cwd=Path(spec["cwd"]),
+                timeout=int(spec.get("timeout", 300)),
+                env=spec.get("env"),
             )
         }
 

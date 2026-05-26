@@ -17,6 +17,9 @@ volumes:
 networks:
   runtime-net:
     driver: bridge
+  xavi-perma:
+    external: true
+    name: xavi-perma_default
 
 services:
   postgres:
@@ -100,7 +103,9 @@ services:
         condition: service_started
       minio:
         condition: service_started
-    networks: [runtime-net]
+    networks:
+      - runtime-net
+      - xavi-perma
     healthcheck:
       test: ["CMD", "python", "-m", "duotronic_runtime.cli", "health", "--url", "http://127.0.0.1:8080"]
       interval: 15s

@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import hashlib
+import json
+import time
+
 from typing import Any
 
 from fastapi import FastAPI, Header
@@ -73,6 +77,15 @@ class RunInferenceRequest(BaseModel):
     requested_action: str = "respond"
     model_name: str | None = None
     evidence_quality: float = 0.72
+
+
+class TableBrowseRequest(BaseModel):
+    table: str = Field(..., min_length=1)
+    limit: int = Field(default=20, ge=1, le=200)
+
+
+class WebRenderRecordRequest(BaseModel):
+    payload: dict[str, Any] = Field(default_factory=dict)
 
 
 def _auth(settings: Settings, authorization: str | None, x_xavi_mcp_key: str | None) -> None:
@@ -200,6 +213,26 @@ def _schema() -> dict[str, Any]:
                                     "requested_action": {"type": "string", "enum": ["respond", "observe"], "default": "respond"},
                                     "model_name": {"type": "string"},
                                     "evidence_quality": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.72},
+                                },
+                                "additionalProperties": False,
+                            }
+                        }
+                    },
+                },
+            ),
+            "/xavi-runtime/actions/runtime/table-browse": post(
+                "Browse recent rows from an allowlisted runtime Postgres table",
+                "runtimeTableBrowse",
+                {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["table"],
+                                "properties": {
+                                    "table": {"type": "string"},
+                                    "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 20},
                                 },
                                 "additionalProperties": False,
                             }
@@ -385,6 +418,40 @@ def register_xavi_runtime_actions(app: FastAPI, kernel: RuntimeKernel, settings:
     ) -> dict[str, Any]:
         _auth(settings, authorization, x_xavi_mcp_key)
         return await _tool(kernel, "runtime.run_inference", req.model_dump(exclude_none=True), "actions-run-inference")
+
+    @app.post("/xavi-runtime/actions/runtime/table-browse", include_in_schema=False)
+    async def runtime_table_browse(
+        req: TableBrowseRequest,
+        authorization: str | None = Header(default=None),
+        x_xavi_mcp_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        _auth(settings, authorization, x_xavi_mcp_key)
+        rows = kernel.store.fetch_recent(req.table, req.limit)
+        return {
+            "app": "xavi-runtime-actions",
+            "request_id": "actions-runtime-table-browse",
+            "runtime": "wgrnn-v3",
+            "backend": "postgres",
+            "table": req.table,
+            "limit": req.limit,
+            "count": len(rows),
+            "rows": rows,
+        }
+
+    @app.post("/xavi-runtime/actions/runtime/web-render-record", include_in_schema=False)
+    async def runtime_web_render_record(
+        req: WebRenderRecordRequest,
+        authorization: str | None = Header(default=None),
+        x_xavi_mcp_key: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        _auth(settings, authorization, x_xavi_mcp_key)
+        return {
+            "app": "xavi-runtime-actions",
+            "request_id": "actions-runtime-web-render-record",
+            "runtime": "wgrnn-v3",
+            "backend": "postgres",
+            "recording": _record_web_render(kernel, req.payload),
+        }
 
     @app.post("/xavi-runtime/actions/repo/status", include_in_schema=False)
     async def repo_status(

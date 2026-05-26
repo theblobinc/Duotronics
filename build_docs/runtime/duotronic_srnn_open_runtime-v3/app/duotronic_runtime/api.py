@@ -12,8 +12,10 @@ from .runtime_kernel import RuntimeKernel
 from .http_mcp import register_xavi_runtime_mcp
 from .mcp_protocol import register_real_mcp_protocol
 from .actions_api import register_xavi_runtime_actions
+from .archive_bridge import register_archive_bridge
 from .providers import complete_ollama_generate, stream_ollama_generate
 from .tool_services import ToolRuntime
+from .wgrnn_kernel_chat import WGRNNKernelChat
 
 
 class RunRequest(BaseModel):
@@ -215,16 +217,48 @@ def require_api_key(settings: Settings, authorization: str | None) -> None:
         raise HTTPException(status_code=401, detail="missing or invalid bearer token")
 
 
-def _message_content_to_text(content: Any) -> str:
+def _image_payload_from_url(url: str) -> str | None:
+    if not url:
+        return None
+    if url.startswith("data:image/") and "," in url:
+        return url.split(",", 1)[1].strip() or None
+    return None
+
+
+def _message_content_parts(content: Any) -> tuple[str, list[str]]:
+    text_parts: list[str] = []
+    images: list[str] = []
     if isinstance(content, list):
-        text_parts = []
         for item in content:
-            if isinstance(item, dict) and item.get("type") == "text":
-                text_parts.append(str(item.get("text", "")))
+            if isinstance(item, dict):
+                item_type = item.get("type")
+                if item_type == "text":
+                    text_parts.append(str(item.get("text", "")))
+                elif item_type == "image_url":
+                    image_url = item.get("image_url")
+                    url = image_url.get("url") if isinstance(image_url, dict) else image_url
+                    payload = _image_payload_from_url(str(url or ""))
+                    if payload:
+                        images.append(payload)
+                    else:
+                        text_parts.append("[image attachment omitted: remote image URLs are not fetched by the runtime]")
+                elif item_type in {"input_image", "image"}:
+                    payload = _image_payload_from_url(str(item.get("image_url") or item.get("url") or item.get("data") or ""))
+                    if payload:
+                        images.append(payload)
             elif isinstance(item, str):
                 text_parts.append(item)
-        return "\n".join(text_parts)
-    return str(content or "")
+        return "\n".join(part for part in text_parts if part), images
+    return str(content or ""), images
+
+
+def _message_content_to_text(content: Any) -> str:
+    text, _images = _message_content_parts(content)
+    return text
+
+
+def _messages_have_images(messages: list[ChatMessage]) -> bool:
+    return any(_message_content_parts(msg.content)[1] for msg in messages)
 
 
 def _messages_to_prompt(messages: list[ChatMessage], prompt: str | None = None) -> str:
@@ -260,10 +294,101 @@ def _messages_for_ollama_chat(messages: list[ChatMessage], prompt: str | None = 
         elif role == "tool":
             out.append({"role": "user", "content": content_text})
         else:
-            out.append({"role": role, "content": content_text})
+            message: dict[str, Any] = {"role": role, "content": content_text}
+            _text, images = _message_content_parts(msg.content)
+            if images:
+                message["images"] = images
+            out.append(message)
     if len(out) == 1:
         out.append({"role": "user", "content": ""})
     return out
+
+
+
+
+def _with_corpus_context(prompt: str, corpus_search: dict[str, Any]) -> str:
+    results = corpus_search.get("results") or []
+    if not results:
+        return prompt
+    lines = ["Mounted corpus context follows. Use it when relevant; cite file paths/digests when relying on it."]
+    for idx, row in enumerate(results, 1):
+        lines.append(f"[{idx}] path={row.get('path')} digest={row.get('digest')} score={row.get('score')}\n{row.get('snippet')}")
+    return "\n\n".join(["\n".join(lines), "User conversation:", prompt])
+
+
+def _prepend_corpus_context_message(messages: list[dict[str, Any]], corpus_search: dict[str, Any]) -> list[dict[str, Any]]:
+    results = corpus_search.get("results") or []
+    if not results:
+        return messages
+    context = _with_corpus_context("", corpus_search).strip()
+    return [{"role": "system", "content": context}] + messages
+
+
+def _select_vision_model(kernel: RuntimeKernel, current_model: dict[str, Any]) -> dict[str, Any]:
+    modalities = set(current_model.get("modalities") or [])
+    if "vision" in modalities:
+        return current_model
+    candidates = []
+    for record in kernel.model_provider.registry.list_models():
+        if not record.get("enabled", True):
+            continue
+        record_modalities = set(record.get("modalities") or [])
+        record_capabilities = set(record.get("capabilities") or [])
+        if "vision" in record_modalities or "vision" in record_capabilities or "multimodal" in record_capabilities:
+            candidates.append(record)
+    preferred = [r for r in candidates if str(r.get("model") or r.get("name") or "") == "qwen2.5vl:7b"]
+    return (preferred or candidates or [current_model])[0]
+
+def _select_wgrnn_chat_model(kernel: RuntimeKernel, *, needs_vision: bool = False) -> dict[str, Any]:
+    """Select a live model for wg-rnn:chat evidence synthesis."""
+    models = [record for record in kernel.model_provider.registry.list_models() if record.get("enabled", True)]
+    if needs_vision:
+        for record in models:
+            name = str(record.get("model") or record.get("name") or "")
+            modalities = set(record.get("modalities") or [])
+            capabilities = set(record.get("capabilities") or [])
+            if name == "qwen2.5vl:7b" and ("vision" in modalities or "vision" in capabilities or "multimodal" in capabilities):
+                return record
+        for record in models:
+            modalities = set(record.get("modalities") or [])
+            capabilities = set(record.get("capabilities") or [])
+            if "vision" in modalities or "vision" in capabilities or "multimodal" in capabilities:
+                return record
+    preferred_tags = (
+        "ollama:qwen2.5-coder:7b",
+        "ollama:qwen2.5-coder:3b",
+        "ollama:qwen2.5-coder:1.5b",
+        "qwen2.5-coder:7b",
+        "qwen2.5-coder:3b",
+        "qwen2.5-coder:1.5b",
+    )
+    for preferred in preferred_tags:
+        for record in models:
+            if str(record.get("name") or "") == preferred or str(record.get("model") or "") == preferred:
+                return record
+    return kernel.model_provider.registry.get(None)
+
+
+def _wgrnn_chat_prompt(prompt: str, corpus_search: dict[str, Any]) -> str:
+    evidence_rows = corpus_search.get("results") or []
+    if evidence_rows:
+        evidence_lines = []
+        for idx, row in enumerate(evidence_rows, 1):
+            evidence_lines.append(
+                f"[{idx}] path={row.get('path')} digest={row.get('digest')} score={row.get('score')}\n{row.get('snippet')}"
+            )
+        evidence_block = "\n\n".join(evidence_lines)
+    else:
+        evidence_block = "No matching mounted-corpus snippets were retrieved for this turn."
+    return (
+        "You are WG-RNN Chat: a multimodal, evidence-grounded conversational mode.\n"
+        "Answer the user from mounted corpus evidence when relevant. Separate observed evidence from model inference.\n"
+        "Do not claim a fact is true unless supported by retrieved evidence or clearly labelled as an inference.\n"
+        "When relying on corpus content, mention the supporting file path or digest.\n"
+        "This response will be written as WG-RNN candidate memory, not automatically promoted truth.\n\n"
+        f"Corpus evidence:\n{evidence_block}\n\n"
+        f"User conversation:\n{prompt}"
+    )
 
 
 def _sse(data: dict[str, Any]) -> str:
@@ -319,7 +444,9 @@ def create_app() -> FastAPI:
     register_xavi_runtime_mcp(app, kernel, settings)
     register_real_mcp_protocol(app, kernel, settings)
     register_xavi_runtime_actions(app, kernel, settings)
+    register_archive_bridge(app)
     tools_runtime = ToolRuntime(settings=settings, kernel=kernel)
+    kernel_chat = WGRNNKernelChat(kernel)
 
     @app.on_event("startup")
     def startup() -> None:
@@ -454,18 +581,65 @@ def create_app() -> FastAPI:
     async def chat_completions(req: ChatCompletionRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
         prompt = _messages_to_prompt(req.messages, req.prompt)
+        corpus_search = kernel.corpus_manager.search_documents(prompt, top_k=4) if prompt else {"results": []}
+        prompt_with_corpus = _with_corpus_context(prompt, corpus_search)
         if not prompt:
             raise HTTPException(status_code=422, detail="messages or prompt required")
-        if req.stream:
-            return StreamingResponse(_stream_chat_completions(req, prompt), media_type="text/event-stream")
+        if req.stream and req.model != "wg-rnn:chat":
+            return StreamingResponse(_stream_chat_completions(req, prompt_with_corpus), media_type="text/event-stream")
         if req.model and req.model.startswith("wg-rnn:"):
             mode = req.model.split(":", 1)[1] if ":" in req.model else "runtime"
+            if mode == "chat":
+                needs_vision = _messages_have_images(req.messages)
+                model_record = _select_wgrnn_chat_model(kernel, needs_vision=needs_vision)
+                prepared = kernel_chat.prepare_turn(
+                    prompt=prompt,
+                    messages=req.messages,
+                    corpus_search=corpus_search,
+                    needs_vision=needs_vision,
+                )
+                chat_messages = _messages_for_ollama_chat(req.messages)
+                chat_messages = prepared.get("system_messages", []) + chat_messages
+                chat_messages.append({"role": "user", "content": prepared.get("response_prompt") or prompt})
+                if model_record.get("provider") == "ollama":
+                    provider_result = await complete_ollama_generate(
+                        settings,
+                        prompt=prepared.get("response_prompt") or prompt,
+                        model=model_record,
+                        messages=chat_messages,
+                    )
+                else:
+                    provider_result = await kernel.model_provider.complete(
+                        prompt=prepared.get("response_prompt") or prompt,
+                        model_name=model_record.get("name"),
+                    )
+                finalized = kernel_chat.finalize_turn(
+                    prepared=prepared,
+                    response_text=str(provider_result.get("response_text") or ""),
+                    needs_vision=needs_vision,
+                )
+                wgrnn_result = finalized.get("wgrnn")
+                provider_result["model"] = provider_result.get("model", {}) | {"wg_rnn_mode": "chat", "selected_by": "kernel_task_frame"}
+                provider_result["wgrnn"] = wgrnn_result
+                provider_result["provider_status"] = "wg_rnn_kernel_chat"
+                return _openai_chat_response(req, provider_result) | {
+                    "wgrnn": wgrnn_result,
+                    "corpus": corpus_search,
+                    "wg_rnn_chat": finalized.get("kernel_turn"),
+                    "kernel_turn": {
+                        "task_frame": prepared.get("task_frame"),
+                        "boot": prepared.get("boot"),
+                        "witness_chain": finalized.get("witness_chain"),
+                        "selected_model": model_record,
+                    },
+                }
             requested_action = "memory_write" if mode == "memory" else "observe"
             wgrnn_result = kernel.wgrnn.step(
-                prompt=prompt,
+                prompt=prompt_with_corpus,
                 response_text="",
                 requested_action=requested_action,
                 evidence_quality=0.72,
+                tags=["librechat", "corpus_context"] if corpus_search.get("results") else ["librechat"],
             )
             provider_result = {
                 "model": {"name": req.model, "provider": "wgrnn", "model": req.model},
@@ -482,18 +656,22 @@ def create_app() -> FastAPI:
                 "provider_metrics": {"eval_count": 0, "prompt_eval_count": 0, "done_reason": "stop"},
                 "wgrnn": wgrnn_result,
             }
-            return _openai_chat_response(req, provider_result) | {"wgrnn": wgrnn_result}
+            return _openai_chat_response(req, provider_result) | {"wgrnn": wgrnn_result, "corpus": corpus_search}
         try:
             model_record = kernel.model_provider.registry.get(req.model)
+            if _messages_have_images(req.messages):
+                model_record = _select_vision_model(kernel, model_record)
             if model_record.get("provider") == "ollama":
+                chat_messages = _messages_for_ollama_chat(req.messages, req.prompt)
+                chat_messages = _prepend_corpus_context_message(chat_messages, corpus_search)
                 provider_result = await complete_ollama_generate(
                     settings,
-                    prompt=prompt,
+                    prompt=prompt_with_corpus,
                     model=model_record,
-                    messages=_messages_for_ollama_chat(req.messages, req.prompt),
+                    messages=chat_messages,
                 )
             else:
-                provider_result = await kernel.model_provider.complete(prompt=prompt, model_name=req.model)
+                provider_result = await kernel.model_provider.complete(prompt=prompt_with_corpus, model_name=req.model)
         except RuntimeError as exc:
             message = str(exc)
             if "timeout" in message:
@@ -501,7 +679,18 @@ def create_app() -> FastAPI:
             if "ollama_" in message or "llama_cpp_" in message:
                 raise HTTPException(status_code=502, detail={"error": "model_provider_error", "message": message}) from exc
             raise
-        return _openai_chat_response(req, provider_result)
+        try:
+            wgrnn_result = kernel.wgrnn.step(
+                prompt=prompt_with_corpus,
+                response_text=str(provider_result.get("response_text") or ""),
+                requested_action="observe",
+                evidence_quality=0.72,
+                tags=["librechat", "corpus_context"] if corpus_search.get("results") else ["librechat"],
+            )
+            provider_result["wgrnn"] = wgrnn_result
+        except Exception as exc:
+            provider_result["wgrnn_error"] = exc.__class__.__name__
+        return _openai_chat_response(req, provider_result) | {"corpus": corpus_search, "wgrnn": provider_result.get("wgrnn")}
 
     @app.post("/v1/chat/completions/with-reasoning")
     async def chat_completions_with_reasoning(req: ChatCompletionRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:

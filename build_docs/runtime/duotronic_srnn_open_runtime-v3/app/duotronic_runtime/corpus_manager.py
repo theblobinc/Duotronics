@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -65,6 +66,45 @@ class CorpusManager:
             "documents": files[:500],
             "truncated": len(files) > 500,
         }
+
+    def search_documents(self, query: str, *, top_k: int = 5, max_bytes: int = 250_000) -> dict[str, Any]:
+        """Return small, digest-backed text snippets from the mounted corpus.
+
+        This intentionally stays local and deterministic. It is not a vector DB;
+        it gives LibreChat/WG-RNN a safe read-only bridge into the mounted corpus
+        until a dedicated indexer is available.
+        """
+        inspected = self.inspect()
+        if inspected.get("status") != "ok":
+            return {"status": inspected.get("status"), "corpus_ref": inspected.get("corpus_ref"), "results": []}
+        terms = [t.lower() for t in re.findall(r"[A-Za-z0-9_./:-]{3,}", query or "")]
+        stop = {"the", "and", "for", "with", "that", "this", "from", "user", "assistant", "system"}
+        terms = [t for t in terms if t not in stop][:32]
+        rows: list[dict[str, Any]] = []
+        for item in inspected.get("documents", []):
+            rel = str(item.get("path") or "")
+            path = self.corpus_dir / rel
+            if not path.is_file() or path.stat().st_size > max_bytes:
+                continue
+            if path.suffix.lower() not in {".md", ".txt", ".json", ".yaml", ".yml", ".lean", ".tla", ".py"}:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+            except Exception:
+                continue
+            haystack = f"{rel}\n{text}".lower()
+            score = sum(haystack.count(term) for term in terms) if terms else 0
+            if score <= 0 and terms:
+                continue
+            if score <= 0:
+                score = 1 if rel else 0
+            first_pos = min([haystack.find(term) for term in terms if haystack.find(term) >= 0] or [0])
+            start = max(0, first_pos - 400)
+            end = min(len(text), first_pos + 1200)
+            snippet = " ".join(text[start:end].split())[:1600]
+            rows.append({"path": rel, "digest": item.get("digest"), "bytes": item.get("bytes"), "score": score, "snippet": snippet})
+        rows.sort(key=lambda r: (r["score"], -len(str(r.get("path") or ""))), reverse=True)
+        return {"status": "ok", "corpus_ref": inspected.get("corpus_ref"), "results": rows[: max(1, min(int(top_k), 10))]}
 
     def validate(self) -> dict[str, Any]:
         inspected = self.inspect()

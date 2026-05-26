@@ -135,6 +135,17 @@ class WGRNNRuntime:
     def _ledger_path(self, namespace: str | None = None) -> Path:
         return self.data_dir / f"{_safe_namespace_path(namespace or self.namespace)}.ledger.jsonl"
 
+    def _fit_vector(self, values: Any, dim: int) -> list[float]:
+        """Pad/truncate persisted vectors so config dimension changes are safe."""
+        try:
+            raw = list(values or [])
+        except Exception:
+            raw = []
+        fitted: list[float] = []
+        for value in raw[:dim]:
+            fitted.append(float(value))
+        return (fitted + [0.0] * dim)[:dim]
+
     def load_namespace(self, namespace: str) -> None:
         self.namespace = namespace
         path = self._state_path(namespace)
@@ -147,12 +158,12 @@ class WGRNNRuntime:
             self.step_count = 0
             return
         data = json.loads(path.read_text())
-        self.h = list(data.get("h", [0.0] * self.state_dim))[: self.state_dim]
-        self.c = list(data.get("c", [0.0] * self.state_dim))[: self.state_dim]
+        self.h = self._fit_vector(data.get("h"), self.state_dim)
+        self.c = self._fit_vector(data.get("c"), self.state_dim)
         self.memory_bank = list(data.get("memory_bank", []))[: self.num_slots]
         while len(self.memory_bank) < self.num_slots:
             self.memory_bank.append([0.0] * self.slot_dim)
-        self.memory_bank = [(list(slot) + [0.0] * self.slot_dim)[: self.slot_dim] for slot in self.memory_bank]
+        self.memory_bank = [self._fit_vector(slot, self.slot_dim) for slot in self.memory_bank]
         self.slot_meta = list(data.get("slot_meta", []))[: self.num_slots]
         while len(self.slot_meta) < self.num_slots:
             self.slot_meta.append(self._empty_slot_meta(len(self.slot_meta)))
@@ -284,6 +295,10 @@ class WGRNNRuntime:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         if namespace != self.namespace:
             self.load_namespace(namespace)
+        # Runtime dimensions are configurable. Older persisted namespaces may be
+        # shorter than the active config; normalize again before indexing.
+        self.h = self._fit_vector(self.h, self.state_dim)
+        self.c = self._fit_vector(self.c, self.state_dim)
         self.step_count += 1
         tags = list(tags or [])
         text = f"{namespace}\n{requested_action}\n{prompt}\n{response_text}"
