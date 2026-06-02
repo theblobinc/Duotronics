@@ -1,0 +1,32 @@
+{
+  "schema_ref": "schemas/bayesian_model.schema.json",
+  "payload": {
+    "schema_version": "bayesian_model/v1",
+    "model_id": "model:coverage:hierarchical:v1",
+    "model_version": "v1",
+    "hypotheses": [
+      "h0",
+      "h1"
+    ],
+    "observation_space": [
+      "o0",
+      "o1"
+    ],
+    "update_method": "hierarchical_update",
+    "assumptions": [
+      "coverage fixture for hierarchical/hierarchical_update"
+    ],
+    "status": "active",
+    "metadata": {
+      "reference_algorithm_id": "bayes:hierarchical_update:v1",
+      "coverage": "model_family_update_method"
+    },
+    "created_at": "2026-05-26T00:00:00Z",
+    "model_family": "hierarchical",
+    "model_family_notes": [
+      "Draft 1.3 redo valid branch coverage for hierarchical"
+    ]
+  },
+  "expected": "valid",
+  "fixture_note": "Draft 1.3 redo coverage fixture"
+}

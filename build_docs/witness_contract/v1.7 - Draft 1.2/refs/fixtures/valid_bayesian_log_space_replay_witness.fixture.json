@@ -1,0 +1,35 @@
+{
+  "schema_ref": "schemas/bayesian_update_replay_witness.schema.json",
+  "payload": {
+    "schema_version": "bayesian_update_replay_witness/v1",
+    "replay_witness_id": "bayes-replay:log-space:001",
+    "model_id": "model:knot-equivalence-search:v1",
+    "update_witness_id": "bayes-update:log-space:001",
+    "prior_id": "prior:knot-candidate:v1",
+    "likelihood_id": "likelihood:log-space:001",
+    "posterior_id": "posterior:knot-candidate:v1",
+    "replay_status": "replayed_exact",
+    "hypothesis_set_verified": true,
+    "model_consistency_verified": true,
+    "computed_normalization_constant": 0.48,
+    "log_normalization_constant": -0.7339691750802004,
+    "computed_posterior_distribution": [
+      {
+        "hypothesis_id": "same_knot_type",
+        "probability": 0.75
+      },
+      {
+        "hypothesis_id": "different_knot_type",
+        "probability": 0.25
+      }
+    ],
+    "tolerance": 1e-12,
+    "replay_grammar_ref": "verification_grammar:log-space-discrete-bayes:v1",
+    "reference_algorithm_id": "bayes:log_space_discrete_bayes:v1",
+    "replay_method": "log_sum_exp_discrete_bayes",
+    "metadata": {
+      "formula": "log-sum-exp exact replay"
+    },
+    "created_at": "2026-05-26T00:00:00Z"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "schema_ref": "schemas/knot_invariant_witness.schema.json",
+  "payload": {
+    "schema_version": "knot_invariant_witness/v1",
+    "invariant_witness_id": "knot-invariant:pd-identity-hash:001",
+    "source_object_ref": "diagram:trefoil-candidate:001",
+    "invariant_kind": "custom",
+    "normalization_convention": "canonical PD identity hash under toy domain",
+    "normalization_convention_id": "knot:canonical_pd_sha256:v1",
+    "invariant_value": {
+      "hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "computation_method": "lean_proof",
+    "replay_data_ref": "replay:canonical-pd:001",
+    "proof_witness_ref": "proof:knot-pd-identity-domain:001",
+    "lean_compiler_witness_ref": "lean-compiler:witness:001",
+    "claim_status": "proof_verified",
+    "complete_for_domain": true,
+    "completeness_witness_ref": "knot-completeness:pd-identity:001",
+    "domain_ref": "domain:knot:diagram-identity:v1",
+    "metadata": {
+      "limitation": "complete only for exact diagram-identity domain"
+    },
+    "created_at": "2026-05-26T00:00:00Z",
+    "invariant_semantics": "complete_invariant_for_bounded_domain"
+  }
+}

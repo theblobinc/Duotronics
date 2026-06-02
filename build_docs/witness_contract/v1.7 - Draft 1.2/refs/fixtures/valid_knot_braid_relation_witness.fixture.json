@@ -1,0 +1,15 @@
+{
+  "schema_ref": "schemas/knot_braid_relation_witness.schema.json",
+  "payload": {
+    "schema_version": "knot_braid_relation_witness/v1",
+    "braid_relation_witness_id": "braid-relation:artin:001",
+    "source_braid_id": "braid:trefoil:001",
+    "target_braid_id": "braid:trefoil:001-artin",
+    "relation_type": "artin_braid_relation",
+    "checked": true,
+    "checker_ref": "checker:braid-artin:v1",
+    "non_collapse_transition_id": "nc:knot-braid-relation:001",
+    "metadata": {},
+    "created_at": "2026-05-26T00:00:00Z"
+  }
+}

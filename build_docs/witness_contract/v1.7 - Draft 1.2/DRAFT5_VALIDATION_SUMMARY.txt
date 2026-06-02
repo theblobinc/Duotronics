@@ -1,0 +1,9 @@
+Duotronic v1.6 Draft 5 validation summary
+Generated: 2026-05-09T00:00:00Z
+
+Package class: complete witness corpus successor to Draft 4.1
+New layer: L2n Natural-Language Activation Witness
+Scope: contract, schema, policy, validation, security, and source observations
+Implementation code: intentionally not included
+Default policy: audit_only
+Validation: file inventory, JSON schema parse, zip integrity, checksum manifest

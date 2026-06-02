@@ -1,0 +1,21 @@
+{
+  "schema_ref": "schemas/knot_invariant_completeness_witness.schema.json",
+  "payload": {
+    "schema_version": "knot_invariant_completeness_witness/v1",
+    "completeness_witness_id": "knot-completeness:pd-identity:001",
+    "invariant_witness_id": "knot-invariant:pd-identity-hash:001",
+    "invariant_kind": "custom",
+    "domain_ref": "domain:knot:diagram-identity:v1",
+    "completeness_status": "domain_limited_complete",
+    "proof_witness_ref": "proof:knot-pd-identity-domain:001",
+    "lean_compiler_witness_ref": "lean-compiler:witness:001",
+    "limitations": [
+      "does not prove ambient isotopy",
+      "only exact presentation identity under canonical PD domain"
+    ],
+    "metadata": {
+      "warning": "domain-limited completeness"
+    },
+    "created_at": "2026-05-26T00:00:00Z"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/bayesian_loss_matrix_witness.schema.json",
+  "title": "BayesianLossMatrixWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "loss_matrix_id",
+    "model_id",
+    "actions",
+    "hypotheses",
+    "loss_entries",
+    "abstention_threshold",
+    "human_review_threshold",
+    "non_collapse_transition_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "bayesian_loss_matrix_witness/v1"
+    },
+    "loss_matrix_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "hypotheses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "loss_entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "action_id",
+          "hypothesis_id",
+          "loss"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hypothesis_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "loss": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "abstention_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "human_review_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "non_collapse_transition_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

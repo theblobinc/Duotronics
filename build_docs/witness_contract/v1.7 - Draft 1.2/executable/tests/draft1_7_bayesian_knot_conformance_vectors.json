@@ -1,0 +1,43 @@
+{
+  "schema_version": "draft1_7_bayesian_knot_conformance_vectors/v1_2",
+  "valid_fixtures": [
+    "refs/fixtures/valid_bayesian_model.fixture.json",
+    "refs/fixtures/valid_bayesian_prior.fixture.json",
+    "refs/fixtures/valid_bayesian_likelihood.fixture.json",
+    "refs/fixtures/valid_bayesian_posterior_state.fixture.json",
+    "refs/fixtures/valid_bayesian_update_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_update_replay_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_decision_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_calibration_report.fixture.json",
+    "refs/fixtures/valid_knot_diagram_witness.fixture.json",
+    "refs/fixtures/valid_knot_braid_word_witness.fixture.json",
+    "refs/fixtures/valid_knot_reidemeister_move_witness.fixture.json",
+    "refs/fixtures/valid_knot_reidemeister_trace_witness.fixture.json",
+    "refs/fixtures/valid_knot_invariant_witness.fixture.json",
+    "refs/fixtures/valid_knot_complete_invariant_witness.fixture.json",
+    "refs/fixtures/valid_knot_invariant_completeness_witness.fixture.json",
+    "refs/fixtures/valid_knot_canonicalization_witness.fixture.json",
+    "refs/fixtures/valid_knot_equivalence_authority_path.fixture.json",
+    "refs/fixtures/valid_knot_equivalence_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_log_likelihood.fixture.json",
+    "refs/fixtures/valid_bayesian_log_space_update_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_log_space_replay_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_posterior_predictive_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_marginalization_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_conditioning_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_negative_evidence_witness.fixture.json",
+    "refs/fixtures/valid_bayesian_loss_matrix_witness.fixture.json",
+    "refs/fixtures/valid_knot_braid_relation_witness.fixture.json",
+    "refs/fixtures/valid_knot_markov_move_witness.fixture.json",
+    "refs/fixtures/valid_knot_presentation_transition_witness.fixture.json"
+  ],
+  "invalid_fixtures": [
+    "refs/fixtures/invalid_bayesian_posterior_sum.fixture.json",
+    "refs/fixtures/invalid_bayesian_update_replay_mismatch.fixture.json",
+    "refs/fixtures/invalid_bayesian_decision_as_policy_approval.fixture.json",
+    "refs/fixtures/invalid_knot_equivalence_without_authority_path.fixture.json",
+    "refs/fixtures/invalid_knot_complete_invariant_without_proof.fixture.json",
+    "refs/fixtures/invalid_knot_braid_generator_bounds.fixture.json",
+    "refs/fixtures/invalid_knot_reidemeister_markov_move.fixture.json"
+  ]
+}

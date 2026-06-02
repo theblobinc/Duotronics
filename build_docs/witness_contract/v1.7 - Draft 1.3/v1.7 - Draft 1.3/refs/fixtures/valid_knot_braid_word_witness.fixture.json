@@ -1,0 +1,26 @@
+{
+  "schema_ref": "schemas/knot_braid_word_witness.schema.json",
+  "payload": {
+    "schema_version": "knot_braid_word_witness/v1",
+    "braid_witness_id": "knot-braid-witness:trefoil:001",
+    "braid_id": "braid:trefoil:001",
+    "strand_count": 2,
+    "generator_sequence": [
+      {
+        "index": 1,
+        "exponent": 3
+      }
+    ],
+    "closure_convention": "standard_closure",
+    "orientation_policy": "oriented",
+    "source_diagram_id": "diagram:trefoil-candidate:001",
+    "non_collapse_transition_id": "nc:knot-braid-presentation:001",
+    "claim_status": "candidate",
+    "metadata": {
+      "normalization_convention_id": "knot:braid_standard_closure:v1"
+    },
+    "created_at": "2026-05-26T00:00:00Z",
+    "generator_bounds_policy": "index_must_be_1_to_strand_count_minus_1",
+    "zero_exponent_policy": "reject_zero_exponents"
+  }
+}

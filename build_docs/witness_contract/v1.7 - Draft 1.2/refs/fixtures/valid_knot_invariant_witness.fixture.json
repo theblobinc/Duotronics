@@ -1,0 +1,25 @@
+{
+  "schema_ref": "schemas/knot_invariant_witness.schema.json",
+  "payload": {
+    "schema_version": "knot_invariant_witness/v1",
+    "invariant_witness_id": "knot-invariant:crossing-count:001",
+    "source_object_ref": "diagram:trefoil-candidate:001",
+    "invariant_kind": "crossing_count",
+    "normalization_convention": "minimal_crossing_count_not_claimed; diagram crossing count only",
+    "invariant_value": 3,
+    "computation_method": "deterministic_algorithm",
+    "replay_data_ref": "replay:knot-crossing-count:001",
+    "proof_witness_ref": null,
+    "lean_compiler_witness_ref": null,
+    "claim_status": "computed_support",
+    "complete_for_domain": false,
+    "domain_ref": null,
+    "metadata": {
+      "warning": "computed support, not equivalence proof"
+    },
+    "created_at": "2026-05-26T00:00:00Z",
+    "normalization_convention_id": "knot:diagram_crossing_count:v1",
+    "completeness_witness_ref": null,
+    "invariant_semantics": "invariant_computation"
+  }
+}

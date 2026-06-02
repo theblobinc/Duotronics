@@ -1,0 +1,45 @@
+{
+  "schema_version": "package_metadata/v1.1",
+  "package": "Duotronic Witness Contract v1.6 Draft 5.2.2 Lean Proof Authority Exact SQL Hardened Completion Candidate",
+  "version": "v1.6-draft-5.2.2",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "status": "completed_implementation_review_candidate_not_frozen_with_logical_observer_kernel_tla_plus_lean_exact_sql_hardened_toolchain",
+  "base_package": "uploaded v1.6 - Draft 5.2(7).zip",
+  "additive_layers": [
+    "lean_proof_authority",
+    "lake_build_project",
+    "check_proof_syscall",
+    "theorem_promotion_gate"
+  ],
+  "lean_toolchain": "leanprover/lean4:v4.29.1",
+  "validator": "executable/validators/validate_draft5_2_2_corpus.py",
+  "inventory": "PACKAGE_INVENTORY_v1_6_draft_5_2_2.json",
+  "root_directory_name": "v1.6 - Draft 5.2.2",
+  "lean_toolchain_added_in_this_update": true,
+  "sql_persistence_hardened_in_this_update": true,
+  "theorem_promotion_gate_orphan_guarded_in_this_update": true,
+  "freeze_state": "not_frozen_pending_runtime_implementation_human_review_strict_tlc_run_and_strict_lake_build",
+  "file_count": 492,
+  "hash_closure_file_count": 488,
+  "excluded_self_referential_artifacts": [
+    "PACKAGE_INVENTORY_v1_6_draft_5_2_2.json",
+    "PACKAGE_METADATA_v1_6_draft_5_2_2.json",
+    "refs/manifest/CHECKSUMS_v1_6_draft_5_2_2.sha256",
+    "refs/manifest/MANIFEST_v1_6_draft_5_2_2_complete.md"
+  ],
+  "extension_counts": {
+    ".cfg": 4,
+    ".json": 98,
+    ".lean": 11,
+    ".md": 345,
+    ".py": 5,
+    ".sha256": 7,
+    ".sql": 3,
+    ".tla": 5,
+    ".txt": 8,
+    ".yaml": 5,
+    "[no_ext]": 1
+  },
+  "exact_theorem_gate_witness_id_membership_enforced_in_this_update": true,
+  "corrective_pass": "draft_5_2_2_exact_sql_membership_cleanup"
+}

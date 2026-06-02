@@ -1,0 +1,21 @@
+{
+  "schema_ref": "schemas/knot_canonicalization_witness.schema.json",
+  "payload": {
+    "schema_version": "knot_canonicalization_witness/v1",
+    "canonicalization_witness_id": "knot-canonicalization:pd:001",
+    "source_object_ref": "diagram:trefoil-candidate:001",
+    "canonical_form_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "hash_algorithm": "sha256",
+    "canonicalization_algorithm_ref": "algorithm:canonical-pd-toy:v1",
+    "canonical_domain_ref": "domain:knot:diagram-identity:v1",
+    "collision_policy": "require_full_payload_compare",
+    "canonicalization_status": "canonicalized",
+    "proof_witness_ref": null,
+    "replay_data_ref": "replay:canonical-pd:001",
+    "non_collapse_transition_id": "nc:knot-canonical-form:001",
+    "metadata": {
+      "warning": "canonical hash is not equivalence proof"
+    },
+    "created_at": "2026-05-26T00:00:00Z"
+  }
+}

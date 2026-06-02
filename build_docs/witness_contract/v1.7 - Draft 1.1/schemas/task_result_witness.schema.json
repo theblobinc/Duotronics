@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/taskResultWitness.schema.json",
+  "title": "TaskResultWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_result_witness_id",
+    "task_id",
+    "status",
+    "step_witness_refs",
+    "output_refs",
+    "policy_decision_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "task_result_witness/v1"
+    },
+    "task_result_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "denied",
+        "deferred",
+        "escalated",
+        "rolled_back",
+        "inconclusive"
+      ]
+    },
+    "step_witness_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "output_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "verification_result_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replay_sign_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "kernel_error_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "description": "Final result witness for an observer task."
+}

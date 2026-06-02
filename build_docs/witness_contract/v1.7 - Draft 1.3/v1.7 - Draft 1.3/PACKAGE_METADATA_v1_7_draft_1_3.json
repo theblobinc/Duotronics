@@ -1,0 +1,35 @@
+{
+  "schema_version": "package_metadata/v1.3",
+  "package": "Duotronic Witness Contract v1.7 Draft 1.3 Schema-SQL-Runtime Consistency Candidate",
+  "version": "v1.7-draft-1.3",
+  "generated_at": "2026-05-26T00:00:00Z",
+  "status": "completed_schema_sql_runtime_consistency_candidate_not_frozen",
+  "base_package": "v1.7 Draft 1.2 correctness and formal integration candidate",
+  "root_directory_name": "v1.7 - Draft 1.3",
+  "additive_layers": [
+    "schema_sql_persistence_alignment",
+    "sql_enum_alignment",
+    "validator_sql_roundtrip_hardening",
+    "typed_negative_fixture_generation",
+    "record_level_tla_replay_authority_invariants",
+    "structured_openapi_error_lookup_replay_responses",
+    "runtime_sql_semantic_boundary"
+  ],
+  "validator": "executable/validators/validate_v1_7_draft_1_3_corpus.py",
+  "inventory": "PACKAGE_INVENTORY_v1_7_draft_1_3.json",
+  "freeze_state": "not_frozen_pending_human_review_strict_lake_build_strict_tlc_run_and_runtime_implementation_review",
+  "inherits_v1_7_draft_1_2": true,
+  "file_count": 625,
+  "hash_closure_file_count": 620,
+  "excluded_self_referential_artifacts": [
+    "DRAFT1_3_VALIDATION_REPORT.json",
+    "PACKAGE_INVENTORY_v1_7_draft_1_3.json",
+    "PACKAGE_METADATA_v1_7_draft_1_3.json",
+    "refs/manifest/CHECKSUMS_v1_7_draft_1_3.sha256",
+    "refs/manifest/MANIFEST_v1_7_draft_1_3_complete.md"
+  ],
+  "package_version": "v1.7-draft-1.3-redone",
+  "redo_scope": "validator orchestration, active registry aliases, positive enum fixture coverage, duplicate Bayesian hypothesis-ID rejection, deeper typed knot encoding semantics",
+  "validation_entrypoint": "executable/validators/validate_v1_7_draft_1_3_corpus.py",
+  "freeze_status": "not frozen; strict Lake and strict TLC remain blockers"
+}

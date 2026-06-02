@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/knot_invariant_witness.schema.json",
+  "title": "KnotInvariantWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "invariant_witness_id",
+    "source_object_ref",
+    "invariant_kind",
+    "normalization_convention",
+    "invariant_value",
+    "computation_method",
+    "claim_status",
+    "complete_for_domain",
+    "normalization_convention_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "knot_invariant_witness/v1"
+    },
+    "invariant_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_object_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "invariant_kind": {
+      "enum": [
+        "crossing_count",
+        "component_count",
+        "alexander_polynomial",
+        "jones_polynomial",
+        "signature",
+        "fundamental_group_presentation",
+        "custom"
+      ]
+    },
+    "normalization_convention": {
+      "type": "string",
+      "minLength": 1
+    },
+    "invariant_value": {},
+    "computation_method": {
+      "enum": [
+        "manual_attestation",
+        "deterministic_algorithm",
+        "external_tool",
+        "lean_proof",
+        "unknown_rejected"
+      ]
+    },
+    "replay_data_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proof_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "lean_compiler_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "claim_status": {
+      "enum": [
+        "candidate",
+        "computed_support",
+        "trace_verified",
+        "proof_verified",
+        "rejected"
+      ]
+    },
+    "complete_for_domain": {
+      "type": "boolean"
+    },
+    "domain_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "normalization_convention_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "completeness_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

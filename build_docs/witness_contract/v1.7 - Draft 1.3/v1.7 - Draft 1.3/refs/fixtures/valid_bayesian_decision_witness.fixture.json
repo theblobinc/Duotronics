@@ -1,0 +1,42 @@
+{
+  "schema_ref": "schemas/bayesian_decision_witness.schema.json",
+  "payload": {
+    "schema_version": "bayesian_decision_witness/v1",
+    "decision_witness_id": "bayes-decision:knot-search-next-step:001",
+    "model_id": "model:knot-equivalence-search:v1",
+    "posterior_id": "posterior:knot-candidate:v1",
+    "decision_id": "decision:request-trace-check:001",
+    "decision_rule": "minimum_expected_loss",
+    "utility_or_loss_model": {
+      "actions": [
+        "request_trace_check",
+        "declare_equivalence"
+      ],
+      "loss": {
+        "declare_equivalence_without_proof": 1000,
+        "request_trace_check": 1
+      }
+    },
+    "expected_values": [
+      {
+        "action": "request_trace_check",
+        "expected_loss": 1
+      },
+      {
+        "action": "declare_equivalence",
+        "expected_loss": 250
+      }
+    ],
+    "policy_decision_required": false,
+    "policy_decision_id": null,
+    "non_collapse_transition_id": "nc:bayes-decision-support:001",
+    "decision_authority": "decision_support",
+    "metadata": {
+      "warning": "decision support only; not policy approval"
+    },
+    "created_at": "2026-05-26T00:00:00Z",
+    "loss_matrix_id": "loss:knot-search:v1",
+    "abstention_threshold": 0.55,
+    "human_review_threshold": 0.25
+  }
+}

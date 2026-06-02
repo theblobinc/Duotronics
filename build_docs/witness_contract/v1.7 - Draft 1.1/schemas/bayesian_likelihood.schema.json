@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/bayesian_likelihood.schema.json",
+  "title": "BayesianLikelihood",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "likelihood_id",
+    "model_id",
+    "observation_id",
+    "likelihoods",
+    "normalization_convention",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "bayesian_likelihood/v1"
+    },
+    "likelihood_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "likelihoods": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "hypothesis_id",
+          "likelihood"
+        ],
+        "properties": {
+          "hypothesis_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "likelihood": {
+            "type": "number"
+          },
+          "source_ref": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "normalization_convention": {
+      "enum": [
+        "probability_mass",
+        "relative_likelihood",
+        "log_likelihood"
+      ]
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

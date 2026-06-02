@@ -1,0 +1,25 @@
+{
+  "schema_ref": "schemas/bayesian_likelihood.schema.json",
+  "payload": {
+    "schema_version": "bayesian_likelihood/v1",
+    "likelihood_id": "likelihood:log-space:001",
+    "model_id": "model:knot-equivalence-search:v1",
+    "observation_id": "observation:log-invariant-match:001",
+    "likelihoods": [
+      {
+        "hypothesis_id": "same_knot_type",
+        "likelihood": -0.10536051565782628
+      },
+      {
+        "hypothesis_id": "different_knot_type",
+        "likelihood": -1.6094379124341003
+      }
+    ],
+    "normalization_convention": "log_likelihood",
+    "normalization_convention_id": "bayes:log_likelihood:v1",
+    "metadata": {
+      "note": "log likelihoods may be negative and require log-sum-exp replay"
+    },
+    "created_at": "2026-05-26T00:00:00Z"
+  }
+}

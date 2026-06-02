@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/bayesian_update_replay_witness.schema.json",
+  "title": "BayesianUpdateReplayWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "replay_witness_id",
+    "model_id",
+    "update_witness_id",
+    "prior_id",
+    "likelihood_id",
+    "posterior_id",
+    "replay_status",
+    "hypothesis_set_verified",
+    "model_consistency_verified",
+    "computed_normalization_constant",
+    "computed_posterior_distribution",
+    "tolerance",
+    "replay_grammar_ref",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "bayesian_update_replay_witness/v1"
+    },
+    "replay_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "update_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prior_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "likelihood_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "posterior_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "replay_status": {
+      "enum": [
+        "replayed_exact",
+        "replayed_within_tolerance",
+        "bounded_approximation",
+        "rejected"
+      ]
+    },
+    "hypothesis_set_verified": {
+      "type": "boolean"
+    },
+    "model_consistency_verified": {
+      "type": "boolean"
+    },
+    "computed_normalization_constant": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "computed_posterior_distribution": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "hypothesis_id",
+          "probability"
+        ],
+        "properties": {
+          "hypothesis_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "probability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "tolerance": {
+      "type": "number",
+      "minimum": 0
+    },
+    "replay_grammar_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

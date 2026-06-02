@@ -1,0 +1,15 @@
+v1.7 Draft 1.3 corpus validation checks passed.
+Structured report written to DRAFT1_3_VALIDATION_REPORT.json with warnings.
+
+Command:
+python executable/validators/validate_v1_7_draft_1_3_corpus.py
+
+Expected warnings remain strict Lake / strict TLC availability warnings in this sandbox. Corpus errors were zero.
+
+
+Draft 1.3 redo coverage hardening:
+- Validator supports skip-aware stage orchestration and partial reports.
+- Active Draft 1.3 registry aliases added.
+- Positive fixtures cover every promoted enum branch.
+- Duplicate Bayesian hypothesis IDs are semantic rejections.
+- Typed knot encodings now have deeper semantic validators and negative fixtures.

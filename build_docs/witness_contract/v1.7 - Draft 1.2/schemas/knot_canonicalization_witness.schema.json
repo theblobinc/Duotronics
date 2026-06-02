@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/knot_canonicalization_witness.schema.json",
+  "title": "KnotCanonicalizationWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "canonicalization_witness_id",
+    "source_object_ref",
+    "canonical_form_hash",
+    "hash_algorithm",
+    "canonicalization_algorithm_ref",
+    "canonical_domain_ref",
+    "collision_policy",
+    "canonicalization_status",
+    "non_collapse_transition_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "knot_canonicalization_witness/v1"
+    },
+    "canonicalization_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_object_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonical_form_hash": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hash_algorithm": {
+      "enum": [
+        "sha256",
+        "sha3_256",
+        "blake3",
+        "implementation_defined_declared"
+      ]
+    },
+    "canonicalization_algorithm_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "canonical_domain_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "collision_policy": {
+      "enum": [
+        "reject_on_collision",
+        "require_full_payload_compare",
+        "proof_backed_injective_encoding"
+      ]
+    },
+    "canonicalization_status": {
+      "enum": [
+        "candidate",
+        "canonicalized",
+        "canonical_form_verified",
+        "rejected"
+      ]
+    },
+    "proof_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replay_data_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "non_collapse_transition_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

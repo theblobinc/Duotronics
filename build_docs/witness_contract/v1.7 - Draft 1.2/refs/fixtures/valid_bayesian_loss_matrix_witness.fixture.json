@@ -1,0 +1,54 @@
+{
+  "schema_ref": "schemas/bayesian_loss_matrix_witness.schema.json",
+  "payload": {
+    "schema_version": "bayesian_loss_matrix_witness/v1",
+    "loss_matrix_id": "loss:knot-search:v1",
+    "model_id": "model:knot-equivalence-search:v1",
+    "actions": [
+      "continue_search",
+      "request_human_review",
+      "reject_equivalence_claim"
+    ],
+    "hypotheses": [
+      "same_knot_type",
+      "different_knot_type"
+    ],
+    "loss_entries": [
+      {
+        "action_id": "continue_search",
+        "hypothesis_id": "same_knot_type",
+        "loss": 0.2
+      },
+      {
+        "action_id": "continue_search",
+        "hypothesis_id": "different_knot_type",
+        "loss": 0.4
+      },
+      {
+        "action_id": "request_human_review",
+        "hypothesis_id": "same_knot_type",
+        "loss": 0.1
+      },
+      {
+        "action_id": "request_human_review",
+        "hypothesis_id": "different_knot_type",
+        "loss": 0.1
+      },
+      {
+        "action_id": "reject_equivalence_claim",
+        "hypothesis_id": "same_knot_type",
+        "loss": 1.0
+      },
+      {
+        "action_id": "reject_equivalence_claim",
+        "hypothesis_id": "different_knot_type",
+        "loss": 0.0
+      }
+    ],
+    "abstention_threshold": 0.55,
+    "human_review_threshold": 0.25,
+    "non_collapse_transition_id": "nc:bayes-loss-matrix:001",
+    "metadata": {},
+    "created_at": "2026-05-26T00:00:00Z"
+  }
+}

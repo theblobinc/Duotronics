@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/non_collapse_state.schema.json",
+  "title": "NonCollapseState",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "state_id",
+    "primitive_category",
+    "authority_class",
+    "state_kind",
+    "collapse_status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "non_collapse_state/v1"
+    },
+    "state_id": {
+      "type": "string"
+    },
+    "primitive_category": {
+      "enum": [
+        "zero",
+        "absence",
+        "unknown",
+        "invalid",
+        "empty",
+        "null",
+        "computational_evidence",
+        "theorem",
+        "conjectural",
+        "self_trained",
+        "authoritative",
+        "audit_only",
+        "active",
+        "observation",
+        "proof",
+        "explanation",
+        "fact",
+        "policy_approval",
+        "human_attestation",
+        "synthetic_witness",
+        "activation_witness",
+        "probabilistic_prior",
+        "probabilistic_likelihood",
+        "probabilistic_posterior",
+        "bayesian_decision_support",
+        "bayesian_calibration_evidence",
+        "knot_diagram_presentation",
+        "knot_braid_presentation",
+        "knot_reidemeister_trace",
+        "knot_invariant_evidence",
+        "knot_canonical_form",
+        "knot_equivalence_claim",
+        "bayesian_posterior_predictive",
+        "bayesian_marginalization",
+        "bayesian_conditioning",
+        "bayesian_negative_evidence",
+        "bayesian_decision_loss_model",
+        "knot_braid_relation_transition",
+        "knot_markov_transition",
+        "knot_presentation_transition"
+      ]
+    },
+    "authority_class": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "proposal",
+        "audit",
+        "shadow",
+        "release_candidate",
+        "authoritative",
+        "human_authoritative",
+        "formal_proof"
+      ]
+    },
+    "external_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "may_collapse_to": {
+      "type": "array",
+      "maxItems": 0,
+      "description": "Silent collapse targets are forbidden. Any state change must be expressed as non_collapse_transition/v1."
+    },
+    "state_kind": {
+      "enum": [
+        "value_state",
+        "epistemic_state",
+        "authority_state",
+        "runtime_state",
+        "claim_state",
+        "model_state",
+        "replay_state"
+      ]
+    },
+    "collapse_status": {
+      "enum": [
+        "not_collapsed",
+        "collapse_denied",
+        "transition_requires_witness",
+        "transition_witnessed",
+        "transition_allowed",
+        "transition_forbidden"
+      ]
+    },
+    "claim_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "description": "Primitive non-collapse state. It records a state; transitions between states are represented by non_collapse_transition.schema.json."
+}

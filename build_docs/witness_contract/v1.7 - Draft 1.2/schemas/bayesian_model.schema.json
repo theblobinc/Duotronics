@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/bayesian_model.schema.json",
+  "title": "BayesianModel",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "model_id",
+    "hypotheses",
+    "observation_space",
+    "update_method",
+    "status",
+    "model_version",
+    "created_at",
+    "model_family"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "bayesian_model/v1"
+    },
+    "model_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "model_version": {
+      "type": "string",
+      "default": "v1"
+    },
+    "hypotheses": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "observation_space": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "update_method": {
+      "enum": [
+        "exact_discrete_bayes",
+        "log_space_discrete_bayes",
+        "conjugate_closed_form",
+        "graphical_belief_propagation",
+        "hierarchical_update",
+        "approximate_monte_carlo",
+        "external_verified"
+      ]
+    },
+    "assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "active",
+        "deprecated",
+        "rejected"
+      ]
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "model_family": {
+      "enum": [
+        "discrete",
+        "conjugate",
+        "graphical_bayesian_network",
+        "hierarchical",
+        "particle_monte_carlo",
+        "external_verified"
+      ]
+    },
+    "model_family_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

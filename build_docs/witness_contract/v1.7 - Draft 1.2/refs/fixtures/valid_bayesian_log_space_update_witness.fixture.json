@@ -1,0 +1,26 @@
+{
+  "schema_ref": "schemas/bayesian_update_witness.schema.json",
+  "payload": {
+    "schema_version": "bayesian_update_witness/v1",
+    "update_witness_id": "bayes-update:log-space:001",
+    "model_id": "model:knot-equivalence-search:v1",
+    "prior_id": "prior:knot-candidate:v1",
+    "likelihood_id": "likelihood:log-space:001",
+    "observation_evidence_ref": "evidence:log-invariant-match:001",
+    "posterior_id": "posterior:knot-candidate:v1",
+    "update_method": "log_space_discrete_bayes",
+    "normalization_constant": 0.48,
+    "approximation_used": false,
+    "approximation_error_bound": 0,
+    "approximation_method": null,
+    "negative_or_missing_evidence_refs": [],
+    "non_collapse_transition_id": "nc:bayes-log-update:001",
+    "policy_decision_id": "policy:bayes-update-allowed:001",
+    "replay_grammar_ref": "verification_grammar:log-space-discrete-bayes:v1",
+    "reference_algorithm_id": "bayes:log_space_discrete_bayes:v1",
+    "metadata": {
+      "formula": "log posterior = log prior + log likelihood - logsumexp"
+    },
+    "created_at": "2026-05-26T00:00:00Z"
+  }
+}

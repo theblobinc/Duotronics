@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/knot_equivalence_witness.schema.json",
+  "title": "KnotEquivalenceWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "equivalence_witness_id",
+    "source_object_ref",
+    "target_object_ref",
+    "equivalence_relation",
+    "authority_level",
+    "non_collapse_transition_id",
+    "policy_decision_id",
+    "authority_path_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "knot_equivalence_witness/v1"
+    },
+    "equivalence_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_object_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_object_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "equivalence_relation": {
+      "enum": [
+        "ambient_isotopy",
+        "oriented_ambient_isotopy",
+        "link_equivalence",
+        "braid_markov_equivalence",
+        "mirror_identified_equivalence"
+      ]
+    },
+    "authority_level": {
+      "enum": [
+        "candidate",
+        "computed_support",
+        "trace_verified",
+        "canonical_form_verified",
+        "proof_verified",
+        "rejected"
+      ]
+    },
+    "authority_path": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path_type",
+          "witness_ref"
+        ],
+        "properties": {
+          "path_type": {
+            "enum": [
+              "reidemeister_trace",
+              "braid_relation_trace",
+              "canonical_normal_form",
+              "complete_invariant",
+              "proof_witness",
+              "external_theorem_authority"
+            ]
+          },
+          "witness_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "Optional inline summary only. Normative authority is held by KnotEquivalenceAuthorityPath."
+    },
+    "invariant_witness_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "proof_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "lean_compiler_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "non_collapse_transition_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "authority_path_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+Duotronic Witness Contract v1.7 Draft 1.1 validation summary
+Generated: 2026-05-26
+
+Command:
+  python executable/validators/validate_v1_7_draft_1_1_corpus.py
+
+Result:
+  v1.7 Draft 1.1 corpus validation checks passed.
+
+Scope:
+  - JSON Schema validity for all schema files.
+  - YAML validity for OpenAPI and kernel syscall tables.
+  - Inherited v1.6 Draft 5.2.2 validator compatibility, tolerating expected supersession inventory/kernel deltas.
+  - Valid and invalid Bayesian/knot fixture validation.
+  - Exact Bayesian replay check for prior x likelihood posterior reconstruction.
+  - SQL parse/apply and guard checks for newly first-class tables.
+  - Kernel syscall and invariant coverage checks.
+  - Lean advisory static checks.
+  - TLA static presence check for first-class promotion module.
+  - Normalization/domain registry token checks.
+  - Package inventory hash-closure validation.
+
+Freeze status:
+  Not frozen. Still requires target-environment strict Lake/TLC runs, human authority review, and production implementation conformance.

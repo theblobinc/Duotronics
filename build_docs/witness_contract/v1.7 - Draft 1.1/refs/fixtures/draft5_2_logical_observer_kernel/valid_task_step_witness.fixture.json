@@ -1,0 +1,29 @@
+{
+  "case_id": "valid_task_step_witness",
+  "schema_ref": "schemas/task_step_witness.schema.json",
+  "expected_status": "pass",
+  "payload": {
+    "schema_version": "task_step_witness/v1",
+    "task_step_witness_id": "step:fixture:kernel:1",
+    "task_id": "task:fixture:kernel",
+    "task_frame_id": "frame:fixture:kernel",
+    "syscall": "compute",
+    "instruction": "RUN_PURE_FUNCTION",
+    "input_refs": [
+      "claim:fixture:1"
+    ],
+    "output_refs": [
+      "artifact:fixture:computed"
+    ],
+    "witness_refs": [
+      "witness:fixture:step"
+    ],
+    "deterministic": true,
+    "policy_decision_id": "policy:fixture:kernel",
+    "non_collapse_transition_id": null,
+    "claim_status_transition_id": null,
+    "resource_budget_id": "budget:fixture:kernel",
+    "created_at": "2026-05-11T00:00:00Z",
+    "metadata": {}
+  }
+}

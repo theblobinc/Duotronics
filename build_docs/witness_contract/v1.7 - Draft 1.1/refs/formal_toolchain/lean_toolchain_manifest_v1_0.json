@@ -1,0 +1,43 @@
+{
+  "schema_version": "lean_toolchain_manifest/v1",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "integration_scope": "lean_proof_authority_and_lake_build",
+  "lean_toolchain_added": true,
+  "toolchain": "leanprover/lean4:v4.29.1",
+  "lakefile": "lakefile.lean",
+  "package_root": ".",
+  "build_command": [
+    "lake",
+    "build"
+  ],
+  "strict_mode_command": [
+    "python3",
+    "executable/formal/run_lean_build.py",
+    "--mode",
+    "strict",
+    "--json"
+  ],
+  "advisory_mode_command": [
+    "python3",
+    "executable/formal/run_lean_build.py",
+    "--mode",
+    "advisory",
+    "--json"
+  ],
+  "lean_modules": [
+    "Duotronic",
+    "Duotronic.All",
+    "Duotronic.Core",
+    "Duotronic.CoreMetaphysics",
+    "Duotronic.EvidenceSyntax",
+    "Duotronic.ProofAuthority",
+    "Duotronic.Kernel"
+  ],
+  "forbidden_proof_markers": [
+    "sorry",
+    "admit"
+  ],
+  "unapproved_axiom_policy": "deny_for_theorem_promotion",
+  "compiler_witness_schema": "schemas/lean_compiler_witness.schema.json",
+  "proof_witness_schema": "schemas/proof_witness.schema.json"
+}

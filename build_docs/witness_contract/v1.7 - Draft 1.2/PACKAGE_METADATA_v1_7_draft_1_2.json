@@ -1,0 +1,32 @@
+{
+  "schema_version": "package_metadata/v1.2",
+  "package": "Duotronic Witness Contract v1.7 Draft 1.2 Correctness and Formal Integration Candidate",
+  "version": "v1.7-draft-1.2",
+  "generated_at": "2026-05-26T00:00:00Z",
+  "status": "completed_correctness_and_formal_integration_candidate_not_frozen",
+  "base_package": "v1.7 Draft 1.1 first-class Bayesian and knot promotion candidate",
+  "root_directory_name": "v1.7 - Draft 1.2",
+  "additive_layers": [
+    "validator_hardening",
+    "tla_manifest_integration",
+    "typed_knot_encoding_payloads",
+    "split_knot_transition_witnesses",
+    "bayesian_reference_algorithms",
+    "bayesian_posterior_predictive_marginal_conditioning_negative_evidence_loss_matrix",
+    "semantic_validation_hardening",
+    "freeze_blocker_matrix"
+  ],
+  "validator": "executable/validators/validate_v1_7_draft_1_2_corpus.py",
+  "inventory": "PACKAGE_INVENTORY_v1_7_draft_1_2.json",
+  "freeze_state": "not_frozen_pending_human_review_strict_lake_build_strict_tlc_run_and_runtime_implementation_review",
+  "inherits_v1_7_draft_1_1": true,
+  "file_count": 601,
+  "hash_closure_file_count": 596,
+  "excluded_self_referential_artifacts": [
+    "DRAFT1_2_VALIDATION_REPORT.json",
+    "PACKAGE_INVENTORY_v1_7_draft_1_2.json",
+    "PACKAGE_METADATA_v1_7_draft_1_2.json",
+    "refs/manifest/CHECKSUMS_v1_7_draft_1_2.sha256",
+    "refs/manifest/MANIFEST_v1_7_draft_1_2_complete.md"
+  ]
+}

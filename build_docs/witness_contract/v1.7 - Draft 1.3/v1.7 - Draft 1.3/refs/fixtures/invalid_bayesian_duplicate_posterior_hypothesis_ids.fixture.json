@@ -1,0 +1,29 @@
+{
+  "schema_ref": "schemas/bayesian_posterior_state.schema.json",
+  "payload": {
+    "schema_version": "bayesian_posterior_state/v1",
+    "posterior_id": "posterior:duplicate-hypothesis-id:001",
+    "model_id": "model:knot-equivalence-search:v1",
+    "update_witness_id": "bayes-update:knot-candidate:v1",
+    "hypothesis_distribution": [
+      {
+        "hypothesis_id": "same_knot_type",
+        "probability": 0.5
+      },
+      {
+        "hypothesis_id": "same_knot_type",
+        "probability": 0.5
+      }
+    ],
+    "normalization_status": "normalized",
+    "non_collapse_transition_id": "nc:bayes-prior-to-posterior:001",
+    "posterior_status": "computed",
+    "approximation_error_bound": 0,
+    "metadata": {
+      "warning": "posterior support is not knot equivalence proof"
+    },
+    "created_at": "2026-05-26T00:00:00Z"
+  },
+  "expected": "invalid",
+  "negative_fixture_note": "duplicate posterior hypothesis_id entries must be rejected semantically"
+}

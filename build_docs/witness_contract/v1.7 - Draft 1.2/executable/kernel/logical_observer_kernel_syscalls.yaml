@@ -1,0 +1,335 @@
+schema_version: logical_observer_kernel_syscalls/v1
+status: v1_7_draft_1_2_correctness_formal_integration_candidate
+deterministic: true
+boot_instruction_set:
+- BOOT_CORPUS
+- LOAD_MANIFEST
+- VERIFY_HASH_CLOSURE
+- RESOLVE_ACTIVE_VERSION
+- LOAD_SCHEMA_REGISTRY
+- LOAD_AUTHORITY_TABLE
+- ENTER_SAFE_MODE_IF_AMBIGUOUS
+canonical_resolver_instruction_set:
+- RESOLVE_RULE
+- SELECT_ACTIVE_CONTRACT
+- APPLY_SUPERSESSION_CHAIN
+- CHECK_COMPATIBILITY_EXCEPTION
+- REPORT_AMBIGUITY
+observer_capability_instruction_set:
+- DECLARE_OBSERVER
+- CHECK_CAPABILITY
+- CHECK_SCOPE
+- CHECK_RUNTIME_MODE
+- CHECK_CHANNEL_AUTHORITY
+- CHECK_DELEGATION_CHAIN
+- DOWNGRADE_FORCE
+- DENY_OR_ESCALATE
+logical_task_instruction_set:
+- CREATE_TASK
+- TYPECHECK_TASK
+- PLAN_TASK
+- ALLOCATE_BUDGET
+- EXECUTE_DETERMINISTIC_STEP
+- EMIT_STEP_WITNESS
+- COMMIT_RESULT
+- ROLLBACK_RESULT
+- EXPORT_TASK_TRACE
+evidence_transaction_instruction_set:
+- BEGIN_EVIDENCE_TX
+- ASSERT_PRECONDITIONS
+- EMIT_WITNESS
+- CHECK_NON_COLLAPSE
+- CHECK_POLICY
+- PERSIST_WITNESS
+- COMMIT_TX
+- ABORT_TX
+error_refusal_instruction_set:
+- RAISE_MISSING_WITNESS
+- RAISE_AUTHORITY_DENIED
+- RAISE_NON_COLLAPSE_VIOLATION
+- RAISE_REPLAY_ASSUMPTION_MISSING
+- RAISE_INDETERMINATE_RESULT
+- ESCALATE_TO_HUMAN_REVIEW
+deterministic_computation_instruction_set:
+- READ_OBJECT
+- HASH_OBJECT
+- COMPARE
+- VALIDATE_SCHEMA
+- EVALUATE_PREDICATE
+- RUN_PURE_FUNCTION
+- CHECK_RESULT
+- RETURN_STATUS
+logical_memory_instruction_set:
+- READ_MEMORY_CELL
+- WRITE_OBSERVATION
+- WRITE_CANDIDATE_FACT
+- PROMOTE_MEMORY_CELL
+- MARK_STALE
+- PURGE_WITH_WITNESS
+- SNAPSHOT_MEMORY
+- REPLAY_MEMORY_STATE
+conflict_adjudication_instruction_set:
+- DETECT_CONFLICT
+- CLASSIFY_CONFLICT
+- OPEN_ADJUDICATION
+- COMPARE_AUTHORITY
+- COMPARE_EVIDENCE
+- MERGE_IF_COMPATIBLE
+- FORK_IF_INCOMPATIBLE
+- MARK_UNRESOLVED
+resource_safety_instruction_set:
+- SET_RESOURCE_BUDGET
+- CHECK_RECURSION_DEPTH
+- CHECK_TIME_BUDGET
+- CHECK_MEMORY_BUDGET
+- DENY_NETWORK
+- DENY_RANDOMNESS
+- DENY_MUTATION
+- ENTER_QUARANTINE_MODE
+bayesian_reasoning_instruction_set:
+- LOAD_BAYESIAN_MODEL
+- VALIDATE_PRIOR
+- VALIDATE_LIKELIHOOD
+- APPLY_BAYES_UPDATE
+- NORMALIZE_POSTERIOR
+- REPLAY_BAYES_UPDATE
+- EMIT_BAYESIAN_UPDATE_WITNESS
+- EMIT_BAYESIAN_UPDATE_REPLAY_WITNESS
+- EMIT_POSTERIOR_STATE
+- CHECK_BAYESIAN_NON_COLLAPSE
+- CALIBRATE_POSTERIOR
+- DECIDE_UNDER_LOSS
+- COMPUTE_POSTERIOR_PREDICTIVE
+- MARGINALIZE_DISTRIBUTION
+- CONDITION_DISTRIBUTION
+- RECORD_NEGATIVE_OR_MISSING_EVIDENCE
+knot_theory_instruction_set:
+- LOAD_KNOT_DIAGRAM
+- LOAD_BRAID_WORD
+- VALIDATE_KNOT_ENCODING
+- APPLY_REIDEMEISTER_MOVE
+- APPLY_BRAID_RELATION
+- APPLY_MARKOV_MOVE
+- WRAP_PRESENTATION_TRANSITION
+- REPLAY_REIDEMEISTER_TRACE
+- COMPUTE_KNOT_INVARIANT
+- VERIFY_INVARIANT_COMPLETENESS
+- CANONICALIZE_KNOT_PRESENTATION
+- COMPARE_KNOT_PRESENTATIONS
+- EMIT_KNOT_MOVE_WITNESS
+- EMIT_KNOT_TRACE_WITNESS
+- EMIT_KNOT_INVARIANT_WITNESS
+- EMIT_KNOT_AUTHORITY_PATH
+- EMIT_KNOT_EQUIVALENCE_WITNESS
+- CHECK_KNOT_NON_COLLAPSE
+syscalls:
+- name: observe
+  purpose: Record an observation
+  required_witness:
+  - EvidenceClaim
+- name: compose
+  purpose: Build compound claim
+  required_witness:
+  - CompoundClaimWitness
+- name: infer
+  purpose: Derive proposal from premises
+  required_witness:
+  - InferenceWitness
+- name: verify
+  purpose: Run deterministic verification
+  required_witness:
+  - VerificationResult
+- name: replay
+  purpose: Reconstruct from assumptions and grammar
+  required_witness:
+  - ReplayAssumptionManifest
+  - VerificationResult
+- name: delegate
+  purpose: Transfer bounded authority
+  required_witness:
+  - AuthorityDelegationChain
+- name: promote
+  purpose: Change claim, model, or status authority
+  required_witness:
+  - ClaimStatusTransition
+  - NonCollapseTransition
+- name: compute
+  purpose: Run bounded deterministic computation
+  required_witness:
+  - TaskStepWitness
+  - TaskResultWitness
+- name: adjudicate
+  purpose: Resolve conflict
+  required_witness:
+  - ConflictAdjudicationWitness
+- name: rollback
+  purpose: Undo failed transaction
+  required_witness:
+  - KernelTransaction
+- name: export
+  purpose: Produce replayable bundle
+  required_witness:
+  - ReplaySign
+  - VerificationGrammar
+- name: check_proof
+  purpose: Compile and verify Lean proof artifacts for theorem/proof promotion
+  required_witness:
+  - LeanCompilerWitness
+  - ProofWitness
+- name: bayes_model
+  purpose: Register Bayesian model and hypothesis space
+  required_witness:
+  - BayesianModel
+- name: bayes_update
+  purpose: Update Bayesian posterior from model, prior, likelihood, and observation evidence
+  required_witness:
+  - BayesianModel
+  - BayesianPrior
+  - BayesianLikelihood
+  - EvidenceClaim
+  - BayesianUpdateWitness
+- name: bayes_replay_update
+  purpose: Recompute or bound a Bayesian posterior update
+  required_witness:
+  - BayesianModel
+  - BayesianUpdateWitness
+  - BayesianUpdateReplayWitness
+- name: bayes_calibrate
+  purpose: Record Bayesian calibration evidence
+  required_witness:
+  - BayesianModel
+  - BayesianCalibrationReport
+- name: bayes_decide
+  purpose: Select a decision under posterior uncertainty and declared utility/loss model
+  required_witness:
+  - BayesianModel
+  - BayesianPosteriorState
+  - BayesianDecisionWitness
+- name: bayes_posterior_predictive
+  purpose: Compute posterior predictive distribution under declared model and posterior
+  required_witness:
+  - BayesianModel
+  - BayesianPosteriorState
+  - BayesianPosteriorPredictiveWitness
+- name: bayes_marginalize
+  purpose: Marginalize a Bayesian distribution over declared variables
+  required_witness:
+  - BayesianModel
+  - BayesianMarginalizationWitness
+- name: bayes_condition
+  purpose: Condition a Bayesian distribution on declared evidence
+  required_witness:
+  - BayesianModel
+  - BayesianConditioningWitness
+- name: bayes_record_negative_evidence
+  purpose: Record negative evidence or missing-data semantics without collapsing absence to zero
+  required_witness:
+  - BayesianModel
+  - BayesianNegativeEvidenceWitness
+- name: bayes_loss_matrix
+  purpose: Register loss/utility matrix and abstention/human-review thresholds
+  required_witness:
+  - BayesianModel
+  - BayesianLossMatrixWitness
+- name: knot_encode
+  purpose: Register knot diagram or braid word presentation
+  required_witness_any_of:
+  - - KnotDiagramWitness
+  - - KnotBraidWordWitness
+- name: knot_move
+  purpose: Record Reidemeister diagram move witness only
+  required_witness:
+  - KnotReidemeisterMoveWitness
+- name: knot_braid_relation
+  purpose: Record Artin braid relation witness separate from Reidemeister moves
+  required_witness:
+  - KnotBraidRelationWitness
+- name: knot_markov_move
+  purpose: Record Markov move witness separate from Reidemeister moves
+  required_witness:
+  - KnotMarkovMoveWitness
+- name: knot_presentation_transition
+  purpose: Wrap Reidemeister, braid, Markov, canonicalization, or proof-backed transitions
+  required_witness:
+  - KnotPresentationTransitionWitness
+- name: knot_trace
+  purpose: Register replayed Reidemeister or braid trace witness
+  required_witness:
+  - KnotReidemeisterTraceWitness
+- name: knot_invariant
+  purpose: Compute or register a knot invariant witness
+  required_witness:
+  - KnotInvariantWitness
+- name: knot_invariant_completeness
+  purpose: Bind an invariant completeness claim to proof authority and domain
+  required_witness:
+  - KnotInvariantWitness
+  - KnotInvariantCompletenessWitness
+- name: knot_canonicalize
+  purpose: Register canonicalization and collision policy witness
+  required_witness:
+  - KnotCanonicalizationWitness
+- name: knot_authority_path
+  purpose: Register a first-class authority path for knot equivalence
+  required_witness:
+  - KnotEquivalenceAuthorityPath
+- name: knot_equivalence
+  purpose: Register knot equivalence claim with explicit first-class authority path
+  required_witness:
+  - KnotEquivalenceWitness
+  - KnotEquivalenceAuthorityPath
+forbidden_operations:
+- promote_knot_equivalence_without_authority_path
+- discard_knot_orientation_without_policy
+- treat_invariant_equality_as_knot_equivalence
+- treat_bayesian_decision_as_policy_approval
+- promote_posterior_to_truth_without_proof
+- accept_bayesian_update_without_replay_or_bound
+- accept_complete_invariant_without_completeness_witness
+- accept_canonical_hash_without_collision_policy
+- accept_braid_generator_out_of_bounds
+- treat_markov_move_as_reidemeister_move
+- network_fetch
+- random_sample
+- wall_clock_now
+- hidden_state_write
+- replace_authority
+- delete_evidence
+- promote_without_witness
+- promote_theorem_without_lean_compiler_witness
+- promote_theorem_with_sorry_or_admit
+- promote_theorem_with_unapproved_axiom
+- promote_theorem_with_source_hash_mismatch
+invariants:
+- K1. No effect before witness.
+- K2. No promotion without policy decision.
+- K3. No theorem/proof status without proof witness, Lean compiler witness, and theorem promotion gate.
+- K4. No authority escalation by repetition.
+- K5. No self-trained-to-authoritative transition without gate path.
+- K6. No replay claim without assumptions and deterministic grammar.
+- K7. No hidden state in observer computation.
+- K8. No network, randomness, or wall-clock dependency in replay mode.
+- K9. Every refusal is itself a typed witness.
+- K10. Every ambiguity resolves to deny, defer, fork, or human escalation.
+- K11. Posterior probability is not proof, truth, theorem, policy approval, or human attestation.
+- K12. Bayesian decision is not policy approval unless a policy decision witness separately authorizes it.
+- K13. Knot diagram identity is not knot-type equivalence unless witnessed by a declared equivalence path.
+- K14. Invariant equality is not equivalence unless the invariant is declared complete for the domain and backed by proof authority.
+- K15. Reidemeister traces are mathematical transition witnesses and must preserve source and target diagram references.
+- K16. Bayesian model identity, prior, likelihood, update, posterior, and replay must share one hypothesis space.
+- K17. Log-likelihood values are not probability values and require log-space replay semantics.
+- K18. Knot braid words are first-class presentations, not fallback diagram metadata.
+- K19. Knot equivalence authority paths are first-class objects, not inline JSON authority strings.
+- K20. Canonical form hashes require declared canonicalization domain and collision policy.
+- K21. Braid generator indices must be in 1..strand_count-1 unless rejected by validation.
+- K22. Markov moves and braid relations are not Reidemeister moves and require their own witness classes.
+- K23. Missing or negative evidence must be modeled explicitly and never collapses silently to zero likelihood.
+proof_checking_instruction_set:
+- LOAD_LEAN_PROJECT
+- VERIFY_LEAN_TOOLCHAIN
+- RUN_LAKE_BUILD
+- SCAN_FOR_SORRY_OR_ADMIT
+- EXTRACT_THEOREM_STATUS
+- EMIT_LEAN_COMPILER_WITNESS
+- EMIT_PROOF_WITNESS
+- BIND_THEOREM_PROMOTION_GATE
