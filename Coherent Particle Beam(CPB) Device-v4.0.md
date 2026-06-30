@@ -12,10 +12,10 @@ Multi‑Modal Open‑Atmosphere Particle Valve
 
 ## 1. Overview
 
-The Coherent Particle Beam (CPB) device is a compact electro‑fluidic platform built around a **coaxial Venturi vacuum stage**. A conductive drive gas (mist) flows through the **outer annulus**, entraining gas from a **sealed inner drift tube**. This self‑pumping action maintains a clean, particle‑free vacuum of 30–80 mbar inside the inner tube without any moving parts. The inner tube itself is never exposed to the drive fluid—it contains only residual gas at the pulled pressure.
+The Coherent Particle Beam (CPB) device is a compact electro‑fluidic platform built around a **coaxial Venturi vacuum stage**. A conductive drive gas (mist) flows through the **outer annulus**, entraining gas from a **sealed inner drift tube**. This self‑pumping action maintains a clean, particle‑free vacuum of 30–80 mbar inside the inner tube without any moving parts. The inner tube itself is never exposed to the drive fluid-it contains only residual gas at the pulled pressure.
 
 **Core Plasma Module (30–80 mbar)**  
-In its baseline configuration, electrodes inside the inner tube strike a **collisional glow discharge** in the residual gas (air or a selected fill gas). The output is a weakly ionised plasma jet—not a coherent particle beam—suitable for applications such as soft X‑ray generation (<5 keV), plasma RF antennas, surface activation, and plasma‑assisted chemistry. The conductive mist in the outer annulus can be electrically biased to influence the discharge (e.g., as a virtual electrode or charge reservoir), but it remains entirely outside the plasma channel.
+In its baseline configuration, electrodes inside the inner tube strike a **collisional glow discharge** in the residual gas (air or a selected fill gas). The output is a weakly ionised plasma jet-not a coherent particle beam-suitable for applications such as soft X‑ray generation (<5 keV), plasma RF antennas, surface activation, and plasma‑assisted chemistry. The conductive mist in the outer annulus can be electrically biased to influence the discharge (e.g., as a virtual electrode or charge reservoir), but it remains entirely outside the plasma channel.
 
 **High‑Vacuum (HV) Beam Module (≤10⁻⁵ mbar at the emitter)**  
 Because the inner tube is always clean and free of drive‑fluid residue, the transition to a particle accelerator requires only **simple isolation and pump‑down**. An optional upgrade closes a valve between the inner tube and the Venturi stage, then connects a high‑vacuum pump system and a dedicated field‑emission cathode (or ion source). Once the emitter‑end pressure reaches ≤1×10⁻⁵ mbar, the device operates as a conventional electrostatic accelerator, enabling **ballistic transport** of electrons (5–100 keV) or positive ions (10–300 keV). Focused beam modes and, with a deuterated target, D‑D neutron production become possible. No aggressive bake‑out or residue removal is required; a mild bake may optionally accelerate outgassing.
@@ -55,7 +55,7 @@ The Core module produces a **collisional plasma jet** in the clean, evacuated in
 
 ### 2.2 High‑Vacuum Beam Module (Ballistic, <10⁻⁵ mbar at the Emitter)
 
-All HV‑mode parameters are **preliminary design targets** that assume the successful implementation of a differential vacuum pumping architecture (§3.11) delivering an emitter‑end pressure ≤ 1 × 10⁻⁵ mbar. Because the inner tube is already clean from the Core phase, this requires only isolation and pump‑down—no aggressive bake‑out or residue removal. If the pressure condition is not met, the beam will be heavily scattered and the performance values below are not physically achievable. Confidence levels are deliberately conservative; values will be updated after vacuum qualification and beam commissioning.
+All HV‑mode parameters are **preliminary design targets** that assume the successful implementation of a differential vacuum pumping architecture (§3.11) delivering an emitter‑end pressure ≤ 1 × 10⁻⁵ mbar. Because the inner tube is already clean from the Core phase, this requires only isolation and pump‑down-no aggressive bake‑out or residue removal. If the pressure condition is not met, the beam will be heavily scattered and the performance values below are not physically achievable. Confidence levels are deliberately conservative; values will be updated after vacuum qualification and beam commissioning.
 
 | Parameter                             | Requirement                                            | Confidence | Validation Method                                                 |
 | ------------------------------------- | ------------------------------------------------------ | ---------- | ----------------------------------------------------------------- |
@@ -113,7 +113,7 @@ All HV‑mode parameters are **preliminary design targets** that assume the succ
 
 ### 2.5 Vacuum Gate Requirements (Pre‑HV Commissioning)
 
-The following requirements must be met before any attempt to operate the HV beam mode. They form a formal go/no‑go gate (Phase 6a in the roadmap). These are hard requirements, not design targets. Because the inner tube remains clean at all times, the gate focuses solely on achieving the necessary vacuum level and emitter readiness—**no residue removal or bake‑out after Core operation is required**.
+The following requirements must be met before any attempt to operate the HV beam mode. They form a formal go/no‑go gate (Phase 6a in the roadmap). These are hard requirements, not design targets. Because the inner tube remains clean at all times, the gate focuses solely on achieving the necessary vacuum level and emitter readiness-**no residue removal or bake‑out after Core operation is required**.
 
 | Requirement                                                | Value                                     | Validation Method                                                                 |
 | ---------------------------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------------------- |
@@ -464,7 +464,7 @@ This section defines the governing physical principles underlying the Coherent P
 - **Core Plasma Jet Mode:** Low-pressure (30–80 mbar), collisional glow-discharge plasma. The discharge is struck in the residual gas (air or an admitted fill gas) inside the clean inner drift tube. Transport is dominated by electron‑neutral and ion‑neutral collisions; the output is a weakly ionised plasma jet, not a ballistic beam.
 - **High‑Vacuum Beam Mode (HV‑CPB):** High‑vacuum (≤10⁻⁵ mbar at the emitter) electrostatic accelerator operating under conventional charged‑particle beam physics. This mode is **contingent upon a differential vacuum pumping architecture** that ensures the electron/ion source experiences true ballistic conditions; without it, the beam will be heavily scattered and the performance targets are not physically achievable.
 
-The transition between these regimes is determined primarily by gas density, mean free path, and plasma formation. The inner tube remains clean at all times—the conductive drive mist flows only in the outer annulus and never enters the beamline. Unless otherwise stated, numerical values are design estimates based on published literature and require experimental validation.
+The transition between these regimes is determined primarily by gas density, mean free path, and plasma formation. The inner tube remains clean at all times-the conductive drive mist flows only in the outer annulus and never enters the beamline. Unless otherwise stated, numerical values are design estimates based on published literature and require experimental validation.
 
 ---
 
@@ -581,7 +581,7 @@ For air, the Paschen minimum occurs near *pd* ≈ 0.76 Torr·cm with a minimum
 
 This places the device on the right‑hand branch of the Paschen curve, where the breakdown voltage is several kilovolts. For air, \(V_b\) is estimated to be >3 kV. Therefore, operating at ±10 kV with active current limiting ensures that a controlled glow discharge is sustained without transitioning to an arc. In hydrogen or deuterium, the breakdown voltage is lower; initial operation will map the safe operating area.
 
-**High‑Vacuum Beam Mode:** Once the emitter‑end pressure is reduced to ≤1 × 10⁻⁵ mbar, gas breakdown is no longer the limiting factor. Vacuum breakdown mechanisms—field emission from microscopic protrusions, ceramic flashover, and triple‑junction effects—dominate. These are managed by electrode conditioning, smooth surfaces (Ra ≤0.4 µm), shielding of ceramic‑metal‑vacuum junctions, and the use of a dedicated, clean HV emitter that has never been exposed to the drive mist.
+**High‑Vacuum Beam Mode:** Once the emitter‑end pressure is reduced to ≤1 × 10⁻⁵ mbar, gas breakdown is no longer the limiting factor. Vacuum breakdown mechanisms-field emission from microscopic protrusions, ceramic flashover, and triple‑junction effects-dominate. These are managed by electrode conditioning, smooth surfaces (Ra ≤0.4 µm), shielding of ceramic‑metal‑vacuum junctions, and the use of a dedicated, clean HV emitter that has never been exposed to the drive mist.
 
 ---
 
@@ -1505,7 +1505,7 @@ This glossary defines key technical terms used throughout the specification. Def
 
 The Coherent Particle Beam (CPB) device is a compact, modular electro‑fluidic platform built around a **coaxial Venturi vacuum stage**. A conductive drive mist flows through the **outer annulus**, entraining gas from a sealed **inner drift tube** and maintaining a clean 30–80 mbar vacuum without moving parts. In its **Core Plasma Module**, electrodes inside the pristine inner tube strike a collisional glow discharge in the residual gas, producing a plasma jet for soft X‑ray generation, plasma RF antennas, surface activation, and plasma‑assisted chemistry. The external conductive mist can be electrically biased to shape the discharge, but it never enters the tube; the inner tube remains clean at all times.
 
-Because the inner tube is never contaminated, the transition to **High‑Vacuum Beam Mode** requires only isolation and pump‑down—no aggressive bake‑out or residue removal. An optional differential pumping stage and a dedicated field‑emission cathode turn the same tube into a conventional electrostatic accelerator, delivering focused electron beams (5–100 keV), positive ion beams (10–300 keV), and D‑D neutrons from a deuterated target.
+Because the inner tube is never contaminated, the transition to **High‑Vacuum Beam Mode** requires only isolation and pump‑down-no aggressive bake‑out or residue removal. An optional differential pumping stage and a dedicated field‑emission cathode turn the same tube into a conventional electrostatic accelerator, delivering focused electron beams (5–100 keV), positive ion beams (10–300 keV), and D‑D neutrons from a deuterated target.
 
 **Key features of this architecture:**
 - **Clean beamline by design:** The drive mist and the accelerator tube are physically separated, eliminating any need for residue‑free working fluids or post‑plasma decontamination.
