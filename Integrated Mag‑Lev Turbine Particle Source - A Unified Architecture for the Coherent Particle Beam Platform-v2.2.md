@@ -92,7 +92,7 @@ To improve the chances of reaching the required throughput, **shallow helical te
 - Upper section (smooth or lightly textured): viscous drag optimised for Core Plasma Jet Mode (30–80 mbar).  
 - Lower section (Holweck‑type helical grooves, ~0.5 mm depth, 20–25 mm length): molecular drag for high‑vacuum operation.
 
-Literature shows that Holweck stages can reach compression ratios of 10³–10⁵ at 45–50 krpm. Combined with the upper stage and the conductance limit of the 2.00 mm aperture, the single rotor is *projected* to achieve <10⁻⁵ mbar in HV mode—but this assumes a clean, mist‑free rotor and must be treated as an upper‑bound estimate.
+Literature shows that Holweck stages can reach compression ratios of 10³–10⁵ at 45–50 krpm. Combined with the upper stage and the conductance limit of the 2.00 mm aperture, the single rotor is *projected* to achieve <10⁻⁵ mbar in HV mode-but this assumes a clean, mist‑free rotor and must be treated as an upper‑bound estimate.
 
 **Critical Caveats:**  
 - The 30–60 L/min target is a **design requirement**, not a demonstrated performance. It will be treated as a formal stage‑gate: the first prototype must demonstrate a pump‑speed curve meeting this envelope before proceeding to integrated plasma testing.  
@@ -103,7 +103,7 @@ Literature shows that Holweck stages can reach compression ratios of 10³–10�
 
 ### 4.2 Magnetic‑Plasma Coupling Strength
 
-The pulsed external coils can generate an axial B‑field of up to ~0.1 T in the aperture region. For 2 eV electrons, the cyclotron radius is ~13 µm—much smaller than the 2.00 mm drift tube. This produces cycloidal/helical trajectories that increase the effective ionisation path length.
+The pulsed external coils can generate an axial B‑field of up to ~0.1 T in the aperture region. For 2 eV electrons, the cyclotron radius is ~13 µm-much smaller than the 2.00 mm drift tube. This produces cycloidal/helical trajectories that increase the effective ionisation path length.
 
 **Quantified Effects:**  
 Experimental magnetron and glow‑discharge studies show that magnetic fields can reduce breakdown voltage by 10–30 % (e.g., from ~750 V to ~250 V in some configurations), though the benefit is more modest at 30–80 mbar because of higher collisionality. The dominant practical advantage for the CPB is **greatly reduced ignition jitter** (projected from milliseconds to <50 µs) by supplying reliable seed electrons synchronised with the rotor phase.
@@ -135,7 +135,7 @@ Any payload beyond these (e.g., an on‑rotor optical spectrometer or continuous
 
 ### 4.4 Transition to HV Mode: Hybrid Molecular Drag Stage
 
-When the gate valve closes and the rotor speed is increased, the hybrid rotor (smooth upper + grooved lower) transitions from viscous to molecular flow. The Holweck grooves on the lower section provide directed momentum transfer, enabling effective high‑vacuum pumping. The expected compression ratio is 10³–10⁵ (gas‑dependent), which—together with the aperture conductance—is projected to reach <10⁻⁵ mbar **under clean, mist‑free conditions**.
+When the gate valve closes and the rotor speed is increased, the hybrid rotor (smooth upper + grooved lower) transitions from viscous to molecular flow. The Holweck grooves on the lower section provide directed momentum transfer, enabling effective high‑vacuum pumping. The expected compression ratio is 10³–10⁵ (gas‑dependent), which-together with the aperture conductance-is projected to reach <10⁻⁵ mbar **under clean, mist‑free conditions**.
 
 Holweck stages are well established in commercial turbomolecular pumps, but those pumps operate on clean, dry gases. **Running a conductive saline mist through the same rotor that must later pull a high vacuum introduces a major contamination risk.** Even after a dry‑nitrogen cleaning cycle, residual salt deposits (e.g., sub‑micron NaCl crystallites) will line the grooves, increasing outgassing and reducing the effective compression ratio. The following additional measures are therefore required:
 
@@ -152,7 +152,7 @@ Periodic high‑speed dry‑nitrogen cleaning cycles (≥50 krpm) remain the b
 Active magnetic bearings (AMBs) with eddy‑current sensors maintain sub‑micrometre positioning. The required control bandwidth is 5–10× the rotation frequency (~2.5–8 kHz at target speeds), which is readily achievable.
 
 **Mist‑Induced Unbalance:**  
-A 10 mg asymmetric deposit at a 20 mm radius and 30 krpm produces a radial force of ~2 N—well within the capability of typical AMBs, which can supply tens to hundreds of Newtons. The AMB saturation limit for this design is ~150 N; the mass imbalance needed to reach that limit is
+A 10 mg asymmetric deposit at a 20 mm radius and 30 krpm produces a radial force of ~2 N-well within the capability of typical AMBs, which can supply tens to hundreds of Newtons. The AMB saturation limit for this design is ~150 N; the mass imbalance needed to reach that limit is
 
 \[
 m_{\text{unb}} = \frac{F_{\text{sat}}}{r\,\omega^{2}} \approx \frac{150}{0.03 \times (3141)^{2}} \approx 5 \times 10^{-4}\ \text{kg} = 500\ \text{mg},
@@ -200,11 +200,11 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 ## 4.8 References
 
-### 4.1 Pumping Performance Estimates — Viscous Drag and Molecular Pumping
+### 4.1 Pumping Performance Estimates - Viscous Drag and Molecular Pumping
 
 **【1】** Gaede, W. (1910). *The molecular drag pump*. First prototype achieved pressures below 10⁻⁶ mmHg. The working principle relies on momentum transfer from a rapidly spinning cylinder to gas molecules, with the Holweck pump (spiral groove design) being the most common subtype. Holweck pumps can produce vacuums as low as 1×10⁻⁸ mmHg (1.3×10⁻⁶ Pa).
 
-- **Wikipedia: Molecular drag pump** — https://en.wikipedia.org/wiki/Molecular_drag_pump 
+- **Wikipedia: Molecular drag pump** - https://en.wikipedia.org/wiki/Molecular_drag_pump 
 
 **【2】** Holweck pumps with helical grooves are successfully used as molecular compression stages in gas centrifuges for uranium isotope separation.
 
@@ -212,7 +212,7 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 **【3】** Holweck molecular drag pumps are used as high-pressure stages in hybrid turbomolecular vacuum pumps, operating in both the transition and viscous regimes. Modern turbomolecular pumps include a drag stage in the exhaust, operating roughly in the pressure range of 10 mTorr–10 Torr, with flow conditions ranging from molecular at the inlet to viscous at the outlet.
 
-- **Reference:** *Turbomolecular pumps — Operating principles*. Pfeiffer Vacuum. https://www.pfeiffer-vacuum.com/en/know-how/operating-principles/turbomolecular-pumps/
+- **Reference:** *Turbomolecular pumps - Operating principles*. Pfeiffer Vacuum. https://www.pfeiffer-vacuum.com/en/know-how/operating-principles/turbomolecular-pumps/
 
 **【4】** Giors, S., Colombo, E., Inzoli, F., Subba, F., & Zanino, R. *Holweck molecular drag pumps with tapered pumping channels*. Application of slip-flow boundary conditions to predict vacuum performance with and without gas flow.
 
@@ -227,7 +227,7 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 ---
 
-### 4.2 Magnetic‑Plasma Coupling Strength — Magnetron Discharges and Breakdown Voltage
+### 4.2 Magnetic‑Plasma Coupling Strength - Magnetron Discharges and Breakdown Voltage
 
 **【6】** Nunes, Y., Wemans, A., Gordo, P.R., Teixeira, M.R., & Maneira, M.J.P. *Breakdown in planar magnetron discharges of argon on copper*. Vacuum, Vol. 81, Issues 11–12, 28 August 2007, Pages 1511–1514. Experimental study showing that magnetic fields decrease ignition voltage even at relatively low pressures. At lower pressures, breakdown voltage changes from 750 to 250 V depending on magnetic configuration. At higher pressures, breakdown voltage is less sensitive to the magnetic field. The effect is attributed to increased length of the average electron path in helical and cycloid-type trajectories near the cathode.
 
@@ -253,16 +253,16 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 ---
 
-### 4.3 Rotary Transformer Power Budget — Contactless Power Transfer
+### 4.3 Rotary Transformer Power Budget - Contactless Power Transfer
 
 **【10】** Gibson, R. L. (1961). *Rotary transformer for gyro accelerometers*. First developed to replace slip rings and brushes. Both concentric cylinder and pot-core rotary transformers were built and tested with ferrite custom cores targeting 98% efficiency.
 
-- **Reference:** Cited in Zu, X. & Jiang, Q. (2019) — see 
+- **Reference:** Cited in Zu, X. & Jiang, Q. (2019) - see 
 - **Original:** Gibson, R.L. (1961). *Rotary transformer*. U.S. Patent No. 3,008,110.
 
-**【11】** *Rotary transformer — Wikipedia*. High-speed designs for electric motors exceeding 20,000 rpm achieve 92–95% efficiency (as of 2025). Prototypes achieve up to 10.7 kW at 95.9% efficiency with power factors around 0.91. Key advantages include suitability for high-speed rotations and long operational life without mechanical degradation.
+**【11】** *Rotary transformer - Wikipedia*. High-speed designs for electric motors exceeding 20,000 rpm achieve 92–95% efficiency (as of 2025). Prototypes achieve up to 10.7 kW at 95.9% efficiency with power factors around 0.91. Key advantages include suitability for high-speed rotations and long operational life without mechanical degradation.
 
-- **Wikipedia: Rotary transformer** — https://en.wikipedia.org/wiki/Rotary_transformer
+- **Wikipedia: Rotary transformer** - https://en.wikipedia.org/wiki/Rotary_transformer
 
 **【12】** Zu, X. & Jiang, Q. *Study of High Frequency Rotary Transformer Structures for Contactless Inductive Power Transfer*. 2019 22nd International Conference on Electrical Machines and Systems (ICEMS), 2019, pp. 686–690. Comprehensive review of pot-core and concentric cylinder rotary transformer configurations for contactless power transfer.
 
@@ -272,7 +272,7 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 **【13】** Nory, H., Doğan, K., Orhan, A., & Aksun, S. *Optimized Rotary Transformer Design for Self-Excited Synchronous Traction Motors in EVs*. IEEE Transactions on Transportation Electrification, 2026. Ferrite core material chosen for low eddy current losses, thermal stability, and high permeability at high frequencies.
 
-- **DOI:** 10.1109/TTE.2025.3542896 (pending — early access)
+- **DOI:** 10.1109/TTE.2025.3542896 (pending - early access)
 - **Link:** https://ieeexplore.ieee.org/document/10845678 
 
 **【14】** Vip, S.-A., Weber, J.-N., Rehfeldt, A., & Ponick, B. *Rotary transformer with ferrite core for brushless excitation of synchronous machines*. 2016 XXII International Conference on Electrical Machines (ICEM), 2016, pp. 890–896. Contactless transmission systems designed for longer lifetime, increased reliability, and reduced sensitivity to ambient influences.
@@ -283,7 +283,7 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 ---
 
-### 4.4 Transition to HV Mode — Hybrid Molecular Drag Stage
+### 4.4 Transition to HV Mode - Hybrid Molecular Drag Stage
 
 **【15】** Conte, A. & Zaramella, S. *New spiral molecular drag stage design for high compression ratio, compact turbomolecular-drag pumps*. AIP Publishing, 2010. Holweck stages supply high pumping speed due to many parallel channels and high compression ratio.
 
@@ -304,19 +304,19 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 ---
 
-### 4.5 Rotor Dynamics, Mist Tolerance, and Safety — AMB and ISO Standards
+### 4.5 Rotor Dynamics, Mist Tolerance, and Safety - AMB and ISO Standards
 
-**【18】** *ISO 14839-2:2004 — Mechanical vibration — Vibration of rotating machinery equipped with active magnetic bearings — Part 2: Evaluation of vibration*. Provides general guidelines for measuring and evaluating rotating machinery equipped with AMBs with respect to shaft vibratory displacement and working current/voltage in magnetic coils.
+**【18】** *ISO 14839-2:2004 - Mechanical vibration - Vibration of rotating machinery equipped with active magnetic bearings - Part 2: Evaluation of vibration*. Provides general guidelines for measuring and evaluating rotating machinery equipped with AMBs with respect to shaft vibratory displacement and working current/voltage in magnetic coils.
 
 - **ISO Link:** https://www.iso.org/standard/39098.html 
 - **Alternative:** https://shop.standards.ie/en-ie/standards/bs-iso-14839-2-2004-1076722/ 
 
-**【19】** *ISO 14839-5:2022 — Mechanical vibration — Vibration of rotating machinery equipped with active magnetic bearings — Part 5: Touch-down bearings*. Guidelines for identifying and designing touchdown bearings for AMB-equipped machinery.
+**【19】** *ISO 14839-5:2022 - Mechanical vibration - Vibration of rotating machinery equipped with active magnetic bearings - Part 5: Touch-down bearings*. Guidelines for identifying and designing touchdown bearings for AMB-equipped machinery.
 
 - **ISO Link:** https://www.iso.org/standard/83544.html 
 - **Alternative:** https://webstore.ansi.org/standards/iso/iso1483952022 
 
-**【20】** *ISO 14839-3:2006 — Mechanical vibration — Vibration of rotating machinery equipped with active magnetic bearings — Part 3: Stability evaluation*. Establishes stability requirements and specifies indices for evaluating stability margin.
+**【20】** *ISO 14839-3:2006 - Mechanical vibration - Vibration of rotating machinery equipped with active magnetic bearings - Part 3: Stability evaluation*. Establishes stability requirements and specifies indices for evaluating stability margin.
 
 - **ISO Link:** https://www.iso.org/standard/42038.html 
 - **Alternative:** https://asn.sn/standard/iso-14839-3-2006 
@@ -330,7 +330,7 @@ For a ~0.2 kg, 50 mm rotor at 45 krpm, the stored kinetic energy is ~800�
 
 ## Additional General References
 
-**【22】** *Molecular drag pump — Wikipedia*. Comprehensive overview of molecular drag pump principles, history (Gaede, 1905–1910), Holweck pump design, and typical performance characteristics.
+**【22】** *Molecular drag pump - Wikipedia*. Comprehensive overview of molecular drag pump principles, history (Gaede, 1905–1910), Holweck pump design, and typical performance characteristics.
 
 - **Link:** https://en.wikipedia.org/wiki/Molecular_drag_pump 
 
@@ -408,7 +408,7 @@ The selection between the two architectures must be guided by the operational co
 
 The integrated rotor architecture does not render the modular CPB design obsolete; rather, it unlocks a new performance class for applications where size, weight, power, and response time are paramount. For the CPB platform's next‑generation remote and portable derivatives, the integrated turbine represents the **optimal architectural choice**, provided the development path (Section 8) successfully validates the pumping curve and mist tolerance.
 
-**The acknowledged trade‑off**—concentrating failure risk into a single high‑speed rotating assembly—is offset by the comprehensive engineering mitigations detailed in Section 7: dual‑controller AMB redundancy, passive backup bearings, active rotor heating, vibration‑based condition monitoring, and a sacrificial PEEK touchdown liner. With these safeguards, the probability of a catastrophic rotor crash is projected to be <1% over a 500‑hour operational life, comparable to the failure rate of high‑end turbo‑molecular pumps. The reward—a >75% reduction in system mass and >50% reduction in power consumption—justifies this calculated risk for the targeted deployment scenarios.
+**The acknowledged trade‑off**-concentrating failure risk into a single high‑speed rotating assembly-is offset by the comprehensive engineering mitigations detailed in Section 7: dual‑controller AMB redundancy, passive backup bearings, active rotor heating, vibration‑based condition monitoring, and a sacrificial PEEK touchdown liner. With these safeguards, the probability of a catastrophic rotor crash is projected to be <1% over a 500‑hour operational life, comparable to the failure rate of high‑end turbo‑molecular pumps. The reward-a >75% reduction in system mass and >50% reduction in power consumption-justifies this calculated risk for the targeted deployment scenarios.
 
 ---
 
@@ -445,7 +445,7 @@ The external stator coils are wound in a multi-phase configuration (e.g., 3-phas
   - When the wave phase velocity matches the axial drift velocity of a specific ion species (\(v_d = K \cdot E_z\)), that species undergoes cyclotron resonance and its path length to the collector is maximized (or minimized), producing a distinct peak in the collected current.
 
 - **Performance Estimates:**
-  - **Operating Frequencies:** With an axial field \(E_z \approx 500\) V/m and typical ion mobilities in 30 mbar air (\(K \approx 1.5\) cm²/V·s), \(v_d \approx 75\) m/s. To match this, the required rotation frequency of the magnetic wave is \(f = v_d / \lambda\), where \(\lambda\) is the 2 mm pitch of the B-field pattern. This yields \(f \approx 37.5\) kHz—well within the 4 kHz–100 kHz bandwidth of the stator drive amplifiers (using GaN FETs).
+  - **Operating Frequencies:** With an axial field \(E_z \approx 500\) V/m and typical ion mobilities in 30 mbar air (\(K \approx 1.5\) cm²/V·s), \(v_d \approx 75\) m/s. To match this, the required rotation frequency of the magnetic wave is \(f = v_d / \lambda\), where \(\lambda\) is the 2 mm pitch of the B-field pattern. This yields \(f \approx 37.5\) kHz-well within the 4 kHz–100 kHz bandwidth of the stator drive amplifiers (using GaN FETs).
   - **Resolving Power:** The system replaces the 10–20 cm conventional drift cell with a **compact 5 cm effective path**, but the resolving power (\(R = t / \Delta t\)) is estimated at 30–50 (comparable to field-portable IMS systems), limited primarily by the 2.00 mm tube diameter and wall collisions.
   - **Advantage:** By sweeping the pulse frequency and measuring the collector current via the pot-core pickup, the system obtains a mobility spectrum **without a separate long drift cell or Bradbury-Nielsen gate**, drastically simplifying the mechanical assembly.
 
@@ -503,7 +503,7 @@ The rotor is the single most critical mechanical component; its failure constitu
 
 - **Burst Margin:** The rotor body (7075-T6 Aluminum or Grade 5 Ti-6Al-4V) must withstand centripetal accelerations exceeding 20,000× *g*. Finite Element Analysis (FEA) is mandatory to ensure a **minimum burst safety factor of 2.0** at maximum overspeed (i.e., 1.2× the operational maximum). The embedded ferrite pot-cores and permanent magnets are the weakest structural links; they must be encapsulated in a shrink-fit titanium or Inconel retaining sleeve to prevent delamination at speed.
 
-- **Modal Analysis (Critical Speeds):** The active magnetic bearings (AMBs) must be tuned to avoid the rotor's first bending mode. The rotor is effectively a free-free beam; the first flexural critical frequency must be calculated and placed **at least 20% above** the maximum operating speed. Given a 60 mm diameter, 80 mm long solid aluminum rotor, the first bending mode is estimated at ~3.5 kHz (210,000 RPM)—well above the operating range. However, the addition of the Holweck grooves and magnet arrays will lower this; a detailed rotordynamic analysis (using tools like DyRoBeS or XLRotor) is required prior to final machining.
+- **Modal Analysis (Critical Speeds):** The active magnetic bearings (AMBs) must be tuned to avoid the rotor's first bending mode. The rotor is effectively a free-free beam; the first flexural critical frequency must be calculated and placed **at least 20% above** the maximum operating speed. Given a 60 mm diameter, 80 mm long solid aluminum rotor, the first bending mode is estimated at ~3.5 kHz (210,000 RPM)-well above the operating range. However, the addition of the Holweck grooves and magnet arrays will lower this; a detailed rotordynamic analysis (using tools like DyRoBeS or XLRotor) is required prior to final machining.
 
 - **Surface Finish and Pumping Efficiency:** Viscous drag pumping is highly sensitive to the gap and surface finish. The rotor surface in the smooth section must achieve **Ra ≤ 0.4 µm** to maximize momentum transfer to the gas without introducing turbulent losses. For the helical-thread enhancement, the groove depth (0.3 mm) and pitch (30°) must be maintained with ±5 µm tolerance to achieve the projected tenfold increase in pumping speed.
 
@@ -520,7 +520,7 @@ The rotor operates in a vacuum/rarefied environment, making convective cooling i
   
 - **Mitigations:**
   - Apply a high-emissivity coating (e.g., black anodization or DLC with ε > 0.8) to the rotor body to enhance radiative cooling, dropping the equilibrium rise to ~45 °C.
-  - The rotary transformer is used not only for power but also as a **thermal shunt**—the pot-core halves are thermally anchored to the water-cooled (or forced-air) stator housing.
+  - The rotary transformer is used not only for power but also as a **thermal shunt**-the pot-core halves are thermally anchored to the water-cooled (or forced-air) stator housing.
   - A thermistor embedded in the stator housing, coupled with a derating curve, will trigger an automatic speed reduction if the housing exceeds 60 °C.
 
 ### 7.3 Mist–Rotor Interaction and Active Balance Control
@@ -532,7 +532,7 @@ As identified in Section 4.5, droplet deposition is the **highest operational ri
   Even a 0.5 mg asymmetric deposit (equivalent to a 0.3 mm droplet of saline) is catastrophic.
 
 - **Active Deposition Evaporation:**
-  - The rotor is actively heated via the pot-core transformer's rectified output. A dedicated 1 W heating element (embedded beneath the rotor skin) maintains the surface at **80–90 °C** during operation—sufficient to evaporate water and volatile organics from the mist before they adhere.
+  - The rotor is actively heated via the pot-core transformer's rectified output. A dedicated 1 W heating element (embedded beneath the rotor skin) maintains the surface at **80–90 °C** during operation-sufficient to evaporate water and volatile organics from the mist before they adhere.
   - A **surface energy modification** is applied: a hydrophobic or oleophobic DLC coating (e.g., DLC with Si-doping) reduces the sticking coefficient of saline droplets by >60%, encouraging them to be shed centrifugally toward the housing walls.
 
 - **In-Situ Cleaning Protocol:**
