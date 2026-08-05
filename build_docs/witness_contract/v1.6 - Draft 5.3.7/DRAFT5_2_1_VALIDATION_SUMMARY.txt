@@ -1,0 +1,1 @@
+Draft 5.2.1 validation summary: Lean proof authority layer added. JSON schemas, fixtures, OpenAPI, SQL, kernel syscall coverage, manifest closure, and Lean static scan are validated. Lake build is advisory in environments without Lake and strict in CI/theorem-promotion mode.

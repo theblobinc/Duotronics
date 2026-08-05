@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "registry_version": "v1.6-draft-5.3.1",
+  "canonical_write_generation": "v2",
+  "legacy_read_generation": "v1",
+  "canonical_schemas": [
+    "schemas/evidence_claim_v2.schema.json",
+    "schemas/verifier_principal_v2.schema.json",
+    "schemas/lean_compiler_witness_v2.schema.json",
+    "schemas/proof_witness_v2.schema.json",
+    "schemas/non_collapse_transition_v2.schema.json",
+    "schemas/claim_status_event_v2.schema.json",
+    "schemas/theorem_promotion_gate_v2.schema.json",
+    "schemas/replay_assumption_manifest_v2.schema.json",
+    "schemas/verification_grammar_v2.schema.json",
+    "schemas/verification_result_v2.schema.json",
+    "schemas/authority_supersession_v1.schema.json",
+    "schemas/positive_baseline_cell_v1.schema.json"
+  ],
+  "legacy_read_schemas": [
+    "schemas/evidence_claim.schema.json",
+    "schemas/lean_compiler_witness.schema.json",
+    "schemas/proof_witness.schema.json",
+    "schemas/non_collapse_transition.schema.json",
+    "schemas/theorem_promotion_gate.schema.json",
+    "schemas/replay_assumption_manifest.schema.json",
+    "schemas/verification_grammar.schema.json",
+    "schemas/verification_result.schema.json"
+  ],
+  "rules": {
+    "unknown_required_schema": "reject",
+    "v1_new_write": "reject",
+    "v1_replay": "allow_with_legacy_marker",
+    "integer_claim_object": "integer_branch_only",
+    "authority_output_creation": "server_only",
+    "deep_time_pass": "non_vacuous_all_required_satisfied"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema_ref": "schemas/effective_sandbox_invocation_v2.schema.json",
+  "payload": {
+    "domain": "trusted_verifier", "oci_runtime_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "oci_runtime_version": "podman version 5.4.0", "oci_runtime_version_output_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "image_reference": "registry.example.invalid/witness/lean-verifier", "image_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "entrypoint": "/opt/witness-authority/bin/verify-lean", "arguments": ["--request", "/input/control/request.json", "--result-dir", "/trusted-inspection"],
+    "container_uid": 65534, "container_gid": 65534, "network_mode": "none", "read_only_rootfs": true,
+    "capability_drop_set": ["ALL"], "security_options": ["no-new-privileges"],
+    "seccomp_profile_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "seccomp_profile_path": "/etc/witness-authority/seccomp.json",
+    "apparmor_profile": "witness-authority-default", "selinux_label": "container_t", "user_namespace_mode": "private",
+    "pid_limit": 128, "memory_limit": "2g", "cpu_limit": "2", "file_size_limit": 1048576, "open_file_limit": 256, "timeout": 600,
+    "environment_allowlist": ["HOME=/nonexistent", "LANG=C.UTF-8"],
+    "mount_manifest": [
+      {"source":"snapshot:1","destination":"/input/source","mode":"ro","domain":"trusted_verifier","purpose":"sealed_source","lifecycle":"request"},
+      {"source":"generated:1","destination":"/input/generated","mode":"ro","domain":"trusted_verifier","purpose":"generated_type_binding","lifecycle":"request"},
+      {"source":"ephemeral:compile-handoff","destination":"/handoff","mode":"ro","domain":"trusted_verifier","purpose":"compiled_artifact_input","lifecycle":"request"},
+      {"source":"control:1","destination":"/input/control","mode":"ro","domain":"trusted_verifier","purpose":"trusted_verifier_request","lifecycle":"request"},
+      {"source":"ephemeral:trusted-inspection","destination":"/trusted-inspection","mode":"rw","domain":"trusted_verifier","purpose":"private_inspection_output","lifecycle":"request"}
+    ],
+    "working_directory": "/work",
+    "requested_controls": ["apparmor","capabilities_dropped","cpu_limit","environment_allowlist","explicit_entrypoint","file_size_limit","memory_limit","mount_manifest","network_none","no_new_privileges","non_root_user","open_file_limit","pid_limit","private_user_namespace","read_only_rootfs","seccomp","selinux","working_directory"],
+    "applied_controls": ["apparmor","capabilities_dropped","cpu_limit","environment_allowlist","explicit_entrypoint","file_size_limit","memory_limit","mount_manifest","network_none","no_new_privileges","non_root_user","open_file_limit","pid_limit","private_user_namespace","read_only_rootfs","seccomp","selinux","working_directory"],
+    "immutable_policy_files": [{"path":"/etc/witness-authority/seccomp.json","sha256":"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}]
+  }
+}

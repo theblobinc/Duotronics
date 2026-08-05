@@ -1,0 +1,721 @@
+openapi: 3.1.0
+info:
+  title: Duotronic Evidence Language API
+  version: v1.6-draft-5.2.2-lean-proof-authority-sql-hardened
+  description: Draft 5.2 evidence-language runtime surface. This API is additive and
+    must not weaken Draft 5.1 authority, NLA, replay, or release gates. Draft 5.2.2
+    adds Lean/Lake proof authority endpoints, theorem promotion gates, and SQL persistence hardening.
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+paths:
+  /evidence/claims:
+    post:
+      summary: Create a first-class atomic evidence claim.
+      description: The runtime MUST reject direct theorem/proof_verified claim creation
+        unless the request includes non-empty proof_witness_refs, non-empty lean_compiler_witness_refs, a status_transition_id, and a theorem_promotion_gate_id referencing the corresponding claim_status_transition/v1 and theorem_promotion_gate/v1 records.
+      operationId: createEvidenceClaim
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/evidence_claim.schema.json
+      responses:
+        '200':
+          description: Evidence claim accepted
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/evidence_claim.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /evidence/claims/status-transitions:
+    post:
+      summary: Record a claim status transition under non-collapse and policy locks.
+      operationId: createClaimStatusTransition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/claim_status_transition.schema.json
+      responses:
+        '200':
+          description: Status transition recorded
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/claim_status_transition.schema.json
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /evidence/claims/compound:
+    post:
+      summary: Create a compound claim witness.
+      operationId: createCompoundClaimWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/compound_claim_witness.schema.json
+      responses:
+        '200':
+          description: Compound claim witness
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/compound_claim_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+  /evidence/composition-policies:
+    post:
+      summary: Register a composition policy.
+      operationId: createCompositionPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/composition_policy.schema.json
+      responses:
+        '200':
+          description: Composition policy
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/composition_policy.schema.json
+  /evidence/inferences:
+    post:
+      summary: Create an inference witness.
+      operationId: createInferenceWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/inference_witness.schema.json
+      responses:
+        '200':
+          description: Inference witness
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/inference_witness.schema.json
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /evidence/pragmatic-contexts:
+    post:
+      summary: Create pragmatic authority context for a claim, action, or inference.
+      operationId: createPragmaticContext
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/pragmatic_context.schema.json
+      responses:
+        '200':
+          description: Pragmatic context
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/pragmatic_context.schema.json
+  /policy/evidence-extensions:
+    post:
+      summary: Attach evidence-language force and non-collapse details to a policy
+        decision.
+      operationId: createPolicyDecisionEvidenceExtension
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/policy_decision_evidence_extension.schema.json
+      responses:
+        '200':
+          description: Policy evidence extension
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/policy_decision_evidence_extension.schema.json
+  /authority/delegations:
+    post:
+      summary: Register an authority delegation chain.
+      operationId: createAuthorityDelegationChain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/authority_delegation_chain.schema.json
+      responses:
+        '200':
+          description: Delegation chain
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/authority_delegation_chain.schema.json
+  /non-collapse/states:
+    post:
+      summary: Register a non-collapse state.
+      operationId: createNonCollapseState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/non_collapse_state.schema.json
+      responses:
+        '200':
+          description: Non-collapse state
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/non_collapse_state.schema.json
+  /non-collapse/transitions:
+    post:
+      summary: Evaluate and record a non-collapse transition.
+      operationId: createNonCollapseTransition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/non_collapse_transition.schema.json
+      responses:
+        '200':
+          description: Non-collapse transition
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/non_collapse_transition.schema.json
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /replay/assumptions:
+    post:
+      summary: Register replay assumption manifest.
+      operationId: createReplayAssumptionManifest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/replay_assumption_manifest.schema.json
+      responses:
+        '200':
+          description: Replay assumption manifest
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/replay_assumption_manifest.schema.json
+  /replay/signs:
+    post:
+      summary: Register a replay sign.
+      operationId: createReplaySign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/replay_sign.schema.json
+      responses:
+        '200':
+          description: Replay sign
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/replay_sign.schema.json
+  /replay/verification-grammars:
+    post:
+      summary: Register deterministic verification grammar.
+      operationId: createVerificationGrammar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/verification_grammar.schema.json
+      responses:
+        '200':
+          description: Verification grammar
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/verification_grammar.schema.json
+  /replay/deep-time/verify:
+    post:
+      summary: Verify a deep-time replay package.
+      operationId: verifyDeepTimeReplay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+              - target_ref
+              - grammar_id
+              - manifest_id
+              properties:
+                target_ref:
+                  type: string
+                  minLength: 1
+                grammar_id:
+                  type: string
+                  minLength: 1
+                manifest_id:
+                  type: string
+                  minLength: 1
+                replay_sign_refs:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/verification_result.schema.json
+        '409':
+          $ref: '#/components/responses/ReplayAssumptionViolation'
+  /kernel/observers:
+    post:
+      summary: Register logical observer profile
+      operationId: createLogicalObserverProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/logical_observer_profile.schema.json
+      responses:
+        '200':
+          description: Register logical observer profile
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/logical_observer_profile.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/capability-tokens:
+    post:
+      summary: Register observer capability token
+      operationId: createObserverCapabilityToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/observer_capability_token.schema.json
+      responses:
+        '200':
+          description: Register observer capability token
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/observer_capability_token.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/resource-budgets:
+    post:
+      summary: Register resource budget witness
+      operationId: createResourceBudgetWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/resource_budget_witness.schema.json
+      responses:
+        '200':
+          description: Register resource budget witness
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/resource_budget_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/tasks:
+    post:
+      summary: Create logical observer task
+      operationId: createObserverTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/observer_task.schema.json
+      responses:
+        '200':
+          description: Create logical observer task
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/observer_task.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/task-frames:
+    post:
+      summary: Create replayable task frame
+      operationId: createTaskFrame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/task_frame.schema.json
+      responses:
+        '200':
+          description: Create replayable task frame
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/task_frame.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/task-steps:
+    post:
+      summary: Record deterministic task step witness
+      operationId: createTaskStepWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/task_step_witness.schema.json
+      responses:
+        '200':
+          description: Record deterministic task step witness
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/task_step_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/task-results:
+    post:
+      summary: Record task result witness
+      operationId: createTaskResultWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/task_result_witness.schema.json
+      responses:
+        '200':
+          description: Record task result witness
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/task_result_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/transactions:
+    post:
+      summary: Open or commit evidence transaction
+      operationId: createKernelTransaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/kernel_transaction.schema.json
+      responses:
+        '200':
+          description: Open or commit evidence transaction
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/kernel_transaction.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/errors:
+    post:
+      summary: Record typed kernel error/refusal witness
+      operationId: createKernelErrorWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/kernel_error_witness.schema.json
+      responses:
+        '200':
+          description: Record typed kernel error/refusal witness
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/kernel_error_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/rule-resolutions:
+    post:
+      summary: Resolve active canonical corpus rule
+      operationId: createCorpusRuleResolutionWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/corpus_rule_resolution_witness.schema.json
+      responses:
+        '200':
+          description: Resolve active canonical corpus rule
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/corpus_rule_resolution_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/conflict-adjudications:
+    post:
+      summary: Record conflict adjudication witness
+      operationId: createConflictAdjudicationWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/conflict_adjudication_witness.schema.json
+      responses:
+        '200':
+          description: Record conflict adjudication witness
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/conflict_adjudication_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/states:
+    post:
+      summary: Record serializable kernel state
+      operationId: createKernelState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/kernel_state.schema.json
+      responses:
+        '200':
+          description: Record serializable kernel state
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/kernel_state.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/execution-traces:
+    post:
+      summary: Record replayable execution trace
+      operationId: createExecutionTrace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/execution_trace.schema.json
+      responses:
+        '200':
+          description: Record replayable execution trace
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/execution_trace.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/memory-cells:
+    post:
+      summary: Record logical memory cell
+      operationId: createLogicalMemoryCell
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/logical_memory_cell.schema.json
+      responses:
+        '200':
+          description: Record logical memory cell
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/logical_memory_cell.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /proof/lean/compiler-witnesses:
+    post:
+      summary: Record a Lean/Lake compiler witness.
+      operationId: createLeanCompilerWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/lean_compiler_witness.schema.json
+      responses:
+        '200':
+          description: Lean compiler witness recorded
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/lean_compiler_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /proof/witnesses:
+    post:
+      summary: Record a proof witness bound to a Lean compiler witness.
+      operationId: createProofWitness
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/proof_witness.schema.json
+      responses:
+        '200':
+          description: Proof witness recorded
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/proof_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /proof/theorem-promotion-gates:
+    post:
+      summary: Record a theorem promotion gate for proof-backed claim promotion.
+      operationId: createTheoremPromotionGate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/theorem_promotion_gate.schema.json
+      responses:
+        '200':
+          description: Theorem promotion gate recorded
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/theorem_promotion_gate.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+  /kernel/check-proof:
+    post:
+      summary: Execute the check_proof syscall and emit proof authority witnesses.
+      operationId: checkProof
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ../../schemas/proof_witness.schema.json
+      responses:
+        '200':
+          description: Proof check accepted
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/proof_witness.schema.json
+        '400':
+          $ref: '#/components/responses/BadEvidenceRequest'
+        '409':
+          $ref: '#/components/responses/NonCollapseViolation'
+components:
+  responses:
+    BadEvidenceRequest:
+      description: The request failed schema validation or omitted required authority
+        context.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NonCollapseViolation:
+      description: The request attempted a forbidden epistemic, semantic, or authority
+        collapse.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ReplayAssumptionViolation:
+      description: Deep-time replay assumptions were missing, unsatisfied, or unverifiable.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+      - error_code
+      - message
+      properties:
+        error_code:
+          enum:
+          - schema_validation_failed
+          - missing_pragmatic_context
+          - non_collapse_violation
+          - replay_assumption_violation
+          - authority_denied
+          - verification_failed
+          - missing_witness
+          - replay_assumption_missing
+          - indeterminate_result
+          - human_review_required
+          - resource_budget_exceeded
+          - canonical_rule_ambiguous
+          - capability_denied
+          - lean_compiler_failed
+          - lean_toolchain_unavailable
+          - sorry_stub_detected
+          - unapproved_axiom_detected
+          - theorem_source_hash_mismatch
+        message:
+          type: string
+        evidence_ref:
+          type:
+          - string
+          - 'null'
+        policy_decision_id:
+          type:
+          - string
+          - 'null'

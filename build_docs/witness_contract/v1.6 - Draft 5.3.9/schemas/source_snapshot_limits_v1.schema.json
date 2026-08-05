@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/source_snapshot_limits_v1.schema.json",
+  "title": "Source Snapshot Limits v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "maximum_files", "maximum_directories", "maximum_total_bytes", "maximum_file_bytes", "maximum_depth", "maximum_path_bytes", "maximum_directory_entries", "maximum_seconds"],
+  "properties": {
+    "schema_version": {"const": "source_snapshot_limits/v1"},
+    "maximum_files": {"type": "integer", "minimum": 1}, "maximum_directories": {"type": "integer", "minimum": 1},
+    "maximum_total_bytes": {"type": "integer", "minimum": 1}, "maximum_file_bytes": {"type": "integer", "minimum": 1},
+    "maximum_depth": {"type": "integer", "minimum": 1}, "maximum_path_bytes": {"type": "integer", "minimum": 1},
+    "maximum_directory_entries": {"type": "integer", "minimum": 1}, "maximum_seconds": {"type": "number", "exclusiveMinimum": 0}
+  }
+}

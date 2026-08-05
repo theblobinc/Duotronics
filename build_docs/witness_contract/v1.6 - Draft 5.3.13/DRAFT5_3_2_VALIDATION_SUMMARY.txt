@@ -1,0 +1,9 @@
+Duotronic Witness Contract v1.6 Draft 5.3.2
+Status: required portable validation passed; NOT FROZEN
+Required phases: 16 passed, 0 failed, 0 skipped, 0 missing
+Schemas: 49 compiled
+Fixtures: 15 valid accepted, 11 invalid rejected
+Proof authority: 14 regression tests passed
+Verifier/SQL authority: active, expired, revoked, superseded, tampered, and immutable paths tested
+Formal manifest: 6 TLA+ modules covered, including ProofAuthorityV2 and ProofAuthorityV3
+Freeze blockers: strict Lake unavailable; strict TLC unavailable; external governance signature absent

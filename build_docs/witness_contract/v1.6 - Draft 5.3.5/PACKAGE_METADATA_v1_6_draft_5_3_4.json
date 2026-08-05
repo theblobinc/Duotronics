@@ -1,0 +1,21 @@
+{
+  "schema_version": "package_metadata/v3",
+  "package": "Duotronic Witness Contract",
+  "version": "v1.6-draft-5.3.4",
+  "author": "Hugh Armstrong, TBI Contracting Inc",
+  "date": "2026-07-31",
+  "status": "complete_active_living_development_corpus_permanently_not_frozen",
+  "canonical_descriptor": "CANONICAL_CORPUS_v1_6_draft_5_3_4.json",
+  "source_generation": "v1.6-draft-5.3.3",
+  "authority_generation": "two_domain_signed_result_snapshot_derived_ledger_cutoff_execution_closure",
+  "external_signature_present": false,
+  "strict_lean_complete": false,
+  "strict_tlc_complete": false,
+  "hermetic_real_lean_integration_complete": false,
+  "result_channel_isolation_portable_tests_complete": true,
+  "snapshot_derived_digest_portable_tests_complete": true,
+  "ledger_cutoff_portable_tests_complete": true,
+  "theorem_authority_enabled_by_package": false,
+  "freeze_permitted": false,
+  "freeze_policy": "never_freeze"
+}

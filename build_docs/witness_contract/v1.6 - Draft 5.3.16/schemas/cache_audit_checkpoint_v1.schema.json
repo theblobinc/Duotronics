@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_checkpoint_v1.schema.json",
+  "title": "Independently Protected Cache Audit Tail Checkpoint v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "segment_id", "sequence", "tail_record_sha256",
+    "previous_sealed_segment_tail_sha256", "audit_signer_key_id",
+    "segment_status", "checkpoint_created_at", "signed_payload_sha256", "signature"
+  ],
+  "properties": {
+    "schema_version": {"const": "cache_audit_checkpoint/v1"},
+    "segment_id": {"$ref": "#/$defs/id"},
+    "sequence": {"type": "integer", "minimum": 0},
+    "tail_record_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "previous_sealed_segment_tail_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "audit_signer_key_id": {"$ref": "#/$defs/id"},
+    "segment_status": {"enum": ["open", "sealed"]},
+    "checkpoint_created_at": {"type": "string", "format": "date-time"},
+    "signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "signature": {"type": "string", "minLength": 43}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

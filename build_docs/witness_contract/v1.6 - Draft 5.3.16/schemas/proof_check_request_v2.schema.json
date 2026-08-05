@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/proof_check_request_v2.schema.json",
+  "title": "Authenticated Proof Check Request v2",
+  "description": "Caller payload. The authenticated principal is supplied separately by trusted middleware and is forbidden in this object.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_id", "idempotency_key", "compiler_profile_id", "claim_id", "canonical_claim", "theorem_statement", "theorem_name", "source_bundle_id", "proof_artifact_relative_path", "policy_decision_id"],
+  "properties": {
+    "request_id": {"$ref": "#/$defs/id"},
+    "idempotency_key": {"$ref": "#/$defs/id"},
+    "compiler_profile_id": {"$ref": "#/$defs/id"},
+    "claim_id": {"$ref": "#/$defs/id"},
+    "canonical_claim": {"type": "object", "maxProperties": 1024},
+    "theorem_statement": {"type": "string", "minLength": 1, "maxLength": 65536},
+    "theorem_name": {"type": "string", "pattern": "^(?:[A-Za-z_][A-Za-z0-9_']*\\.)*[A-Za-z_][A-Za-z0-9_']*$"},
+    "source_bundle_id": {"$ref": "#/$defs/id"},
+    "proof_artifact_relative_path": {"type": "string", "maxLength": 1024, "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\)(?!.*//)(?![.]/).+[.]lean$"},
+    "policy_decision_id": {"$ref": "#/$defs/id"}
+  },
+  "$defs": {"id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}}
+}

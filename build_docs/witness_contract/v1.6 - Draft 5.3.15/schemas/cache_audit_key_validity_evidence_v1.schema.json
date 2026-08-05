@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_key_validity_evidence_v1.schema.json",
+  "title": "Cache Audit Key Validity Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "registry_sha256",
+    "key_id",
+    "principal_id",
+    "authorization_scope",
+    "status",
+    "valid_from",
+    "valid_until",
+    "status_changed_at",
+    "rotation_predecessor_key_id",
+    "decision",
+    "evaluated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_key_validity_evidence/v1"
+    },
+    "registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "key_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "principal_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "authorization_scope": {
+      "enum": [
+        "cache_audit_record_signing",
+        "cache_audit_monotonic_anchor_signing"
+      ]
+    },
+    "status": {
+      "enum": [
+        "active",
+        "retired",
+        "revoked"
+      ]
+    },
+    "valid_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "valid_until": {
+      "oneOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status_changed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rotation_predecessor_key_id": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decision": {
+      "enum": [
+        "active_time_valid_rotation_valid",
+        "inactive_or_time_invalid"
+      ]
+    },
+    "evaluated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

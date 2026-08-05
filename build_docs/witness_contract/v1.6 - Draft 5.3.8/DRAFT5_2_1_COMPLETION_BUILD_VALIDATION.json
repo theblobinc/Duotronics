@@ -1,0 +1,10 @@
+{
+  "status": "passed_with_lean_proof_authority_integration",
+  "scope": "tla_plus_and_lean_proof_authority",
+  "lean_toolchain_added": true,
+  "lean_toolchain": "leanprover/lean4:v4.29.1",
+  "validator": "executable/validators/validate_draft5_2_1_corpus.py",
+  "lean_runner": "executable/formal/run_lean_build.py",
+  "lean_runner_mode": "advisory_pass_lake_unavailable_when_lake_not_installed; strict mode required for theorem promotion",
+  "tla_runner": "executable/formal/run_tla_model_check.py"
+}

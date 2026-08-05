@@ -1,0 +1,7 @@
+{
+  "schema_ref": "schemas/lean_compiler_witness_v2.schema.json",
+  "payload": {
+    "schema_version": "lean_compiler_witness/v2", "lean_compiler_witness_id": "lean:bad",
+    "claim_id": "claim:bad", "result": "passed", "hermetic_environment": false
+  }
+}

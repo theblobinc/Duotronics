@@ -1,0 +1,35 @@
+{
+  "count_source": "unittest.TestResult",
+  "development_stderr_sha256": "2023d0d9a3fd1e1a6ba322bdb56db4c790aca0a2659de55d4fe934b69635be9b",
+  "development_stdout_sha256": "75fea1b5e8303a0ff7488485375d8343dd23b4a453b5cee57b0f22bb8672c62d",
+  "development_warnings_as_errors_status": "passed",
+  "duplicate_test_ids": [],
+  "generated_at": "2026-08-01T21:04:07.744901+00:00",
+  "normal_command": [
+    "/tmp/witness-py313-venv/bin/python",
+    "executable/validators/run_unittest_structured.py"
+  ],
+  "normal_status": "passed",
+  "normal_stderr_sha256": "b64b96b509bc76e21dcb5ebc66c754f28d299e94d530c5ada2dfaba5b9a96fcb",
+  "normal_stdout_sha256": "75fea1b5e8303a0ff7488485375d8343dd23b4a453b5cee57b0f22bb8672c62d",
+  "package_version": "v1.6-draft-5.3.11",
+  "python_version": "3.13.5",
+  "schema_version": "python_interpreter_validation/v1",
+  "target_python_version": "3.13",
+  "tests_discovered": 248,
+  "tests_errored": 0,
+  "tests_failed": 0,
+  "tests_passed": 248,
+  "tests_run": 248,
+  "tests_skipped": 0,
+  "warning_detection": "independent_of_count_extraction",
+  "warning_free_command": [
+    "/tmp/witness-py313-venv/bin/python",
+    "-X",
+    "dev",
+    "-W",
+    "error",
+    "executable/validators/run_unittest_structured.py"
+  ],
+  "warning_output_lines": []
+}

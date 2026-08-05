@@ -1,0 +1,6 @@
+{
+  "schema_ref": "schemas/proof_check_result_v7.schema.json",
+  "payload": {
+    "schema_version": "proof_check_service_result/v7"
+  }
+}

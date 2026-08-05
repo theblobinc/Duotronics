@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/composition_policy.schema.json",
+  "title": "CompositionPolicy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "composition_policy_id",
+    "operator",
+    "composition_mode",
+    "premise_claim_ids",
+    "authority_scope",
+    "runtime_mode",
+    "policy_decision_id",
+    "non_collapse_checked"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "composition_policy/v1"
+    },
+    "composition_policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operator": {
+      "enum": [
+        "and",
+        "or",
+        "implies",
+        "equivalent",
+        "not",
+        "xor",
+        "temporal_since",
+        "sequence",
+        "aggregate_any",
+        "aggregate_all"
+      ]
+    },
+    "premise_claim_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "authority_scope": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "local_session",
+        "tenant",
+        "repo",
+        "service",
+        "cluster",
+        "system",
+        "release",
+        "mathematical_claim",
+        "nla_training",
+        "policy",
+        "memory_write",
+        "model_promotion",
+        "truth_observer"
+      ]
+    },
+    "runtime_mode": {
+      "enum": [
+        "observe",
+        "test",
+        "simulation",
+        "shadow",
+        "audit",
+        "migration",
+        "release_candidate",
+        "production",
+        "rollback"
+      ]
+    },
+    "policy_decision_id": {
+      "type": "string"
+    },
+    "scope_bridge_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidence_bundle_union_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "non_collapse_checked": {
+      "type": "boolean",
+      "const": true
+    },
+    "composition_mode": {
+      "enum": [
+        "truth_functional",
+        "authority_preserving",
+        "temporal",
+        "evidence_union",
+        "scope_bridge"
+      ]
+    },
+    "output_claim_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "draft",
+        "observed",
+        "computed",
+        "proposed",
+        "asserted",
+        "deferred",
+        "vetoed",
+        "conjecture",
+        "theorem",
+        "replay_verified",
+        "proof_verified",
+        "policy_approved",
+        "released"
+      ]
+    },
+    "non_collapse_transition_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "description": "Composition policy with operator arity, authority scope, runtime mode, and non-collapse locks.",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operator": {
+            "const": "not"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "premise_claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "implies",
+              "equivalent",
+              "xor",
+              "temporal_since"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "premise_claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "and",
+              "or",
+              "sequence",
+              "aggregate_any",
+              "aggregate_all"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "premise_claim_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 2
+          }
+        }
+      }
+    }
+  ]
+}

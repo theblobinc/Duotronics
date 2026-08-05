@@ -1,0 +1,31 @@
+{
+  "schema_version": "draft5_2_1_lean_conformance_vectors/v1",
+  "generated": "2026-05-11T00:00:00Z",
+  "valid_fixtures": [
+    "refs/fixtures/draft5_2_1_lean_proof_authority/valid_lean_compiler_witness.fixture.json",
+    "refs/fixtures/draft5_2_1_lean_proof_authority/valid_proof_witness.fixture.json",
+    "refs/fixtures/draft5_2_1_lean_proof_authority/valid_theorem_promotion_gate.fixture.json",
+    "refs/fixtures/draft5_2_1_lean_proof_authority/valid_theorem_claim_status_transition.fixture.json"
+  ],
+  "invalid_fixtures": [
+    "refs/fixtures/draft5_2_1_lean_proof_authority/invalid_lean_compiler_witness_sorry_stub.fixture.json",
+    "refs/fixtures/draft5_2_1_lean_proof_authority/invalid_proof_witness_without_compiler.fixture.json",
+    "refs/fixtures/draft5_2_1_lean_proof_authority/invalid_theorem_promotion_gate_hash_mismatch.fixture.json",
+    "refs/fixtures/draft5_2_1_lean_proof_authority/invalid_theorem_transition_without_lean_compiler.fixture.json"
+  ],
+  "required_executable_checks": [
+    "lean_static_scan_no_sorry_or_admit",
+    "lean_lake_build_or_strict_failure",
+    "lean_schema_fixtures_pass",
+    "theorem_promotion_gate_sql_guards",
+    "check_proof_syscall_coverage"
+  ],
+  "suite": "draft5_2_2_lean_sql_hardening_conformance",
+  "description": "Draft 5.2.2 conformance: Lean proof authority plus SQL persistence hardening and theorem-promotion-gate orphan guards.",
+  "sql_negative_guards": [
+    "theorem transition with proof refs but no Lean compiler refs/gate must fail",
+    "allowed theorem promotion gate with arbitrary IDs must fail",
+    "allowed theorem promotion gate with hash mismatch must fail",
+    "valid circular theorem promotion transaction must commit with deferred FK constraints"
+  ]
+}

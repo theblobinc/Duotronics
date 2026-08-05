@@ -1,0 +1,7 @@
+{
+  "schema_version": "release_signature_status/v1",
+  "package_version": "v1.6-draft-5.3.6",
+  "external_signature_present": false,
+  "governance_trust_anchor_accepted": false,
+  "authority_effect": "release_authority_false"
+}

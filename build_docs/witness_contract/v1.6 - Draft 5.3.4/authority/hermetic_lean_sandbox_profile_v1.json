@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema_version": "hermetic_lean_sandbox_profile/v1",
+  "profile_id": "wc-hermetic-lean-v1",
+  "submitted_project_metadata_execution": "forbidden",
+  "source_mount": "read_only_immutable_snapshot",
+  "generated_module_mount": "read_only_deterministic_target",
+  "output_mount": "ephemeral_write_only_result",
+  "network": "none",
+  "root_filesystem": "read_only",
+  "linux_capabilities": "drop_all",
+  "no_new_privileges": true,
+  "user": "65534:65534",
+  "limits": {"cpus": 2, "memory": "2g", "pids": 128, "tmpfs": "1536m", "timeout_seconds": 600},
+  "environment": {"HOME": "/nonexistent", "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "TZ": "UTC", "SOURCE_DATE_EPOCH": "0", "LEAN_ABORT_ON_PANIC": "1"},
+  "forbidden_inheritance": ["LEAN_PATH", "ELAN_HOME", "LAKE_HOME", "HOME", "http_proxy", "https_proxy", "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "user_configuration"],
+  "forbidden_source_artifacts": [".olean", ".ilean", ".so", ".dll", ".dylib", ".a", ".o", ".obj", ".c", ".cc", ".cpp", ".h", ".hpp", ".sh", ".bash", ".exe"],
+  "image_resolution": "governance_signed_registry_digest_only",
+  "result_channel": "canonical_json_file_only",
+  "stdout_authority": false
+}

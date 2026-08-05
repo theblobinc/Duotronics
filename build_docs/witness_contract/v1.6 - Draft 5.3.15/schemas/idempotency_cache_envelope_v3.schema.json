@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/idempotency_cache_envelope_v3.schema.json",
+  "title": "Chronology-Bound Signed Idempotency Cache Envelope v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "cache_envelope_id", "request_sha256", "request_id", "idempotency_key", "authenticated_principal_id", "claim_id", "compiler_profile_id", "policy_decision_id", "policy_decision_sha256", "source_bundle_id", "cache_signer_principal_id", "cache_signer_key_id", "cache_registry_sha256", "cache_signed_at", "cache_key_validity_evidence", "result", "signed_payload_sha256", "signature"],
+  "properties": {
+    "schema_version": {"const": "idempotency_cache_envelope/v3"},
+    "cache_envelope_id": {"type": "string", "pattern": "^cache:[0-9a-f]{64}$"},
+    "request_sha256": {"$ref": "#/$defs/sha256"},
+    "request_id": {"$ref": "#/$defs/id"},
+    "idempotency_key": {"$ref": "#/$defs/id"},
+    "authenticated_principal_id": {"$ref": "#/$defs/id"},
+    "claim_id": {"$ref": "#/$defs/id"},
+    "compiler_profile_id": {"$ref": "#/$defs/id"},
+    "policy_decision_id": {"$ref": "#/$defs/id"},
+    "policy_decision_sha256": {"$ref": "#/$defs/sha256"},
+    "source_bundle_id": {"$ref": "#/$defs/id"},
+    "cache_signer_principal_id": {"type": "string", "minLength": 1},
+    "cache_signer_key_id": {"type": "string", "minLength": 1},
+    "cache_registry_sha256": {"$ref": "#/$defs/sha256"},
+    "cache_signed_at": {"type": "string", "format": "date-time"},
+    "cache_key_validity_evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "registry_sha256", "key_id", "principal_id", "status", "valid_from", "valid_until", "status_changed_at", "rotation_predecessor_key_id", "use", "decision", "evaluated_at"],
+      "properties": {
+        "schema_version": {"const": "cache_key_validity_evidence/v1"},
+        "registry_sha256": {"$ref": "#/$defs/sha256"},
+        "key_id": {"$ref": "#/$defs/id"},
+        "principal_id": {"$ref": "#/$defs/id"},
+        "status": {"const": "active"},
+        "valid_from": {"type": "string", "format": "date-time"},
+        "valid_until": {"type": ["string", "null"], "format": "date-time"},
+        "status_changed_at": {"type": "string", "format": "date-time"},
+        "rotation_predecessor_key_id": {"type": ["string", "null"]},
+        "use": {"const": "signing"},
+        "decision": {"const": "active_time_valid_rotation_valid"},
+        "evaluated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "result": {"$ref": "proof_check_result_v7.schema.json"},
+    "signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "signature": {"type": "string", "minLength": 43}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

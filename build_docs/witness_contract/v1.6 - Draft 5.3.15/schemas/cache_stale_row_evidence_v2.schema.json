@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_stale_row_evidence_v2.schema.json",
+  "title": "Authenticated Historical Cache Stale-Row Evidence v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "cache_envelope_id", "stored_cache_registry_sha256", "current_cache_registry_sha256", "historical_registry_id", "historical_registry_signed_payload_sha256", "registry_lineage_signed_payload_sha256", "cache_signer_key_id", "cache_signer_principal_id", "signature_verified", "registry_lineage_verified", "registry_lineage_path", "historical_replay_policy", "decision", "reason", "evaluated_at"],
+  "properties": {
+    "schema_version": {"const": "cache_stale_row_evidence/v2"},
+    "cache_envelope_id": {"type": "string", "pattern": "^cache:[0-9a-f]{64}$"},
+    "stored_cache_registry_sha256": {"$ref": "#/$defs/sha256"},
+    "current_cache_registry_sha256": {"$ref": "#/$defs/sha256"},
+    "historical_registry_id": {"$ref": "#/$defs/id"},
+    "historical_registry_signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "registry_lineage_signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "cache_signer_key_id": {"$ref": "#/$defs/id"},
+    "cache_signer_principal_id": {"$ref": "#/$defs/id"},
+    "signature_verified": {"const": true},
+    "registry_lineage_verified": {"const": true},
+    "registry_lineage_path": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/sha256"}},
+    "historical_replay_policy": {"const": "authenticate_then_conflict"},
+    "decision": {"const": "reject_preserve_row_require_new_idempotency_key"},
+    "reason": {"const": "authenticated_cache_signing_registry_replaced_or_rotated"},
+    "evaluated_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

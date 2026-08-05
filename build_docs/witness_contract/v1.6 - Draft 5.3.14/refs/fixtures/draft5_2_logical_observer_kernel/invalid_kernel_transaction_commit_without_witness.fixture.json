@@ -1,0 +1,21 @@
+{
+  "case_id": "invalid_kernel_transaction_commit_without_witness",
+  "schema_ref": "schemas/kernel_transaction.schema.json",
+  "expected_status": "fail",
+  "reason": "A committed transaction must list emitted and persisted witnesses.",
+  "payload": {
+    "schema_version": "kernel_transaction/v1",
+    "kernel_transaction_id": "tx:bad:kernel",
+    "task_id": "task:bad:kernel",
+    "transaction_kind": "evidence",
+    "status": "committed",
+    "precondition_refs": [],
+    "emitted_witness_refs": [],
+    "persisted_witness_refs": [],
+    "non_collapse_checked": true,
+    "policy_decision_id": "policy:bad:kernel",
+    "kernel_error_witness_id": null,
+    "created_at": "2026-05-11T00:00:00Z",
+    "committed_at": "2026-05-11T00:00:00Z"
+  }
+}

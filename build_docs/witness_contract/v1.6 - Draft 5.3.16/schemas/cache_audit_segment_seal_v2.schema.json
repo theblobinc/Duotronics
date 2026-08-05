@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_segment_seal_v2.schema.json",
+  "title": "Governed Cache Audit Terminal Segment Seal v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "segment_id",
+    "sealed_event_count",
+    "terminal_record_sequence",
+    "sealed_predecessor_tail_sha256",
+    "previous_sealed_segment_tail_sha256",
+    "audit_signing_registry_sha256",
+    "audit_key_validity_evidence",
+    "anchor_namespace",
+    "anchor_registry_sha256",
+    "decision",
+    "sealed_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_segment_seal/v2"
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sealed_event_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "terminal_record_sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sealed_predecessor_tail_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "previous_sealed_segment_tail_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "audit_signing_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "audit_key_validity_evidence": {
+      "type": "object"
+    },
+    "anchor_namespace": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "anchor_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision": {
+      "const": "terminal_segment_seal"
+    },
+    "sealed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

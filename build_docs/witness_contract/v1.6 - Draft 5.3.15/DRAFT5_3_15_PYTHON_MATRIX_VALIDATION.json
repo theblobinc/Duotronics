@@ -1,0 +1,72 @@
+{
+  "assembly": "merge_hash_covered_per_interpreter_records",
+  "count_source": "unittest.TestResult",
+  "evidence_set_sha256": "13106255deafe4d05b93c03ce7dea34365acc544cbd2dc4204e640261b75efd5",
+  "generated_at": "2026-08-02T05:21:40.014409+00:00",
+  "overall_status": "passed_with_declared_environment_qualification",
+  "package_version": "v1.6-draft-5.3.15",
+  "runs": [
+    {
+      "count_source": "unittest.TestResult",
+      "development_stderr_sha256": "baddd6aabca731e5095c68c4817bb0e38b8f0abaf0b337fe12a232a7014aeb77",
+      "development_stdout_sha256": "513721ab4045fc4f28b2f86d888933f106ff41165a0cc8dd3e07409ee11b2513",
+      "development_warnings_as_errors_status": "passed",
+      "duplicate_test_ids": [],
+      "evidence_file": "validation/python_matrix/draft5_3_15/python_3_13.json",
+      "evidence_sha256": "5edd4d8f545847ddc44bd72d6ea86c1b11184e2b3f43d11f7a26b212e809100a",
+      "generated_at": "2026-08-02T05:21:40.014409+00:00",
+      "normal_command": [
+        "/opt/pyvenv/bin/python3",
+        "executable/validators/run_unittest_structured.py"
+      ],
+      "normal_status": "passed",
+      "normal_stderr_sha256": "b2e08c9395b128625a4f836ca4dac58ea9394c6cb946edf690b34389ce5fde7a",
+      "normal_stdout_sha256": "513721ab4045fc4f28b2f86d888933f106ff41165a0cc8dd3e07409ee11b2513",
+      "package_version": "v1.6-draft-5.3.15",
+      "python_version": "3.13.5",
+      "schema_version": "python_interpreter_validation/v1",
+      "target_python_version": "3.13",
+      "tests_discovered": 303,
+      "tests_errored": 0,
+      "tests_failed": 0,
+      "tests_passed": 303,
+      "tests_run": 303,
+      "tests_skipped": 0,
+      "warning_detection": "independent_of_count_extraction",
+      "warning_free_command": [
+        "/opt/pyvenv/bin/python3",
+        "-X",
+        "dev",
+        "-W",
+        "error",
+        "executable/validators/run_unittest_structured.py"
+      ],
+      "warning_output_lines": []
+    }
+  ],
+  "schema_version": "python_matrix_validation/v4",
+  "target_python_versions": [
+    "3.12",
+    "3.13"
+  ],
+  "unavailable_python_versions": [
+    "3.12"
+  ],
+  "unavailable_runs": [
+    {
+      "authority_effect": "no_current_revision_execution_claim",
+      "evidence_file": "validation/python_matrix/draft5_3_15/unavailable_3_12.json",
+      "evidence_sha256": "a3df8d40840bbccaec6ccc619a7d3c13970d7cdaef461fdffba299151e0988ac",
+      "generated_at": "2026-08-02T05:12:04.791988+00:00",
+      "package_version": "v1.6-draft-5.3.15",
+      "reason": "Python 3.12 interpreter is not installed in this validation environment",
+      "schema_version": "python_interpreter_unavailable/v1",
+      "status": "interpreter_unavailable",
+      "target_python_version": "3.12"
+    }
+  ],
+  "validated_python_versions": [
+    "3.13.5"
+  ],
+  "warning_detection": "independent_of_count_extraction"
+}

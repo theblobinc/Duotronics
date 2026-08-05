@@ -17,6 +17,39 @@ _SAFE_BRANCH = re.compile(r"^[A-Za-z0-9._/-]{1,160}$")
 def dev_tool_manifest() -> list[dict[str, Any]]:
     return [
         {
+            "name": "dev.concrete_block_scaffold",
+            "description": "Generate a read-only Concrete CMS 9 block skeleton as a file map. Does not write files or install the block.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["handle", "name"],
+                "properties": {
+                    "handle": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$"},
+                    "name": {"type": "string", "minLength": 1, "maxLength": 120},
+                    "description": {"type": "string", "default": ""},
+                    "package_namespace": {"type": "string", "default": "Concrete\\Package\\Generated"},
+                    "table": {"type": ["string", "null"]},
+                    "web_component": {"type": ["string", "null"]},
+                    "fields": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["name", "type"],
+                            "properties": {
+                                "name": {"type": "string"},
+                                "type": {"type": "string", "enum": ["string", "text", "integer", "boolean", "datetime"]},
+                                "size": {"type": "integer", "minimum": 1, "maximum": 65535},
+                                "required": {"type": "boolean", "default": False},
+                                "default": {}
+                            }
+                        },
+                        "default": []
+                    }
+                },
+                "additionalProperties": False
+            }
+        },
+        {
             "name": "dev.apply_change_bundle",
             "description": (
                 "Apply a full development change bundle in one call: create worktree, apply patch, run tests, "
@@ -52,9 +85,128 @@ class XaviDevBundleTools:
         self.ops = XaviOpsTools(settings)
 
     async def call(self, tool: str, args: dict[str, Any]) -> dict[str, Any]:
+        if tool == "dev.concrete_block_scaffold":
+            return self.concrete_block_scaffold(args)
         if tool != "dev.apply_change_bundle":
             raise HTTPException(status_code=404, detail=f"unknown dev MCP tool: {tool}")
         return await self.apply_change_bundle(args)
+
+    def concrete_block_scaffold(self, args: dict[str, Any]) -> dict[str, Any]:
+        handle = str(args.get("handle", "")).strip()
+        name = str(args.get("name", "")).strip()
+        description = str(args.get("description", "")).strip()
+        if not re.fullmatch(r"[a-z][a-z0-9_]{1,63}", handle):
+            raise HTTPException(status_code=422, detail="handle must match ^[a-z][a-z0-9_]{1,63}$")
+        if not name:
+            raise HTTPException(status_code=422, detail="name is required")
+
+        camel = "".join(part.capitalize() for part in handle.split("_"))
+        package_namespace = str(args.get("package_namespace") or r"Concrete\Package\Generated").strip().strip("\\")
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*(?:\\[A-Za-z_][A-Za-z0-9_]*)*", package_namespace):
+            raise HTTPException(status_code=422, detail="unsafe package_namespace")
+
+        table = str(args.get("table") or f"bt{camel}").strip()
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{1,63}", table):
+            raise HTTPException(status_code=422, detail="unsafe table name")
+
+        component = str(args.get("web_component") or handle.replace("_", "-")).strip().lower()
+        if not re.fullmatch(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)+", component):
+            raise HTTPException(status_code=422, detail="web_component must be a valid hyphenated custom-element name")
+
+        normalized: list[dict[str, Any]] = []
+        for index, field in enumerate(args.get("fields") or []):
+            if not isinstance(field, dict):
+                raise HTTPException(status_code=422, detail=f"fields[{index}] must be an object")
+            field_name = str(field.get("name", "")).strip()
+            field_type = str(field.get("type", "string")).strip()
+            if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,63}", field_name):
+                raise HTTPException(status_code=422, detail=f"unsafe field name: {field_name}")
+            if field_type not in {"string", "text", "integer", "boolean", "datetime"}:
+                raise HTTPException(status_code=422, detail=f"unsupported field type: {field_type}")
+            normalized.append({
+                "name": field_name,
+                "type": field_type,
+                "size": max(1, min(int(field.get("size", 255)), 65535)),
+                "required": bool(field.get("required", False)),
+                "default": field.get("default"),
+            })
+
+        properties: list[str] = []
+        db_fields: list[str] = []
+        form_fields: list[str] = []
+        view_values: list[str] = []
+        for field in normalized:
+            default_php = "''" if field["default"] is None else repr(field["default"])
+            properties.append(f"    public ${field['name']} = {default_php};")
+            attrs = f' type="{field["type"]}"'
+            if field["type"] == "string":
+                attrs += f' size="{field["size"]}"'
+            if field["default"] is not None and field["type"] in {"string", "integer", "boolean"}:
+                default_text = str(field["default"]).lower() if isinstance(field["default"], bool) else str(field["default"])
+                attrs += f' default="{default_text}"'
+            db_fields.append(f'    <field name="{field["name"]}"{attrs}/>')
+            label = field["name"].replace("_", " ").title()
+            php_var = "$" + field["name"]
+            form_fields.append(
+                '<div class="form-group">'
+                f'<label class="control-label" for="{field["name"]}"><?=t({label!r})?></label>'
+                f'<input class="form-control" id="{field["name"]}" name="{field["name"]}" value="<?=h({php_var} ?? \'\')?>">'
+                '</div>'
+            )
+            view_values.append(f'<span data-field="{field["name"]}"><?=h({php_var} ?? \'\')?></span>')
+
+        properties_text = "\n".join(properties)
+        fields_text = "\n".join(db_fields)
+        controller = (
+            "<?php\n"
+            f"namespace {package_namespace}\\Block\\{camel};\n\n"
+            "defined('C5_EXECUTE') or die('Access Denied.');\n\n"
+            "use Concrete\\Core\\Block\\BlockController;\n\n"
+            "class Controller extends BlockController\n{\n"
+            f"    protected $btTable = '{table}';\n"
+            "    protected $btInterfaceWidth = 720;\n"
+            "    protected $btInterfaceHeight = 520;\n"
+            f"{properties_text}\n"
+            f"    public function getBlockTypeName() {{ return t({name!r}); }}\n"
+            f"    public function getBlockTypeDescription() {{ return t({description!r}); }}\n"
+            "}\n"
+        )
+        db_xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<schema xmlns="http://www.concrete5.org/doctrine-xml/0.5">\n'
+            f'  <table name="{table}">\n'
+            '    <field name="bID" type="integer"><unsigned/><key/></field>\n'
+            f'{fields_text}\n'
+            '  </table>\n'
+            '</schema>\n'
+        )
+        form = "<?php defined('C5_EXECUTE') or die('Access Denied.'); ?>\n" + "\n".join(form_fields) + "\n"
+        view = (
+            "<?php defined('C5_EXECUTE') or die('Access Denied.'); ?>\n"
+            f'<{component} data-block-id="<?= (int) $bID ?>">'
+            + "".join(view_values)
+            + f'</{component}>\n'
+        )
+        return {
+            "handle": handle,
+            "name": name,
+            "table": table,
+            "web_component": component,
+            "files": {
+                "controller.php": controller,
+                "db.xml": db_xml,
+                "form.php": form,
+                "add.php": "<?php $this->inc('form.php'); ?>\n",
+                "edit.php": "<?php $this->inc('form.php'); ?>\n",
+                "view.php": view,
+            },
+            "install_code": f"BlockType::installBlockTypeFromPackage('{handle}', $pkg);",
+            "upstream_patterns": [
+                "parasek/concretecms-block-builder",
+                "MacareuxDigital/concretecms-skills/building-blocktypes",
+            ],
+            "written": False,
+        }
 
     def _safe_worktree_id(self, value: str) -> str:
         value = value.strip()

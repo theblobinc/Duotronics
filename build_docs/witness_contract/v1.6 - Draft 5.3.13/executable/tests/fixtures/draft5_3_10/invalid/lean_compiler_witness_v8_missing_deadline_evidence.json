@@ -1,0 +1,6 @@
+{
+  "schema_ref": "schemas/lean_compiler_witness_v8.schema.json",
+  "payload": {
+    "schema_version": "lean_compiler_witness/v8"
+  }
+}

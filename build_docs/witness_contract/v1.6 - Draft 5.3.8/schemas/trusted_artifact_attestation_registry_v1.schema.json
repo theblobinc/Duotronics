@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/trusted_artifact_attestation_registry_v1.schema.json",
+  "title": "Trusted Artifact and Attestation Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_id", "governance_key_id", "artifacts", "created_at", "signed_payload_sha256", "signature"],
+  "properties": {
+    "schema_version": {"const": "trusted_artifact_attestation_registry/v1"},
+    "registry_id": {"type": "string", "minLength": 1},
+    "governance_key_id": {"type": "string", "minLength": 1},
+    "artifacts": {"type": "array", "minItems": 4, "items": {"type": "object", "additionalProperties": false, "required": ["artifact_id", "role", "verification_mode", "relative_path", "sha256", "attestation_id"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "role": {"enum": ["database_migrations", "trusted_inspector", "oci_image_metadata", "dependency_manifest"]}, "verification_mode": {"enum": ["direct_trusted_root_file", "governance_signed_build_attestation"]}, "relative_path": {"type": ["string", "null"]}, "sha256": {"$ref": "#/$defs/sha256"}, "attestation_id": {"type": ["string", "null"]}}}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "signature": {"type": "string", "minLength": 43}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

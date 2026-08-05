@@ -1,0 +1,458 @@
+openapi: 3.1.0
+info:
+  title: Duotronic Evidence Language API
+  version: v1.6-draft-5.3.3
+  description: >-
+    Canonical Draft 5.3.3 request-oriented API. Clients submit claims and
+    proof-check requests; the controlled authority service computes hashes and
+    emits compiler witnesses, proof witnesses, status events, non-collapse
+    transitions, and gates. Authority-output objects are not accepted as client
+    request bodies.
+jsonSchemaDialect: https://json-schema.org/draft/2020-12/schema
+security:
+  - OAuth2: []
+    MutualTLS: []
+paths:
+  /v2/claims:
+    post:
+      operationId: submitEvidenceClaimV2
+      summary: Submit claim content for canonicalization and immutable storage.
+      security:
+        - OAuth2: [claims:write]
+          MutualTLS: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClaimSubmission'
+      responses:
+        '201':
+          description: Server-canonicalized immutable claim.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/evidence_claim_v2.schema.json
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /v2/claims/{claim_id}:
+    get:
+      operationId: getEvidenceClaimV2
+      summary: Read an immutable claim.
+      security:
+        - OAuth2: [claims:read]
+          MutualTLS: []
+      parameters:
+        - $ref: '#/components/parameters/ClaimId'
+      responses:
+        '200':
+          description: Claim.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/evidence_claim_v2.schema.json
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v2/proof-checks:
+    post:
+      operationId: requestProofCheckV2
+      summary: Request a controlled strict proof check.
+      description: >-
+        The service resolves immutable claim and policy records, reads the proof
+        artifact in a controlled execution boundary, compiles an exact generated
+        theorem-to-statement target with fatal warnings, creates an immutable
+        source snapshot, rejects prebuilt outputs and native plugins, executes a
+        governance-selected digest-pinned image without network access, consumes
+        a structured Lean environment/type/axiom result, computes all closure
+        digests, verifies both signatures against an effective key, and
+        atomically emits or refuses the promotion chain. The request cannot contain
+        a compiler result, proof conclusion, non-collapse approval, signature
+        verification binding, verifier lifecycle event, or gate.
+      security:
+        - OAuth2: [proof_checks:request]
+          MutualTLS: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProofCheckRequest'
+      responses:
+        '202':
+          description: Check accepted; no theorem authority exists until the returned job completes successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProofCheckJob'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /v2/proof-checks/{job_id}:
+    get:
+      operationId: getProofCheckJobV2
+      summary: Read controlled proof-check progress and emitted record references.
+      security:
+        - OAuth2: [proof_checks:read]
+          MutualTLS: []
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Job status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProofCheckJob'
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v2/compiler-witnesses/{witness_id}:
+    get:
+      operationId: getLeanCompilerWitnessV2
+      summary: Read a server-produced compiler witness.
+      security:
+        - OAuth2: [proof_authority:read]
+          MutualTLS: []
+      parameters:
+        - $ref: '#/components/parameters/WitnessId'
+      responses:
+        '200':
+          description: Compiler witness.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/lean_compiler_witness_v2.schema.json
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v2/proof-witnesses/{witness_id}:
+    get:
+      operationId: getProofWitnessV2
+      summary: Read a server-produced proof witness.
+      security:
+        - OAuth2: [proof_authority:read]
+          MutualTLS: []
+      parameters:
+        - $ref: '#/components/parameters/WitnessId'
+      responses:
+        '200':
+          description: Proof witness.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/proof_witness_v2.schema.json
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v2/theorem-promotion-gates/{gate_id}:
+    get:
+      operationId: getTheoremPromotionGateV2
+      summary: Read a server-produced theorem-promotion gate.
+      security:
+        - OAuth2: [proof_authority:read]
+          MutualTLS: []
+      parameters:
+        - name: gate_id
+          in: path
+          required: true
+          schema: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Promotion gate.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/theorem_promotion_gate_v2.schema.json
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v3/verifier-keys/{key_id}:
+    get:
+      operationId: getVerifierKeyV3
+      summary: Read an append-only verifier-key registration.
+      security:
+        - OAuth2: [proof_authority:read]
+          MutualTLS: []
+      parameters:
+        - name: key_id
+          in: path
+          required: true
+          schema: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Verifier key registration; lifecycle state separately determines current authority.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/verifier_key_v3.schema.json
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v3/verifier-keys/{key_id}/status-events:
+    get:
+      operationId: listVerifierKeyStatusEventsV2
+      summary: Read governance-signed append-only verifier-key lifecycle events.
+      security:
+        - OAuth2: [proof_authority:read]
+          MutualTLS: []
+      parameters:
+        - name: key_id
+          in: path
+          required: true
+          schema: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Effective-dated lifecycle history.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: ../../schemas/verifier_key_status_event_v2.schema.json
+        '404': {$ref: '#/components/responses/NotFound'}
+  /v4/governance/verifier-key-status-actions:
+    post:
+      operationId: requestVerifierKeyStatusActionV2
+      summary: Request a governance-authorized key lifecycle action.
+      description: >-
+        The server resolves the authorization and trusted-time witnesses, applies
+        backdating/future-effect policy, signs the exact lifecycle event, and
+        persists it append-only. Clients cannot supply a signature, recorded_at,
+        canonical signed payload, or authority result.
+      security:
+        - OAuth2: [governance:request]
+          MutualTLS: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifierKeyStatusActionRequest'
+      responses:
+        '201':
+          description: Server-produced signed lifecycle event.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/verifier_key_status_event_v2.schema.json
+        '409': {$ref: '#/components/responses/Conflict'}
+  /v4/authority-snapshots:
+    post:
+      operationId: createAuthoritySnapshotV1
+      summary: Create a signed deterministic authority-evaluation snapshot.
+      security:
+        - OAuth2: [governance:request]
+          MutualTLS: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [policy_decision_id, authorization_witness_id, evaluation_time_witness_id]
+              properties:
+                policy_decision_id: {type: string, minLength: 1}
+                authorization_witness_id: {type: string, minLength: 1}
+                evaluation_time_witness_id: {type: string, minLength: 1}
+      responses:
+        '201':
+          description: Signed authority snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/authority_snapshot_v1.schema.json
+  /v4/authoritative-theorems:
+    get:
+      operationId: listAuthoritativeTheoremsAsOfV3
+      summary: Evaluate theorem authority at one signed snapshot.
+      security:
+        - OAuth2: [proof_authority:read]
+          MutualTLS: []
+      parameters:
+        - name: authority_snapshot_id
+          in: query
+          required: true
+          schema: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Deterministic as-of authority rows.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {type: object}
+  /v2/replay-verifications:
+    post:
+      operationId: requestReplayVerificationV2
+      summary: Execute a non-vacuous deterministic replay verification.
+      security:
+        - OAuth2: [replay:verify]
+          MutualTLS: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [target_ref, grammar_id, manifest_id]
+              properties:
+                target_ref: {type: string, minLength: 1}
+                grammar_id: {type: string, minLength: 1}
+                manifest_id: {type: string, minLength: 1}
+      responses:
+        '200':
+          description: Server-produced verification result.
+          content:
+            application/json:
+              schema:
+                $ref: ../../schemas/verification_result_v2.schema.json
+        '409': {$ref: '#/components/responses/Conflict'}
+  /v2/computations/positive-baseline/evaluate:
+    post:
+      operationId: evaluatePositiveBaselineGraphV1
+      summary: Evaluate a declared positive-baseline acyclic cell graph.
+      security:
+        - OAuth2: [computations:execute]
+          MutualTLS: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [root_cell_id, cells]
+              properties:
+                root_cell_id: {type: string, minLength: 1}
+                cells:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: ../../schemas/positive_baseline_cell_v1.schema.json
+      responses:
+        '200':
+          description: Deterministic computational-evidence result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PositiveBaselineResult'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409': {$ref: '#/components/responses/Conflict'}
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: /oauth/token
+          scopes:
+            claims:write: Submit claim content.
+            claims:read: Read claims.
+            proof_checks:request: Request controlled proof checks.
+            proof_checks:read: Read proof-check jobs.
+            proof_authority:read: Read authority outputs.
+            governance:request: Request governance-authorized lifecycle and snapshot actions.
+            replay:verify: Request deterministic replay checks.
+            computations:execute: Execute bounded computation profiles.
+    MutualTLS:
+      type: mutualTLS
+  parameters:
+    ClaimId:
+      name: claim_id
+      in: path
+      required: true
+      schema: {type: string, minLength: 1}
+    WitnessId:
+      name: witness_id
+      in: path
+      required: true
+      schema: {type: string, minLength: 1}
+  responses:
+    BadRequest:
+      description: Malformed, noncanonical, or schema-invalid request.
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorEnvelope'}}}
+    Unauthorized:
+      description: Authentication required or invalid.
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorEnvelope'}}}
+    Forbidden:
+      description: Authenticated principal lacks the required scope or delegation.
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorEnvelope'}}}
+    Conflict:
+      description: Authority, non-collapse, replay, immutability, or content-binding conflict.
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorEnvelope'}}}
+    NotFound:
+      description: Resource not found.
+      content: {application/json: {schema: {$ref: '#/components/schemas/ErrorEnvelope'}}}
+  schemas:
+    ClaimSubmission:
+      type: object
+      additionalProperties: false
+      required: [claim_kind, subject_ref, predicate, claim_object]
+      properties:
+        claim_kind: {enum: [atomic, measurement, observation, policy_decision, proof_claim, replay_claim, human_attestation]}
+        subject_ref: {type: string, minLength: 1}
+        predicate: {type: string, minLength: 1}
+        claim_object: {}
+        theorem_statement: {type: [string, 'null']}
+        evidence_refs: {type: array, items: {type: string, minLength: 1}, uniqueItems: true}
+        metadata: {type: object}
+    ProofCheckRequest:
+      type: object
+      additionalProperties: false
+      required: [compiler_profile_id, claim_id, canonical_claim, theorem_statement, theorem_name, source_bundle_id, proof_artifact_relative_path, policy_decision_id]
+      properties:
+        compiler_profile_id: {type: string, minLength: 1}
+        claim_id: {type: string, minLength: 1}
+        canonical_claim: {type: object}
+        theorem_statement: {type: string, minLength: 1, maxLength: 65536}
+        theorem_name: {type: string, pattern: "^(?:[A-Za-z_][A-Za-z0-9_']*\\.)*[A-Za-z_][A-Za-z0-9_']*$"}
+        source_bundle_id: {type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'}
+        proof_artifact_relative_path: {type: string, minLength: 1}
+        policy_decision_id: {type: string, minLength: 1}
+    VerifierKeyStatusActionRequest:
+      type: object
+      additionalProperties: false
+      required: [key_id, status, reason, policy_decision_id, authorization_witness_id, effective_time_witness_id]
+      properties:
+        key_id: {type: string, minLength: 1}
+        status: {enum: [active, revoked, retired, superseded]}
+        replacement_key_id: {type: ['string', 'null']}
+        reason: {type: string, minLength: 1}
+        policy_decision_id: {type: string, minLength: 1}
+        authorization_witness_id: {type: string, minLength: 1}
+        effective_time_witness_id: {type: string, minLength: 1}
+    ProofCheckJob:
+      type: object
+      additionalProperties: false
+      required: [job_id, status, claim_id]
+      properties:
+        job_id: {type: string, minLength: 1}
+        status: {enum: [queued, running, passed, failed, inconclusive]}
+        claim_id: {type: string, minLength: 1}
+        compiler_witness_id: {type: [string, 'null']}
+        proof_witness_id: {type: [string, 'null']}
+        non_collapse_transition_id: {type: [string, 'null']}
+        status_event_id: {type: [string, 'null']}
+        theorem_promotion_gate_id: {type: [string, 'null']}
+        compiler_signature_binding_id: {type: [string, 'null']}
+        proof_signature_binding_id: {type: [string, 'null']}
+        error: {anyOf: [{$ref: '#/components/schemas/ErrorEnvelope'}, {type: 'null'}]}
+    PositiveBaselineResult:
+      type: object
+      additionalProperties: false
+      required: [schema_version, root_cell_id, payload, codeword, baseline, status, input_sha256, evaluator_version, assertion_log]
+      properties:
+        schema_version: {const: positive_baseline_result/v1}
+        root_cell_id: {type: string, minLength: 1}
+        payload: {type: integer}
+        codeword: {type: integer}
+        baseline: {type: integer, minimum: 0}
+        status: {const: VALID}
+        input_sha256: {type: string, pattern: '^[a-f0-9]{64}$'}
+        evaluator_version: {const: positive-baseline-reference/1.0}
+        assertion_log: {type: array, minItems: 1, items: {type: string}}
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      required: [error_code, message]
+      properties:
+        error_code:
+          enum: [schema_validation_failed, authentication_failed, authorization_denied, immutable_record, content_hash_mismatch, signature_invalid, authority_conjunction_failed, non_collapse_violation, replay_assumption_missing, verification_failed, resource_budget_exceeded, cycle_detected, unknown_profile, unknown_operator, derived_value_mismatch, not_found]
+        message: {type: string, minLength: 1}
+        evidence_ref: {type: [string, 'null']}

@@ -1,0 +1,31 @@
+# Truth Observer Activation Profile Schema v1.0
+
+schema_version: truth-observer-activation-profile/v1
+required:
+  - observer_id
+  - model_id
+  - backend
+  - hidden_states_available
+  - logits_available
+  - embeddings_available
+  - activation_capture_modes
+  - nla_training_allowed
+  - nla_inference_allowed
+  - fallback_mode
+fields:
+  observer_id: string
+  model_id: string
+  backend:
+    enum: [transformers, sglang, vllm, llama_cpp, ollama, api_only, other]
+  hidden_states_available: boolean
+  logits_available: boolean
+  embeddings_available: boolean
+  layer_count: integer_or_null
+  d_model: integer_or_null
+  tokenizer_ref: string_or_null
+  activation_capture_modes:
+    list_enum: [residual_stream, mlp_activation, attention_output, embedding, logits, output_text, tool_trace, unavailable]
+  nla_training_allowed: boolean
+  nla_inference_allowed: boolean
+  fallback_mode:
+    enum: [logits_or_output_witness_only, output_text_only, unavailable]

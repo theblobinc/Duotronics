@@ -1,0 +1,17 @@
+{
+  "name": "duotronic-witness-contract-v1-6-draft-5-3-6-validation",
+  "version": "1.6.5-3-6",
+  "private": true,
+  "type": "module",
+  "description": "Vendored and locked validation dependencies for the permanently unfrozen Draft 5.3.6 living corpus.",
+  "scripts": {
+    "validate:schemas": "node executable/validators/validate_draft5_3_6_schemas.mjs --phase all",
+    "validate:corpus": "python3 executable/validators/validate_draft5_3_6_corpus.py",
+    "test:remediation": "python3 -W error executable/tests/test_draft5_3_6_remediation.py",
+    "test:positive-baseline": "python3 executable/tests/test_positive_baseline.py"
+  },
+  "dependencies": {
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1"
+  }
+}

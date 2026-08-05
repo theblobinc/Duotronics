@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_genesis_authorization_v1.schema.json",
+  "title": "Governance-Signed Audit Genesis Authorization v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "segment_id",
+    "anchor_namespace",
+    "audit_signing_registry_sha256",
+    "anchor_registry_sha256",
+    "decision",
+    "created_at",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_genesis_authorization/v1"
+    },
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "anchor_namespace": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "audit_signing_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "anchor_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision": {
+      "const": "authorize_audit_genesis"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signed_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    }
+  }
+}

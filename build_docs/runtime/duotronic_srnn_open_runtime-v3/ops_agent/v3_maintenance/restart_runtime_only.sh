@@ -27,6 +27,7 @@ podman run \
   -e XAVI_REPO_ROOT=/workspace/Duotronics \
   -e XAVI_WORKTREE_ROOT=/runtime/data/worktrees \
   -v "$HOST_CORPUS_DIR:/runtime/corpus:Z" \
+  -v "$V3_DIR/corpus/skills:/runtime/corpus/skills:ro,Z" \
   -v "$V3_DIR/data:/runtime/data:Z" \
   -v "$V3_DIR/config:/runtime/config:Z" \
   -v "$REPO_ROOT/build_docs/runtime/models/gguf:/models:Z" \

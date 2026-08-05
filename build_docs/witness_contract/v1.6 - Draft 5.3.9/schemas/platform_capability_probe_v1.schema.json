@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/platform_capability_probe_v1.schema.json",
+  "title": "Measured Platform Capability Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "probe_status", "platform_id", "supported_controls", "lsm", "observed_at", "evidence_sha256"],
+  "properties": {
+    "schema_version": {"const": "platform_capability_probe/v1"},
+    "probe_status": {"const": "measured"},
+    "platform_id": {"type": "string", "minLength": 1},
+    "supported_controls": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "lsm": {"type": "object", "additionalProperties": false, "required": ["kind", "profile"], "properties": {"kind": {"enum": ["apparmor", "selinux"]}, "profile": {"type": "string", "minLength": 1}}},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "evidence_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

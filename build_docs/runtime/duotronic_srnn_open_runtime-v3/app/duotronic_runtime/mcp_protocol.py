@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
 from .config import Settings
-from .http_mcp import _call_tool, _require_mcp_key, _tool_manifest
+from .http_mcp import _call_tool, _read_resource, _require_mcp_key, _resources, _tool_manifest
 from .runtime_kernel import RuntimeKernel
 
 
@@ -111,6 +111,7 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
                     "serverInfo": _server_info(),
                     "instructions": (
                         "Use tools/list to discover Xavi Runtime tools. "
+                        "Use resources/list and resources/read for runtime and Concrete CMS skill resources. "
                         "Use tools/call with a tool name and arguments to operate the runtime, repo worktrees, and bounded ops."
                     ),
                 },
@@ -160,13 +161,35 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
             )
 
         if method == "resources/list":
-            return _jsonrpc_result(req.id, {"resources": []})
+            resources = [
+                {
+                    "uri": item["uri"],
+                    "name": item["name"],
+                    "description": item.get("description", ""),
+                    "mimeType": item.get("mimeType", "application/json"),
+                }
+                for item in _resources(kernel)
+            ]
+            return _jsonrpc_result(req.id, {"resources": resources})
+
+        if method == "resources/read":
+            uri = str(params.get("uri", "")).strip()
+            if not uri:
+                return _jsonrpc_error(req.id, -32602, "resources/read requires params.uri")
+            try:
+                resource = await _read_resource(kernel, uri)
+            except HTTPException as exc:
+                return _jsonrpc_error(req.id, -32002, "Resource read failed", {"status_code": exc.status_code, "detail": exc.detail, "uri": uri})
+            contents = resource.get("contents")
+            mime_type = str(resource.get("mimeType") or "application/json")
+            text = contents if isinstance(contents, str) else json.dumps(contents, indent=2, sort_keys=True, default=str)
+            return _jsonrpc_result(req.id, {"contents": [{"uri": uri, "mimeType": mime_type, "text": text}]})
 
         return _jsonrpc_error(req.id, -32601, f"Method not found: {method}")
 
     async def mcp_get() -> PlainTextResponse:
         return PlainTextResponse(
-            "Xavi Runtime MCP server. POST JSON-RPC here. Supported methods: initialize, tools/list, tools/call, ping."
+            "Xavi Runtime MCP server. POST JSON-RPC here. Supported methods: initialize, tools/list, tools/call, resources/list, resources/read, ping."
         )
 
     # Primary ChatGPT MCP URL.

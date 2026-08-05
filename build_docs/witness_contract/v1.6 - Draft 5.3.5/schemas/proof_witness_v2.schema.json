@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/proof_witness_v2.schema.json",
+  "title": "ProofWitnessV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "proof_witness_id", "claim_id", "claim_content_sha256", "theorem_statement_sha256", "proof_artifact_sha256", "lean_compiler_witness_id", "theorem_name", "theorem_status", "policy_decision_id", "verifier_principal_id", "key_id", "signed_payload_sha256", "signature", "created_at"],
+  "properties": {
+    "schema_version": {"const": "proof_witness/v2"},
+    "proof_witness_id": {"type": "string", "minLength": 1},
+    "claim_id": {"type": "string", "minLength": 1},
+    "claim_content_sha256": {"$ref": "#/$defs/sha256"},
+    "theorem_statement_sha256": {"$ref": "#/$defs/sha256"},
+    "proof_artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "lean_compiler_witness_id": {"type": "string", "minLength": 1},
+    "theorem_name": {"type": "string", "minLength": 1},
+    "theorem_status": {"enum": ["proved", "failed"]},
+    "policy_decision_id": {"type": "string", "minLength": 1},
+    "verifier_principal_id": {"type": "string", "minLength": 1},
+    "key_id": {"type": "string", "minLength": 1},
+    "signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "signature": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43,}$"},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

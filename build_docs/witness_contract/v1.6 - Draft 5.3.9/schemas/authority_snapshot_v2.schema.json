@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/authority_snapshot_v2.schema.json",
+  "title": "Ledger-Bound Authority Snapshot v2",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "snapshot_id", "as_of_effective_time", "ledger_high_water_sequence", "event_set_root_sha256", "authority_policy_version", "snapshot_query_version", "created_at", "created_by_principal", "authorization_witness_id", "signer_key_id", "supersedes_snapshot_id", "supersession_reason", "signed_payload_sha256", "snapshot_signature"],
+  "properties": {
+    "schema_version": {"const": "authority_snapshot/v2"}, "snapshot_id": {"type": "string", "minLength": 1}, "as_of_effective_time": {"type": "string", "format": "date-time"},
+    "ledger_high_water_sequence": {"type": "integer", "minimum": 0}, "event_set_root_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "authority_policy_version": {"type": "string", "minLength": 1}, "snapshot_query_version": {"const": "authority_as_of_cutoff/v1"},
+    "created_at": {"type": "string", "format": "date-time"}, "created_by_principal": {"type": "string", "minLength": 1}, "authorization_witness_id": {"type": "string", "minLength": 1}, "signer_key_id": {"type": "string", "minLength": 1},
+    "supersedes_snapshot_id": {"type": ["string", "null"]}, "supersession_reason": {"type": ["string", "null"]}, "signed_payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "snapshot_signature": {"type": "string", "minLength": 43}
+  }
+}

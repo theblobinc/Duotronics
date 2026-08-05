@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/lean_compile_handoff_v2.schema.json",
+  "title": "Lean Compile Handoff Manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "compiled_modules", "binding_module_sha256", "binding_olean_path", "binding_olean_sha256", "artifacts", "artifact_count", "total_handoff_bytes", "maximum_artifact_bytes", "maximum_handoff_bytes"],
+  "properties": {
+    "schema_version": {"const": "lean_compile_handoff/v2"},
+    "compiled_modules": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["module", "source_sha256", "olean_path", "olean_sha256"], "properties": {"module": {"type": "string", "minLength": 1}, "source_sha256": {"$ref": "#/$defs/sha256"}, "olean_path": {"$ref": "#/$defs/path"}, "olean_sha256": {"$ref": "#/$defs/sha256"}}}},
+    "binding_module_sha256": {"$ref": "#/$defs/sha256"},
+    "binding_olean_path": {"$ref": "#/$defs/path"},
+    "binding_olean_sha256": {"$ref": "#/$defs/sha256"},
+    "artifacts": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["path", "size_bytes", "sha256", "mode"], "properties": {"path": {"$ref": "#/$defs/path"}, "size_bytes": {"type": "integer", "minimum": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "mode": {"enum": ["0600", "0640", "0644"]}}}},
+    "artifact_count": {"type": "integer", "minimum": 1},
+    "total_handoff_bytes": {"type": "integer", "minimum": 1},
+    "maximum_artifact_bytes": {"type": "integer", "minimum": 1},
+    "maximum_handoff_bytes": {"type": "integer", "minimum": 1}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "path": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\).+[.]olean$"}}
+}

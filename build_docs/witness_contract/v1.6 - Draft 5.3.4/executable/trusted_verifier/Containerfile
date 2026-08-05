@@ -1,0 +1,9 @@
+FROM ghcr.io/leanprover/lean4@sha256:REPLACE_WITH_GOVERNED_IMAGE_DIGEST
+COPY executable/runtime/proof_authority.py /opt/witness-authority/lib/proof_authority.py
+COPY executable/trusted_verifier/compile_lean.py /opt/witness-authority/bin/compile-lean
+COPY executable/trusted_verifier/verify_lean.py /opt/witness-authority/bin/verify-lean
+COPY executable/trusted_verifier/build/inspect-lean /opt/witness-authority/bin/inspect-lean
+COPY formal/draft5_3_4/lean/WitnessAuthority/Verifier.lean /opt/witness-authority/src/WitnessAuthority/Verifier.lean
+ENV PYTHONPATH=/opt/witness-authority/lib
+USER 65534:65534
+ENTRYPOINT ["/opt/witness-authority/bin/verify-lean"]

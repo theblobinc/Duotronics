@@ -1,0 +1,1 @@
+{"schema_ref":"schemas/lean_verifier_result_v1.schema.json","payload":{"schema_version":"wc_lean_verifier_result/v1","status":"passed","axiom_dependencies":["propext","propext"]}}

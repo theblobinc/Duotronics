@@ -1,0 +1,1 @@
+{"schema_ref":"schemas/authority_supersession_v3.schema.json","payload":{"schema_version":"authority_supersession/v3","supersession_id":"sup:1","record_type":"compiler_profile","superseded_record_id":"profile:old","replacement_record_id":"profile:new","reason":"governed replacement","governance_event_id":"event:sup:1","effective_at":"2026-07-31T12:00:00Z"}}

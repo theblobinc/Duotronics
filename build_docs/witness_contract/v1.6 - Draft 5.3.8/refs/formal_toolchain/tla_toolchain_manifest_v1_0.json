@@ -1,0 +1,82 @@
+{
+  "schema_version": "tla_toolchain_manifest/v1",
+  "package": "Duotronic Witness Contract v1.6 Draft 5.3.8",
+  "integration_scope": "tla_plus_only",
+  "lean_toolchain_added": false,
+  "tla_modules": [
+    {
+      "module": "EvidenceClaimGraph",
+      "spec": "formal/tlaplus/EvidenceClaimGraph.tla",
+      "config": "formal/tlaplus/EvidenceClaimGraph.cfg",
+      "covered_invariants": ["TypeOk", "CompositionHasWitness", "TheoremPromotionHasProof"]
+    },
+    {
+      "module": "TaskDelegationAndPolicyCoreSpec",
+      "spec": "formal/tlaplus/TaskDelegationAndPolicyCoreSpec.tla",
+      "config": "formal/tlaplus/TaskDelegationAndPolicyCoreSpec.cfg",
+      "covered_invariants": ["TypeOk", "DelegationDepthBounded", "CompletedTasksAllowed", "FailedTasksNotAllowed", "CompletedTasksHaveWitness", "AuditLogMonotone"]
+    },
+    {
+      "module": "NonCollapseRuntime",
+      "spec": "formal/tlaplus/NonCollapseRuntime.tla",
+      "config": "formal/tlaplus/NonCollapseRuntime.cfg",
+      "covered_invariants": ["TypeOk", "NoForbiddenCollapseWithoutExternalWitness", "ProofClassTransitionsHaveProofWitness", "AuthorityClassTransitionsHaveAuthorityWitness", "NoSameStateWitnessRequired"]
+    },
+    {
+      "module": "LogicalObserverKernel",
+      "spec": "formal/tlaplus/LogicalObserverKernel.tla",
+      "config": "formal/tlaplus/LogicalObserverKernel.cfg",
+      "covered_invariants": ["TypeOk", "NoEffectBeforeWitness", "CommittedTasksHaveResultWitness", "CommittedTasksWereAllowed", "FailedTasksAreNotAllowed", "DelegationDepthBounded", "RollbackHasWitness"]
+    },
+    {
+      "module": "ProofAuthorityV2",
+      "spec": "formal/draft5_3_1/ProofAuthorityV2.tla",
+      "config": "formal/draft5_3_1/ProofAuthorityV2.cfg",
+      "covered_invariants": ["TypeOK", "GateRequiresBoundEvidence", "TheoremRequiresGate", "GateIsAppendOnly"]
+    },
+    {
+      "module": "ProofAuthorityV3",
+      "spec": "formal/draft5_3_2/ProofAuthorityV3.tla",
+      "config": "formal/draft5_3_2/ProofAuthorityV3.cfg",
+      "covered_invariants": ["TypeOK", "AuthorityRequiresStatementBinding", "AuthorityRequiresCleanAxioms", "AuthorityRequiresVerifiedSignatures", "AuthorityRequiresActiveKey", "AuthorityRequiresGate", "TheoremRequiresRecordedGate", "GateIsAppendOnly"]
+    },
+    {
+      "module": "ProofAuthorityV4",
+      "spec": "formal/draft5_3_3/ProofAuthorityV4.tla",
+      "config": "formal/draft5_3_3/ProofAuthorityV4.cfg",
+      "covered_invariants": ["TypeOK", "AuthorityRequiresGovernedRegistry", "AuthorityRequiresBoundToolchain", "AuthorityRequiresImmutableCleanBuild", "AuthorityRequiresStructuredInspection", "AuthorityRequiresGovernanceAuthorization", "AuthorityRequiresActiveKey", "AuthorityRequiresGate", "RecordedAuthoritativeSnapshotRequiresGate", "GateIsAppendOnly"]
+    },
+    {
+      "module": "ProofAuthorityV5",
+      "spec": "formal/draft5_3_4/ProofAuthorityV5.tla",
+      "config": "formal/draft5_3_4/ProofAuthorityV5.cfg",
+      "covered_invariants": ["TypeOK", "ResultChannelIsolation", "ArtifactIdentity", "SignedResultRequiresClosure", "SnapshotCutoffMonotonic", "BackdatedEventCannotMoveCutoff", "SnapshotBindsEventRoot", "AuthorityRequiresAllGates", "AuthorityRequiresTrustedResult", "AuthorityRequiresSnapshotIdentity", "EventSequenceMatchesHistory"]
+    },
+    {
+      "module": "ProofAuthorityV6",
+      "spec": "formal/draft5_3_5/ProofAuthorityV6.tla",
+      "config": "formal/draft5_3_5/ProofAuthorityV6.cfg",
+      "covered_invariants": ["TypeOK", "AppliedControlsRequireRequest", "VerifiedControlsRequireApplication", "PolicyBindingRequiresResolution", "AuthorityRequiresExactDispatch", "AuthorityRequiresMeasuredSandbox", "AuthorityRequiresBoundPolicy", "AuthorityRequiresBoundedResources", "AuthorityRequiresClosedRegistry", "AuthorityRequiresCommittedProvenance", "AuthorityRequiresExternalActivation"]
+    },
+    {
+      "module": "ProofAuthorityV7",
+      "spec": "formal/draft5_3_6/ProofAuthorityV7.tla",
+      "config": "formal/draft5_3_6/ProofAuthorityV7.cfg",
+      "covered_invariants": ["TypeOK", "EmittedControlsRequireRequest", "MeasuredControlsRequireAcceptance", "AuthorityRequiresRecursiveDependencyPass", "AuthorityRequiresExactExecutedArgv", "AuthorityRequiresPolicyLimits", "AuthorityRequiresSchemaValidation", "AuthorityRequiresMeasuredControls", "AuthorityRequiresHandoffManifest", "AuthorityRequiresDurableIdempotency", "AuthorityRequiresTrustedArtifacts", "AuthorityRequiresExternalActivation"]
+    },
+    {
+      "module": "ProofAuthorityV8",
+      "spec": "formal/draft5_3_7/ProofAuthorityV8.tla",
+      "config": "formal/draft5_3_7/ProofAuthorityV8.cfg",
+      "covered_invariants": ["TypeOK", "AcceptedRequiresRuntime", "AppliedRequiresAcceptance", "MeasuredRequiresRuntime", "DerivedRequiresSealedTopology", "AuthorityRequiresDomainLimit", "AuthorityRequiresEvidence", "AuthorityRequiresExternalActivation"]
+    }
+  ],
+  "runner": "executable/formal/run_tla_model_check.py",
+  "strict_mode_command": "python executable/formal/run_tla_model_check.py --mode strict",
+  "advisory_mode_command": "python executable/formal/run_tla_model_check.py --mode advisory",
+  "tlc_resolution_order": [
+    "TLA2TOOLS_JAR environment variable",
+    "tools/tla2tools.jar relative to corpus root"
+  ],
+  "runtime_status": "strict_tlc_required_for_authority_activation; contract_is_permanently_unfrozen; advisory_static_checks_are_non_authoritative"
+}

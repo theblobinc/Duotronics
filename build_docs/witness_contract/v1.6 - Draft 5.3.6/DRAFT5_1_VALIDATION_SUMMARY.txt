@@ -1,0 +1,9 @@
+Duotronic v1.6 Draft 5.1 validation summary
+Generated: 2026-05-09T00:00:00Z
+
+Package class: complete witness corpus successor with NLA authority additions
+Base: uploaded v1.6 Draft 4 corpus
+Reinstated: Draft 5 NLA witness foundation
+Added: generic truth observers, self-training memory cells, self-training witness, model lineage, promotion gates
+Implementation code: intentionally not included
+Validation performed: file inventory, JSON schema parse, zip integrity, checksum manifest

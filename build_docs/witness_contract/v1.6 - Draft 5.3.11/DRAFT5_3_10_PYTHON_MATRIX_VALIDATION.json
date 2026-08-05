@@ -1,0 +1,44 @@
+{
+  "count_source": "unittest.TestResult",
+  "generated_at": "2026-08-01T20:05:47.150363+00:00",
+  "overall_status": "passed_with_declared_environment_qualification",
+  "package_version": "v1.6-draft-5.3.10",
+  "runs": [
+    {
+      "development_stderr_sha256": "17fb379aa39f3d7b906a3f25bb0c813de1483955c4f1afa9ccd7a76fa6f74bd7",
+      "development_stdout_sha256": "c24b81b53252c0d54be770d821c75315d67c239c1a4a6176adbf9ec863bc752f",
+      "development_warnings_as_errors_status": "passed",
+      "duplicate_test_ids": [],
+      "normal_status": "passed",
+      "normal_stderr_sha256": "c3adc44e0a3da6d396a2242598caa3b6159edba7e4264d29ad27d0d2153795d7",
+      "normal_stdout_sha256": "c24b81b53252c0d54be770d821c75315d67c239c1a4a6176adbf9ec863bc752f",
+      "python_version": "3.12.13",
+      "tests_discovered": 230,
+      "tests_errored": 0,
+      "tests_failed": 0,
+      "tests_passed": 230,
+      "tests_run": 230,
+      "tests_skipped": 0,
+      "warning_output_lines": []
+    }
+  ],
+  "schema_version": "python_matrix_validation/v3",
+  "target_python_versions": [
+    "3.12",
+    "3.13"
+  ],
+  "unavailable_python_versions": [
+    "3.13"
+  ],
+  "unavailable_runs": [
+    {
+      "authority_effect": "no_current_draft_5_3_10_python_3_13_execution_claim",
+      "python_version": "3.13",
+      "status": "interpreter_unavailable"
+    }
+  ],
+  "validated_python_versions": [
+    "3.12.13"
+  ],
+  "warning_detection": "independent_of_count_extraction"
+}

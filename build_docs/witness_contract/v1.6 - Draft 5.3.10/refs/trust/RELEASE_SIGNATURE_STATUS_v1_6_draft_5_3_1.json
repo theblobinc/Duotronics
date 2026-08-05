@@ -1,0 +1,9 @@
+{
+  "schema_version": "release_signature_status/v1",
+  "package_version": "v1.6-draft-5.3.1",
+  "status": "unsigned_not_frozen",
+  "external_signature_present": false,
+  "reason": "No externally held governance signing key was available to this development build.",
+  "freeze_permitted": false,
+  "policy": "refs/trust/TRUST_ROOT_POLICY_v1_0.md"
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://duotronics.local/schemas/schema_registry_v1.schema.json",
+  "title": "Governed Schema Registry v1", "type": "object", "additionalProperties": false,
+  "required": ["$schema", "registry_version", "active_version_scope", "entries", "rules", "strict_mode_exceptions"],
+  "properties": {
+    "$schema": {"const": "https://json-schema.org/draft/2020-12/schema"}, "registry_version": {"const": "v1.6-draft-5.3.5"}, "active_version_scope": {"const": "v1.6-draft-5.3.5"},
+    "entries": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["path", "schema_id", "lifecycle", "active_surface", "valid_fixtures", "invalid_fixtures", "rationale"], "properties": {"path": {"type": "string", "pattern": "^schemas/.+[.]schema[.](json|yaml)$"}, "schema_id": {"type": ["string", "null"]}, "lifecycle": {"enum": ["canonical", "legacy_compatibility", "archival_historical", "experimental_research", "forbidden_removed"]}, "active_surface": {"type": "boolean"}, "valid_fixtures": {"type": "array", "items": {"type": "string"}}, "invalid_fixtures": {"type": "array", "items": {"type": "string"}}, "rationale": {"type": "string", "minLength": 1}}}},
+    "rules": {"type": "object", "minProperties": 1}, "strict_mode_exceptions": {"type": "array", "items": {"type": "object", "required": ["path", "keyword", "reason"], "additionalProperties": false, "properties": {"path": {"type": "string"}, "keyword": {"type": "string"}, "reason": {"type": "string"}}}}
+  }
+}

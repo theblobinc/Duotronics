@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/verification_result.schema.json",
+  "title": "VerificationResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "verification_result_id",
+    "grammar_id",
+    "target_ref",
+    "status",
+    "deterministic",
+    "executed_instruction_results",
+    "created_at",
+    "verifier_principal_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "verification_result/v1"
+    },
+    "verification_result_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "grammar_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "inconclusive",
+        "error"
+      ]
+    },
+    "deterministic": {
+      "type": "boolean",
+      "const": true
+    },
+    "manifest_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replay_sign_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "failure_mode": {
+      "enum": [
+        "block",
+        "reject",
+        "escalate",
+        "mark_inconclusive"
+      ]
+    },
+    "executed_instruction_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "op",
+          "status"
+        ],
+        "properties": {
+          "op": {
+            "enum": [
+              "read_manifest",
+              "hash_artifact",
+              "compare_hash",
+              "validate_schema",
+              "check_policy_ref",
+              "check_delegation_chain",
+              "check_pragmatic_context",
+              "check_non_collapse_state",
+              "check_non_collapse_transition",
+              "check_replay_assumptions",
+              "check_replay_sign",
+              "execute_deterministic_replay",
+              "compare_replay_output",
+              "return_status"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "skipped",
+              "error"
+            ]
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "artifact_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verifier_principal_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/package_provenance_v1.schema.json",
+  "title": "Package Source Provenance v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "provenance_status", "source_repository", "source_ref", "source_commit_sha", "source_subtree_path", "source_subtree_sha256", "generator_name", "generator_version", "generator_sha256", "source_generation", "base_revision", "change_set_sha256", "workspace_status", "generated_at"],
+  "properties": {
+    "schema_version": {"const": "package_provenance/v1"}, "provenance_status": {"enum": ["committed_clean_source", "unpublished_workspace"]},
+    "source_repository": {"type": "string", "format": "uri"}, "source_ref": {"type": "string", "minLength": 1},
+    "source_commit_sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40,64}$"}, "source_subtree_path": {"type": "string", "minLength": 1},
+    "source_subtree_sha256": {"$ref": "#/$defs/sha256"}, "generator_name": {"type": "string", "minLength": 1}, "generator_version": {"type": "string", "minLength": 1}, "generator_sha256": {"$ref": "#/$defs/sha256"},
+    "source_generation": {"type": "string", "minLength": 1}, "base_revision": {"type": "string", "minLength": 1}, "change_set_sha256": {"$ref": "#/$defs/sha256"},
+    "workspace_status": {"enum": ["clean", "dirty", "not_git_backed"]}, "generated_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [{"if": {"properties": {"provenance_status": {"const": "committed_clean_source"}}}, "then": {"properties": {"source_commit_sha": {"type": "string"}, "workspace_status": {"const": "clean"}}}}],
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

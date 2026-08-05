@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/release_activation_evidence_v1.schema.json",
+  "title": "Release Activation Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_version",
+    "result_channel_isolation",
+    "snapshot_identity",
+    "historical_snapshot_immutability",
+    "execution_closure_identity",
+    "real_lean_integration",
+    "strict_lean",
+    "strict_tlc",
+    "external_governance_signature",
+    "signer_key_id",
+    "created_at",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {"const": "release_activation_evidence/v1"},
+    "package_version": {"const": "v1.6-draft-5.3.4"},
+    "result_channel_isolation": {"const": true},
+    "snapshot_identity": {"const": true},
+    "historical_snapshot_immutability": {"const": true},
+    "execution_closure_identity": {"const": true},
+    "real_lean_integration": {"const": true},
+    "strict_lean": {"const": true},
+    "strict_tlc": {"const": true},
+    "external_governance_signature": {"const": true},
+    "signer_key_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "signed_payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signature": {"type": "string", "minLength": 43}
+  }
+}

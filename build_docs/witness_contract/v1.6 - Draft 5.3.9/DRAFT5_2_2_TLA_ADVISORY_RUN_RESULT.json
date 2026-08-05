@@ -1,0 +1,15 @@
+{
+  "schema_version": "tla_model_check_result/v1",
+  "mode": "advisory",
+  "status": "advisory_pass_tlc_unavailable",
+  "tlc_available": false,
+  "tlc_jar": null,
+  "modules_checked": [
+    "EvidenceClaimGraph",
+    "TaskDelegationAndPolicyCoreSpec",
+    "NonCollapseRuntime",
+    "LogicalObserverKernel"
+  ],
+  "static_errors": [],
+  "tlc_results": []
+}

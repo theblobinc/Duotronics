@@ -1,0 +1,24 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "scr:v1.6-draft-5.3.13",
+  "base_version": "v1.6-draft-5.3.12",
+  "target_version": "v1.6-draft-5.3.13",
+  "classification": "corrective_historical_cache_binding_chronology_and_durable_audit_revision",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "freeze_policy": "permanently_not_frozen",
+  "source_review": "refs/review/v1.6_draft_5.3.13_update_checklist.md",
+  "changes": [
+    "verify authenticated principal idempotency slot canonical request policy source result and compiler-witness bindings before historical rotation classification",
+    "reject authentic historical envelopes transplanted across keys principals requests or claims as cache_integrity_invalid without stale evidence",
+    "require historical_registry.created_at to be no later than cache_signed_at",
+    "require signed lineage creation to be no earlier than every referenced registry",
+    "activate cache_stale_row_evidence/v3 with complete request slot compiler-witness and chronology bindings",
+    "require a dedicated audit signing authority distinct from cache-envelope and compiler-witness authorities",
+    "configure a bounded append-only canonical signed hash-chain audit sink in the production loader",
+    "persist stale evidence before the rotation conflict and fail closed as cache_audit_publication_failed on publication failure",
+    "add adversarial fixtures and regressions for transplantation retroactive authorization audit tampering and publication failure",
+    "preserve the non-root production-loader harness and all eight fail-closed external activation gates",
+    "record Python 3.12 as unavailable rather than relabeling predecessor evidence for the changed revision"
+  ],
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled"
+}

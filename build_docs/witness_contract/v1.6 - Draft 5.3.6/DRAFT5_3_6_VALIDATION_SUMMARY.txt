@@ -1,0 +1,16 @@
+Duotronic Witness Contract v1.6 Draft 5.3.6
+Status: completed standalone corrective development draft; permanently not frozen
+Portable validation: PASS
+Required phases: 42 passed; 0 failed; 0 skipped; 0 missing; 0 duplicate
+Corpus files: 1,491 total; 1,487 SHA-256-covered; 4 recursive generated exclusions
+Schemas: 89 compiled; 36 canonical schemas compiled in strict mode
+Fixtures: 36 valid accepted; 38 invalid rejected
+Executable Python regressions: 127 passed
+Formal manifest: ProofAuthority V2 through V7 present; advisory static coverage passed
+Historical packages: exact Draft 5.2.2 and 5.3.1 through 5.3.5 archives verified
+Optional activation gates: 8 skipped; 0 falsely passed
+Theorem authority: disabled
+Promotion authority: disabled
+Release authority: false
+Source provenance: unpublished_workspace
+External governance signature: absent

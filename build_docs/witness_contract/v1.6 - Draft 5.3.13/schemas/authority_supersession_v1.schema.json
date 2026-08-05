@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/authority_supersession_v1.schema.json",
+  "title": "AuthoritySupersessionV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "supersession_id", "record_type", "superseded_record_id", "replacement_record_id", "reason", "principal_id", "created_at"],
+  "properties": {
+    "schema_version": {"const": "authority_supersession/v1"},
+    "supersession_id": {"type": "string", "minLength": 1},
+    "record_type": {"enum": ["claim", "policy", "verifier_principal", "compiler_witness", "proof_witness", "non_collapse_transition", "status_event", "promotion_gate", "verification_result"]},
+    "superseded_record_id": {"type": "string", "minLength": 1},
+    "replacement_record_id": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1},
+    "principal_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "not": {"properties": {"superseded_record_id": {"const": ""}, "replacement_record_id": {"const": ""}}}
+}

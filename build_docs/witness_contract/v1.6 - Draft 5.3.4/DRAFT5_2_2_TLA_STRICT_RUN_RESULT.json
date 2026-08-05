@@ -1,0 +1,17 @@
+{
+  "schema_version": "tla_model_check_result/v1",
+  "mode": "strict",
+  "status": "fail",
+  "tlc_available": false,
+  "tlc_jar": null,
+  "modules_checked": [
+    "EvidenceClaimGraph",
+    "TaskDelegationAndPolicyCoreSpec",
+    "NonCollapseRuntime",
+    "LogicalObserverKernel"
+  ],
+  "static_errors": [
+    "TLC unavailable: set TLA2TOOLS_JAR or place tools/tla2tools.jar under corpus root"
+  ],
+  "tlc_results": []
+}

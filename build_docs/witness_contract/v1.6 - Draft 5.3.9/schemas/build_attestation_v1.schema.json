@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://duotronics.local/schemas/build_attestation_v1.schema.json",
+  "title": "Source and Build Attestation v1", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "attestation_id", "subject_type", "subject_sha256", "source_revision", "builder_identity", "build_invocation_sha256", "dependency_closure_sha256", "created_at", "signer_key_id", "signed_payload_sha256", "signature"],
+  "properties": {
+    "schema_version": {"const": "build_attestation/v1"}, "attestation_id": {"type": "string", "minLength": 1}, "subject_type": {"enum": ["trusted_verifier_executable", "oci_image", "lean_toolchain", "dependency_closure", "validation_package"]}, "subject_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "source_revision": {"type": "string", "minLength": 1}, "builder_identity": {"type": "string", "minLength": 1}, "build_invocation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "dependency_closure_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "created_at": {"type": "string", "format": "date-time"}, "signer_key_id": {"type": "string", "minLength": 1}, "signed_payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "signature": {"type": "string", "minLength": 43}
+  }
+}

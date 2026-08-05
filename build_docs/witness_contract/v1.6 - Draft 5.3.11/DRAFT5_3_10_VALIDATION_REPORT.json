@@ -1,0 +1,1757 @@
+{
+  "all_required_passed": true,
+  "authority_activation_evidence_complete": false,
+  "clean_extraction_root_identity": "0115f34f98bd7a6629e6afcb9e2b457814aeee2423ee38ff61141e52b9e951ab",
+  "duration_seconds": 45.422118,
+  "finished_at": "2026-08-01T20:09:03.852344+00:00",
+  "freeze_state": "permanently_not_frozen",
+  "generated_at": "2026-08-01T20:09:03.852344+00:00",
+  "lifecycle_policy": "living_contract_never_freeze",
+  "optional_failed": [],
+  "optional_skipped": [
+    "committed_source_provenance",
+    "external_signature",
+    "hermetic_lean_integration",
+    "oci_image_build_attestation",
+    "reproducible_inspector_build",
+    "strict_lean",
+    "strict_tlc",
+    "verifier_executable_build_attestation"
+  ],
+  "overall_status": "passed",
+  "package_version": "v1.6-draft-5.3.10",
+  "phases": [
+    {
+      "details": {
+        "active_version": "v1.6-draft-5.3.10",
+        "phase_accounting_tests": 4,
+        "required_phase_count": 77
+      },
+      "duration_seconds": 0.229908,
+      "name": "descriptor",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 202,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:18.710518+00:00",
+      "worker_pid": 10,
+      "worker_process_group": 10,
+      "worker_started_at": "2026-08-01T20:08:18.430310+00:00"
+    },
+    {
+      "details": {
+        "cryptography": "46.0.0",
+        "node": "v24.14.0",
+        "python": "3.12.13",
+        "schema_dependencies": "vendored_hash_covered",
+        "sqlite_json1": true,
+        "yaml": "6.0.3"
+      },
+      "duration_seconds": 0.00416,
+      "name": "dependencies",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 255,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:18.762103+00:00",
+      "worker_pid": 14,
+      "worker_process_group": 14,
+      "worker_started_at": "2026-08-01T20:08:18.710570+00:00"
+    },
+    {
+      "details": {
+        "covered": 1657,
+        "excluded_generated": 4,
+        "file_count": 1661,
+        "final_bytes_verified": true
+      },
+      "duration_seconds": 0.132941,
+      "name": "hash_closure",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 198,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:18.944515+00:00",
+      "worker_pid": 16,
+      "worker_process_group": 16,
+      "worker_started_at": "2026-08-01T20:08:18.762153+00:00"
+    },
+    {
+      "details": {
+        "canonical_schemas_compiled_strict": 39,
+        "dependency_mode": "corpus_vendored_registry_driven",
+        "errors": [],
+        "invalid_fixtures_rejected": 0,
+        "phase": "json_schemas",
+        "schemas_compiled": 107,
+        "status": "passed",
+        "valid_fixtures_passed": 0
+      },
+      "duration_seconds": 0.292722,
+      "name": "json_schemas",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 337,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:19.287881+00:00",
+      "worker_pid": 17,
+      "worker_process_group": 17,
+      "worker_started_at": "2026-08-01T20:08:18.944576+00:00"
+    },
+    {
+      "details": {
+        "canonical_schemas_compiled_strict": 39,
+        "dependency_mode": "corpus_vendored_registry_driven",
+        "errors": [],
+        "invalid_fixtures_rejected": 0,
+        "phase": "valid_fixtures",
+        "schemas_compiled": 107,
+        "status": "passed",
+        "valid_fixtures_passed": 39
+      },
+      "duration_seconds": 0.317329,
+      "name": "valid_fixtures",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 342,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:19.656777+00:00",
+      "worker_pid": 26,
+      "worker_process_group": 26,
+      "worker_started_at": "2026-08-01T20:08:19.287942+00:00"
+    },
+    {
+      "details": {
+        "canonical_schemas_compiled_strict": 39,
+        "dependency_mode": "corpus_vendored_registry_driven",
+        "errors": [],
+        "invalid_fixtures_rejected": 41,
+        "phase": "invalid_fixtures",
+        "schemas_compiled": 107,
+        "status": "passed",
+        "valid_fixtures_passed": 0
+      },
+      "duration_seconds": 0.318581,
+      "name": "invalid_fixtures",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 346,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:20.025477+00:00",
+      "worker_pid": 35,
+      "worker_process_group": 35,
+      "worker_started_at": "2026-08-01T20:08:19.656925+00:00"
+    },
+    {
+      "details": {
+        "duplicate_keys": 0,
+        "json_files": 506,
+        "yaml_files": 24
+      },
+      "duration_seconds": 0.220364,
+      "name": "json_yaml_duplicate_keys",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 178,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:20.296613+00:00",
+      "worker_pid": 44,
+      "worker_process_group": 44,
+      "worker_started_at": "2026-08-01T20:08:20.025516+00:00"
+    },
+    {
+      "details": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "executable/validators/run_unittest_structured.py"
+        ],
+        "duplicate_test_ids": [],
+        "expected_failures": 0,
+        "python_version": "3.12.13",
+        "stderr_sha256": "38f16334534b4f37178d8730c638c5cf978b287a43dfe97e4e3793c3e3de6288",
+        "stdout_sha256": "c24b81b53252c0d54be770d821c75315d67c239c1a4a6176adbf9ec863bc752f",
+        "tests_discovered": 230,
+        "tests_errored": 0,
+        "tests_failed": 0,
+        "tests_passed": 230,
+        "tests_run": 230,
+        "tests_skipped": 0,
+        "unexpected_successes": 0,
+        "warning_output_lines": []
+      },
+      "duration_seconds": 6.837711,
+      "name": "exact_test_discovery_count",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 668,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:27.182838+00:00",
+      "worker_pid": 45,
+      "worker_process_group": 45,
+      "worker_started_at": "2026-08-01T20:08:20.296664+00:00"
+    },
+    {
+      "details": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "executable/validators/run_unittest_structured.py"
+        ],
+        "duplicate_test_ids": [],
+        "expected_failures": 0,
+        "python_version": "3.12.13",
+        "stderr_sha256": "0c0c7141df325a2001d80fe2a59041272bb2dd6ebbd32522819397d847723e52",
+        "stdout_sha256": "c24b81b53252c0d54be770d821c75315d67c239c1a4a6176adbf9ec863bc752f",
+        "tests_discovered": 230,
+        "tests_errored": 0,
+        "tests_failed": 0,
+        "tests_passed": 230,
+        "tests_run": 230,
+        "tests_skipped": 0,
+        "unexpected_successes": 0,
+        "warning_output_lines": []
+      },
+      "duration_seconds": 6.924287,
+      "name": "all_regression_tests",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 662,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:34.155873+00:00",
+      "worker_pid": 118,
+      "worker_process_group": 118,
+      "worker_started_at": "2026-08-01T20:08:27.182903+00:00"
+    },
+    {
+      "details": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+          "-X",
+          "dev",
+          "-W",
+          "error",
+          "executable/validators/run_unittest_structured.py"
+        ],
+        "duplicate_test_ids": [],
+        "expected_failures": 0,
+        "python_version": "3.12.13",
+        "stderr_sha256": "a453661ad4c54a0e1494b4149e36774a49fe9045f717d15c33014c01cf974ba3",
+        "stdout_sha256": "c24b81b53252c0d54be770d821c75315d67c239c1a4a6176adbf9ec863bc752f",
+        "tests_discovered": 230,
+        "tests_errored": 0,
+        "tests_failed": 0,
+        "tests_passed": 230,
+        "tests_run": 230,
+        "tests_skipped": 0,
+        "unexpected_successes": 0,
+        "warning_output_lines": []
+      },
+      "duration_seconds": 7.71909,
+      "name": "warning_free_regression_execution",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 698,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:41.929174+00:00",
+      "worker_pid": 191,
+      "worker_process_group": 191,
+      "worker_started_at": "2026-08-01T20:08:34.155924+00:00"
+    },
+    {
+      "details": {
+        "count_source": "unittest.TestResult",
+        "current_python_version": "3.12.13",
+        "target_python_versions": [
+          "3.12",
+          "3.13"
+        ],
+        "unavailable_python_versions": [
+          "3.13"
+        ],
+        "validated_python_versions": [
+          "3.12.13"
+        ],
+        "warning_detection": "independent_of_count_extraction"
+      },
+      "duration_seconds": 0.00013,
+      "name": "python_version_portability",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 373,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:41.981824+00:00",
+      "worker_pid": 264,
+      "worker_process_group": 264,
+      "worker_started_at": "2026-08-01T20:08:41.929227+00:00"
+    },
+    {
+      "details": {
+        "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.020s\n\nOK",
+        "stdout": "",
+        "tests": 8
+      },
+      "duration_seconds": 0.204039,
+      "name": "domain_specific_rlimit_fsize",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 273,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:42.238559+00:00",
+      "worker_pid": 265,
+      "worker_process_group": 265,
+      "worker_started_at": "2026-08-01T20:08:41.982255+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.025s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.196874,
+      "name": "control_state_semantics",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 264,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:42.485755+00:00",
+      "worker_pid": 270,
+      "worker_process_group": 270,
+      "worker_started_at": "2026-08-01T20:08:42.238610+00:00"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.003s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.175526,
+      "name": "mandatory_control_measurements",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 269,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:42.711718+00:00",
+      "worker_pid": 276,
+      "worker_process_group": 276,
+      "worker_started_at": "2026-08-01T20:08:42.485812+00:00"
+    },
+    {
+      "details": {
+        "consistent": true,
+        "tests_discovered": 230,
+        "tests_passed": 230
+      },
+      "duration_seconds": 0.000202,
+      "name": "machine_readable_narrative_count_consistency",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 206,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:42.762594+00:00",
+      "worker_pid": 278,
+      "worker_process_group": 278,
+      "worker_started_at": "2026-08-01T20:08:42.711771+00:00"
+    },
+    {
+      "details": {
+        "authority_objects": 5,
+        "compiler_witness_v6_binding_columns": 22,
+        "generations": [
+          "v1.6-draft-5.3.1",
+          "v1.6-draft-5.3.2",
+          "v1.6-draft-5.3.3",
+          "v1.6-draft-5.3.4",
+          "v1.6-draft-5.3.5",
+          "v1.6-draft-5.3.6",
+          "v1.6-draft-5.3.7"
+        ]
+      },
+      "duration_seconds": 0.115168,
+      "name": "sql_migration",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 327,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:42.941384+00:00",
+      "worker_pid": 279,
+      "worker_process_group": 279,
+      "worker_started_at": "2026-08-01T20:08:42.762646+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.207s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.321763,
+      "name": "sql_event_ledger",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 257,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:43.319748+00:00",
+      "worker_pid": 280,
+      "worker_process_group": 280,
+      "worker_started_at": "2026-08-01T20:08:42.941431+00:00"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.152s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.260101,
+      "name": "sql_typed_supersession",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 261,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:43.632047+00:00",
+      "worker_pid": 282,
+      "worker_process_group": 282,
+      "worker_started_at": "2026-08-01T20:08:43.319819+00:00"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.100s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.208932,
+      "name": "sql_immutability",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 255,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:43.894658+00:00",
+      "worker_pid": 284,
+      "worker_process_group": 284,
+      "worker_started_at": "2026-08-01T20:08:43.632102+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.054s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.158903,
+      "name": "sql_policy_binding",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 255,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:44.109352+00:00",
+      "worker_pid": 286,
+      "worker_process_group": 286,
+      "worker_started_at": "2026-08-01T20:08:43.894711+00:00"
+    },
+    {
+      "details": {
+        "closure_tokens": 10,
+        "v6_authority_view_empty": true
+      },
+      "duration_seconds": 0.098345,
+      "name": "sql_v537_authority_closure",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 179,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:44.268004+00:00",
+      "worker_pid": 288,
+      "worker_process_group": 288,
+      "worker_started_at": "2026-08-01T20:08:44.109407+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.054s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.161923,
+      "name": "historical_snapshot_stability",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 266,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:44.484043+00:00",
+      "worker_pid": 289,
+      "worker_process_group": 289,
+      "worker_started_at": "2026-08-01T20:08:44.268095+00:00"
+    },
+    {
+      "details": {
+        "adversarial_cases_rejected": 3,
+        "happy_pass": true
+      },
+      "duration_seconds": 0.093033,
+      "name": "replay_non_vacuity",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 169,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:44.636132+00:00",
+      "worker_pid": 291,
+      "worker_process_group": 291,
+      "worker_started_at": "2026-08-01T20:08:44.484097+00:00"
+    },
+    {
+      "details": {
+        "model": "synchronous",
+        "paths": 1,
+        "security_schemes": [
+          "MutualTLS",
+          "OAuth2"
+        ],
+        "tests": 2
+      },
+      "duration_seconds": 0.173763,
+      "name": "openapi_conformance",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 205,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:44.861690+00:00",
+      "worker_pid": 292,
+      "worker_process_group": 292,
+      "worker_started_at": "2026-08-01T20:08:44.636185+00:00"
+    },
+    {
+      "details": {
+        "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK",
+        "stdout": "",
+        "tests": 8
+      },
+      "duration_seconds": 0.063376,
+      "name": "positive_baseline_runtime",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 270,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:44.978966+00:00",
+      "worker_pid": 295,
+      "worker_process_group": 295,
+      "worker_started_at": "2026-08-01T20:08:44.861744+00:00"
+    },
+    {
+      "details": {
+        "authority_mode": "governed_profile_immutable_snapshot_structured_result",
+        "real_lean_claimed": false,
+        "stderr": "...........................\n----------------------------------------------------------------------\nRan 27 tests in 0.638s\n\nOK",
+        "stdout": "",
+        "tests": 27
+      },
+      "duration_seconds": 0.759815,
+      "name": "proof_authority_runtime",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 388,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:45.790662+00:00",
+      "worker_pid": 297,
+      "worker_process_group": 297,
+      "worker_started_at": "2026-08-01T20:08:44.979018+00:00"
+    },
+    {
+      "details": {
+        "request_paths_hashes_environment_timestamps": "rejected",
+        "stderr": "..............\n----------------------------------------------------------------------\nRan 14 tests in 1.117s\n\nOK",
+        "stdout": "",
+        "tests": 14
+      },
+      "duration_seconds": 1.250143,
+      "name": "proof_check_service_boundary",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 338,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:47.093460+00:00",
+      "worker_pid": 300,
+      "worker_process_group": 300,
+      "worker_started_at": "2026-08-01T20:08:45.790717+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.446s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.565449,
+      "name": "cache_authority_reverification",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:47.710828+00:00",
+      "worker_pid": 321,
+      "worker_process_group": 321,
+      "worker_started_at": "2026-08-01T20:08:47.093515+00:00"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.045s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.192663,
+      "name": "authenticated_principal_binding",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:47.959118+00:00",
+      "worker_pid": 338,
+      "worker_process_group": 338,
+      "worker_started_at": "2026-08-01T20:08:47.710894+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.042s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.16192,
+      "name": "semantic_execution_identity_separation",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 274,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:48.177629+00:00",
+      "worker_pid": 341,
+      "worker_process_group": 341,
+      "worker_started_at": "2026-08-01T20:08:47.959171+00:00"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.054s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.171067,
+      "name": "idempotency_store_bounds",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 264,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:48.399981+00:00",
+      "worker_pid": 343,
+      "worker_process_group": 343,
+      "worker_started_at": "2026-08-01T20:08:48.177684+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.397s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.515062,
+      "name": "sqlite_connection_lifecycle",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 264,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:48.967813+00:00",
+      "worker_pid": 345,
+      "worker_process_group": 345,
+      "worker_started_at": "2026-08-01T20:08:48.400037+00:00"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.010s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.116895,
+      "name": "recursive_dependency_inspection",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:49.134951+00:00",
+      "worker_pid": 347,
+      "worker_process_group": 347,
+      "worker_started_at": "2026-08-01T20:08:48.967869+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.010s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.12663,
+      "name": "exact_oci_argv_binding",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 258,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:49.312636+00:00",
+      "worker_pid": 349,
+      "worker_process_group": 349,
+      "worker_started_at": "2026-08-01T20:08:49.135018+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.119279,
+      "name": "policy_resource_limit_closure",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 266,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:49.483741+00:00",
+      "worker_pid": 352,
+      "worker_process_group": 352,
+      "worker_started_at": "2026-08-01T20:08:49.312701+00:00"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.008s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.120668,
+      "name": "trust_boundary_schema_validation",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:49.661473+00:00",
+      "worker_pid": 354,
+      "worker_process_group": 354,
+      "worker_started_at": "2026-08-01T20:08:49.483803+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.1272,
+      "name": "measured_control_evidence",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 260,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:49.845861+00:00",
+      "worker_pid": 356,
+      "worker_process_group": 356,
+      "worker_started_at": "2026-08-01T20:08:49.661531+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.115289,
+      "name": "compile_handoff_manifest",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 261,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:50.016399+00:00",
+      "worker_pid": 358,
+      "worker_process_group": 358,
+      "worker_started_at": "2026-08-01T20:08:49.846336+00:00"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.052s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.171497,
+      "name": "durable_idempotency",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 258,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:50.243447+00:00",
+      "worker_pid": 360,
+      "worker_process_group": 360,
+      "worker_started_at": "2026-08-01T20:08:50.016458+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.117363,
+      "name": "split_resource_limits",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 258,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:50.419034+00:00",
+      "worker_pid": 362,
+      "worker_process_group": 362,
+      "worker_started_at": "2026-08-01T20:08:50.243515+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.12547,
+      "name": "trust_artifact_attestation_registry",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:50.597727+00:00",
+      "worker_pid": 364,
+      "worker_process_group": 364,
+      "worker_started_at": "2026-08-01T20:08:50.419115+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.023s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.133815,
+      "name": "oci_command_dispatch",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 261,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:50.783400+00:00",
+      "worker_pid": 366,
+      "worker_process_group": 366,
+      "worker_started_at": "2026-08-01T20:08:50.597779+00:00"
+    },
+    {
+      "details": {
+        "effective_invocation_bound": true,
+        "profile_id": "wc-hermetic-lean-v5-authenticated-cache-safe",
+        "tests": 6
+      },
+      "duration_seconds": 0.130419,
+      "name": "effective_sandbox_invocation",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 234,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:50.962181+00:00",
+      "worker_pid": 372,
+      "worker_process_group": 372,
+      "worker_started_at": "2026-08-01T20:08:50.783450+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.111704,
+      "name": "policy_authority_binding",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 265,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:51.126858+00:00",
+      "worker_pid": 380,
+      "worker_process_group": 380,
+      "worker_started_at": "2026-08-01T20:08:50.962217+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 5
+      },
+      "duration_seconds": 0.112285,
+      "name": "source_snapshot_limits",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 264,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:51.289058+00:00",
+      "worker_pid": 382,
+      "worker_process_group": 382,
+      "worker_started_at": "2026-08-01T20:08:51.126926+00:00"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.010s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.119636,
+      "name": "bounded_subprocess_output",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 264,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:51.458372+00:00",
+      "worker_pid": 384,
+      "worker_process_group": 384,
+      "worker_started_at": "2026-08-01T20:08:51.289119+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.109522,
+      "name": "trusted_inspector_build_contract",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 273,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:51.616498+00:00",
+      "worker_pid": 387,
+      "worker_process_group": 387,
+      "worker_started_at": "2026-08-01T20:08:51.458430+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.050s\n\nOK",
+        "stdout": "",
+        "tests": 5
+      },
+      "duration_seconds": 0.15317,
+      "name": "result_channel_isolation",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 265,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:51.819642+00:00",
+      "worker_pid": 389,
+      "worker_process_group": 389,
+      "worker_started_at": "2026-08-01T20:08:51.616556+00:00"
+    },
+    {
+      "details": {
+        "stderr": "......\n----------------------------------------------------------------------\nRan 6 tests in 0.230s\n\nOK",
+        "stdout": "",
+        "tests": 6
+      },
+      "duration_seconds": 0.338068,
+      "name": "signed_verifier_result",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 265,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:52.205946+00:00",
+      "worker_pid": 391,
+      "worker_process_group": 391,
+      "worker_started_at": "2026-08-01T20:08:51.819697+00:00"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.015s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.121739,
+      "name": "trust_root_loading",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 258,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:52.378571+00:00",
+      "worker_pid": 393,
+      "worker_process_group": 393,
+      "worker_started_at": "2026-08-01T20:08:52.206000+00:00"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.054s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.1561,
+      "name": "deterministic_witness_identity",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 268,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:52.583727+00:00",
+      "worker_pid": 395,
+      "worker_process_group": 395,
+      "worker_started_at": "2026-08-01T20:08:52.378629+00:00"
+    },
+    {
+      "details": {
+        "hermetic_verifier_sources": [
+          "formal/draft5_3_6/lean/WitnessAuthority/Verifier.lean",
+          "formal/draft5_3_6/lean/WitnessAuthority/InspectorMain.lean",
+          "executable/trusted_verifier/compile_lean.py",
+          "executable/trusted_verifier/verify_lean.py",
+          "executable/trusted_verifier/Containerfile"
+        ],
+        "modules_checked": [
+          "EvidenceClaimGraph",
+          "TaskDelegationAndPolicyCoreSpec",
+          "NonCollapseRuntime",
+          "LogicalObserverKernel",
+          "ProofAuthorityV2",
+          "ProofAuthorityV3",
+          "ProofAuthorityV4",
+          "ProofAuthorityV5",
+          "ProofAuthorityV6",
+          "ProofAuthorityV7",
+          "ProofAuthorityV8"
+        ],
+        "strict_tlc_claimed": false,
+        "tlc_available": false
+      },
+      "duration_seconds": 0.027073,
+      "name": "formal_manifest_coverage",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 710,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:52.658721+00:00",
+      "worker_pid": 397,
+      "worker_process_group": 397,
+      "worker_started_at": "2026-08-01T20:08:52.583782+00:00"
+    },
+    {
+      "details": {
+        "canonical": 39,
+        "classified": 109,
+        "unknown_policy": "reject"
+      },
+      "duration_seconds": 0.003516,
+      "name": "schema_registry_authority",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 185,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:52.710688+00:00",
+      "worker_pid": 399,
+      "worker_process_group": 399,
+      "worker_started_at": "2026-08-01T20:08:52.658778+00:00"
+    },
+    {
+      "details": {
+        "active_version": "v1.6-draft-5.3.10",
+        "entrypoints_checked": 8,
+        "formal_model": "ProofAuthorityV8",
+        "npm_version": "1.6.5-3-10"
+      },
+      "duration_seconds": 0.001891,
+      "name": "version_consistency",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 243,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:52.763502+00:00",
+      "worker_pid": 400,
+      "worker_process_group": 400,
+      "worker_started_at": "2026-08-01T20:08:52.710742+00:00"
+    },
+    {
+      "details": {
+        "activation_ready": false,
+        "source_subtree_sha256": "0115f34f98bd7a6629e6afcb9e2b457814aeee2423ee38ff61141e52b9e951ab",
+        "status": "unpublished_workspace"
+      },
+      "duration_seconds": 0.171066,
+      "name": "package_provenance",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 269,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:52.988327+00:00",
+      "worker_pid": 401,
+      "worker_process_group": 401,
+      "worker_started_at": "2026-08-01T20:08:52.763570+00:00"
+    },
+    {
+      "details": {
+        "embedded_zip_count": 0,
+        "lineage_release_count": 10
+      },
+      "duration_seconds": 0.003689,
+      "name": "standalone_merged_corpus",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 176,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:53.044668+00:00",
+      "worker_pid": 402,
+      "worker_process_group": 402,
+      "worker_started_at": "2026-08-01T20:08:52.988377+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.162729,
+      "name": "trusted_inspector_source_alignment",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:53.257467+00:00",
+      "worker_pid": 403,
+      "worker_process_group": 403,
+      "worker_started_at": "2026-08-01T20:08:53.044724+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.055s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.205681,
+      "name": "compile_producer_consumer_contract",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:53.518642+00:00",
+      "worker_pid": 405,
+      "worker_process_group": 405,
+      "worker_started_at": "2026-08-01T20:08:53.257521+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.133074,
+      "name": "sealed_handoff_module_resolution",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 269,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:53.700823+00:00",
+      "worker_pid": 409,
+      "worker_process_group": 409,
+      "worker_started_at": "2026-08-01T20:08:53.518696+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.003s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.158957,
+      "name": "keep_id_mount_ownership_and_sealing",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 272,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:53.912482+00:00",
+      "worker_pid": 411,
+      "worker_process_group": 411,
+      "worker_started_at": "2026-08-01T20:08:53.700891+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.032s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.149967,
+      "name": "dual_domain_execution_evidence",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 267,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:54.118599+00:00",
+      "worker_pid": 413,
+      "worker_process_group": 413,
+      "worker_started_at": "2026-08-01T20:08:53.912551+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.025s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.171602,
+      "name": "warning_as_error_behavior",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 262,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:54.344274+00:00",
+      "worker_pid": 415,
+      "worker_process_group": 415,
+      "worker_started_at": "2026-08-01T20:08:54.118654+00:00"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 2.285s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 2.463256,
+      "name": "request_wide_deadline",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 261,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:56.861337+00:00",
+      "worker_pid": 418,
+      "worker_process_group": 418,
+      "worker_started_at": "2026-08-01T20:08:54.344326+00:00"
+    },
+    {
+      "details": {
+        "active_renewal": true,
+        "lost_owner_publication": "rejected",
+        "tests": 2
+      },
+      "duration_seconds": 0.649066,
+      "name": "idempotency_lease_renewal",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 195,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:57.563467+00:00",
+      "worker_pid": 422,
+      "worker_process_group": 422,
+      "worker_started_at": "2026-08-01T20:08:56.861391+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.013s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.149585,
+      "name": "cache_signing_authority_separation",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 271,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:57.763515+00:00",
+      "worker_pid": 428,
+      "worker_process_group": 428,
+      "worker_started_at": "2026-08-01T20:08:57.563517+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.009s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.151878,
+      "name": "sqlite_completion_size_bound",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 265,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:57.965129+00:00",
+      "worker_pid": 430,
+      "worker_process_group": 430,
+      "worker_started_at": "2026-08-01T20:08:57.763568+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.080s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.216797,
+      "name": "sqlite_schema_integrity",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 264,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:58.249659+00:00",
+      "worker_pid": 432,
+      "worker_process_group": 432,
+      "worker_started_at": "2026-08-01T20:08:57.965181+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.001s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.133649,
+      "name": "sqlite_descriptor_ancestry",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 263,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:58.431457+00:00",
+      "worker_pid": 434,
+      "worker_process_group": 434,
+      "worker_started_at": "2026-08-01T20:08:58.249714+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.016s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.152692,
+      "name": "canonical_cache_rows",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 257,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:58.632450+00:00",
+      "worker_pid": 436,
+      "worker_process_group": 436,
+      "worker_started_at": "2026-08-01T20:08:58.431517+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.136236,
+      "name": "runtime_image_dependency_pinning",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 269,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:58.816675+00:00",
+      "worker_pid": 438,
+      "worker_process_group": 438,
+      "worker_started_at": "2026-08-01T20:08:58.632501+00:00"
+    },
+    {
+      "details": {
+        "intentional_hang_terminated": true,
+        "process_isolated": true,
+        "progress_markers": true,
+        "timeout_seconds": 360,
+        "watchdog": {
+          "duration_seconds": 0.2,
+          "error": "phase exceeded 0.2-second process-isolated timeout",
+          "last_progress": "started_not_completed",
+          "name": "__validator_intentional_hang",
+          "required": true,
+          "status": "failed",
+          "stderr_bytes": 327,
+          "stdout_bytes": 0,
+          "timed_out": true,
+          "worker_exit_code": -9,
+          "worker_finished_at": "2026-08-01T20:08:59.061382+00:00",
+          "worker_pid": 441,
+          "worker_process_group": 441,
+          "worker_started_at": "2026-08-01T20:08:58.858403+00:00"
+        }
+      },
+      "duration_seconds": 0.203294,
+      "name": "validator_process_isolation",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 92,
+      "stdout_bytes": 673,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:59.068814+00:00",
+      "worker_pid": 440,
+      "worker_process_group": 440,
+      "worker_started_at": "2026-08-01T20:08:58.816727+00:00"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.039s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.175147,
+      "name": "sqlite_connect_failure_closure",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 269,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:59.296285+00:00",
+      "worker_pid": 443,
+      "worker_process_group": 443,
+      "worker_started_at": "2026-08-01T20:08:59.068860+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.068s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.202386,
+      "name": "sqlite_exact_schema_identity",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 269,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:59.548038+00:00",
+      "worker_pid": 445,
+      "worker_process_group": 445,
+      "worker_started_at": "2026-08-01T20:08:59.296356+00:00"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.068s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.214912,
+      "name": "cache_key_lifecycle",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 260,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:08:59.811086+00:00",
+      "worker_pid": 447,
+      "worker_process_group": 447,
+      "worker_started_at": "2026-08-01T20:08:59.548089+00:00"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 2.266s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 2.400473,
+      "name": "final_deadline_publication",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 266,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:02.259853+00:00",
+      "worker_pid": 450,
+      "worker_process_group": 450,
+      "worker_started_at": "2026-08-01T20:08:59.811134+00:00"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.053s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.192954,
+      "name": "trusted_compile_command_reconstruction",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 275,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:02.501519+00:00",
+      "worker_pid": 454,
+      "worker_process_group": 454,
+      "worker_started_at": "2026-08-01T20:09:02.259908+00:00"
+    },
+    {
+      "details": {
+        "active_renewal": true,
+        "lost_owner_publication": "rejected",
+        "tests": 2
+      },
+      "duration_seconds": 0.656226,
+      "name": "lease_stress_and_cancellation",
+      "required": true,
+      "status": "passed",
+      "stderr_bytes": 0,
+      "stdout_bytes": 199,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.205479+00:00",
+      "worker_pid": 458,
+      "worker_process_group": 458,
+      "worker_started_at": "2026-08-01T20:09:02.501572+00:00"
+    },
+    {
+      "duration_seconds": 0.0894,
+      "error": "strict Lean unavailable; deployment theorem authority remains disabled",
+      "name": "strict_lean",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 182,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.344269+00:00",
+      "worker_pid": 464,
+      "worker_process_group": 464,
+      "worker_started_at": "2026-08-01T20:09:03.205536+00:00"
+    },
+    {
+      "duration_seconds": 0.028274,
+      "error": "strict TLC unavailable; formal deployment assurance remains incomplete",
+      "name": "strict_tlc",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 183,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.424974+00:00",
+      "worker_pid": 466,
+      "worker_process_group": 466,
+      "worker_started_at": "2026-08-01T20:09:03.344332+00:00"
+    },
+    {
+      "duration_seconds": 0.092986,
+      "error": "approved hermetic Lean image/configuration unavailable; theorem authority remains disabled",
+      "name": "hermetic_lean_integration",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 218,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.570839+00:00",
+      "worker_pid": 468,
+      "worker_process_group": 468,
+      "worker_started_at": "2026-08-01T20:09:03.425031+00:00"
+    },
+    {
+      "duration_seconds": 6e-05,
+      "error": "signed oci_image build attestation absent; execution closure remains incomplete",
+      "name": "oci_image_build_attestation",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 206,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.623633+00:00",
+      "worker_pid": 470,
+      "worker_process_group": 470,
+      "worker_started_at": "2026-08-01T20:09:03.570887+00:00"
+    },
+    {
+      "duration_seconds": 6.8e-05,
+      "error": "signed trusted_verifier_executable build attestation absent; execution closure remains incomplete",
+      "name": "verifier_executable_build_attestation",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 236,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.676281+00:00",
+      "worker_pid": 471,
+      "worker_process_group": 471,
+      "worker_started_at": "2026-08-01T20:09:03.623682+00:00"
+    },
+    {
+      "duration_seconds": 6.3e-05,
+      "error": "signed trusted_inspector_reproducible_build_a build attestation absent; execution closure remains incomplete",
+      "name": "reproducible_inspector_build",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 238,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.733677+00:00",
+      "worker_pid": 472,
+      "worker_process_group": 472,
+      "worker_started_at": "2026-08-01T20:09:03.676331+00:00"
+    },
+    {
+      "duration_seconds": 6e-05,
+      "error": "clean committed-source provenance absent; release provenance activation remains incomplete",
+      "name": "committed_source_provenance",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 217,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.782798+00:00",
+      "worker_pid": 473,
+      "worker_process_group": 473,
+      "worker_started_at": "2026-08-01T20:09:03.733733+00:00"
+    },
+    {
+      "duration_seconds": 6.8e-05,
+      "error": "external governance signature absent; package is not an external trust root",
+      "name": "external_signature",
+      "required": false,
+      "status": "skipped",
+      "stderr_bytes": 0,
+      "stdout_bytes": 195,
+      "timed_out": false,
+      "worker_exit_code": 0,
+      "worker_finished_at": "2026-08-01T20:09:03.834434+00:00",
+      "worker_pid": 474,
+      "worker_process_group": 474,
+      "worker_started_at": "2026-08-01T20:09:03.783273+00:00"
+    }
+  ],
+  "required_duplicates": [],
+  "required_failed": [],
+  "required_failed_count": 0,
+  "required_missing": [],
+  "required_missing_count": 0,
+  "required_noncanonical_status": [],
+  "required_skipped": [],
+  "required_skipped_count": 0,
+  "schema_version": "draft5_3_10_validation_report/v1",
+  "started_at": "2026-08-01T20:08:18.430226+00:00",
+  "theorem_authority_enabled_by_portable_validation": false,
+  "validation_metrics": {
+    "adversarial_fixture_count": 41,
+    "directory_count": 157,
+    "file_count": 1661,
+    "hash_covered_file_count": 1657,
+    "hash_excluded_file_count": 4,
+    "prospective_zip_entry_count": 1819,
+    "required_phase_count": 77,
+    "schema_count": 107,
+    "strict_canonical_schema_count": 39,
+    "tests_discovered": 230,
+    "tests_passed": 230,
+    "valid_fixture_count": 39
+  }
+}

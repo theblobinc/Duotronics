@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_service_request_v1.schema.json",
+  "title": "Authenticated Cache Audit Service Request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","operation","request_id","peer_principal_id","payload_sha256","deadline_unix_ns","nonce","target_service","socket_identity_sha256","payload","request_signer_key_id","signed_payload_sha256","signature"],
+  "properties": {
+    "schema_version": {"const": "cache_audit_service_request/v1"},
+    "operation": {"enum": ["publish","read","compare_and_swap"]},
+    "request_id": {"type":"string","pattern":"^request:[0-9a-f]{32}$"},
+    "peer_principal_id": {"$ref":"#/$defs/id"},
+    "payload_sha256": {"$ref":"#/$defs/sha256"},
+    "deadline_unix_ns": {"type":"integer","minimum":1},
+    "nonce": {"type":"string","pattern":"^[0-9a-f]{32}$"},
+    "target_service": {"enum":["cache_audit_publisher","cache_audit_anchor"]},
+    "socket_identity_sha256": {"$ref":"#/$defs/sha256"},
+    "payload": {"type":"object"},
+    "request_signer_key_id": {"$ref":"#/$defs/id"},
+    "signed_payload_sha256": {"$ref":"#/$defs/sha256"},
+    "signature": {"type":"string","minLength":43}
+  },
+  "$defs": {
+    "id":{"type":"string","pattern":"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}
+  }
+}

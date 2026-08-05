@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_publication_receipt_v2.schema.json",
+  "title": "Lifecycle-Governed Cache Audit Publication Receipt v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_idempotency_key",
+    "event_sha256",
+    "audit_record_id",
+    "segment_id",
+    "sequence",
+    "anchor_state_sha256",
+    "receipt_signing_registry_sha256",
+    "receipt_signer_principal_id",
+    "receipt_signer_key_id",
+    "receipt_key_validity_evidence",
+    "decision",
+    "completed_at",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_publication_receipt/v2"
+    },
+    "event_idempotency_key": {
+      "type": "string",
+      "pattern": "^event:[0-9a-f]{64}$"
+    },
+    "event_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "audit_record_id": {
+      "type": "string",
+      "pattern": "^audit:[0-9a-f]{64}$"
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "anchor_state_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision": {
+      "enum": [
+        "durably_committed",
+        "already_committed"
+      ]
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signed_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    },
+    "receipt_signing_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "receipt_signer_principal_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "receipt_signer_key_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "receipt_key_validity_evidence": {
+      "type": "object"
+    }
+  }
+}

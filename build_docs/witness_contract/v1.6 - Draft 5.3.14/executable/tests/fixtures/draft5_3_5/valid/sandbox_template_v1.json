@@ -1,0 +1,1 @@
+{"schema_ref":"schemas/sandbox_template_v1.schema.json","payload":{"schema_version":"sandbox_template/v1","profile":"lean-4.29.1-hermetic-3","network":"none","read_only_rootfs":true,"untrusted_final_result_mount":false,"trusted_final_result_mount":false,"trusted_inspection_mount":true,"runtime_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/proof_policy_decision_v1.schema.json",
+  "title": "Immutable Proof Policy Decision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "policy_decision_id", "canonical_record_sha256", "status", "subject_id", "operation", "compiler_profile_ids", "source_bundle_ids", "resource_permissions", "valid_from", "valid_until", "supersedes_policy_decision_id", "governance_authority_id", "created_at"],
+  "properties": {
+    "schema_version": {"const": "proof_policy_decision/v1"},
+    "policy_decision_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "canonical_record_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["active", "revoked", "expired", "superseded"]},
+    "subject_id": {"type": "string", "minLength": 1},
+    "operation": {"const": "proof_check"},
+    "compiler_profile_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "source_bundle_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "resource_permissions": {"type": "object", "additionalProperties": false, "required": ["maximum_timeout_seconds", "maximum_source_bytes"], "properties": {"maximum_timeout_seconds": {"type": "integer", "minimum": 1}, "maximum_source_bytes": {"type": "integer", "minimum": 1}}},
+    "valid_from": {"type": "string", "format": "date-time"},
+    "valid_until": {"type": ["string", "null"], "format": "date-time"},
+    "supersedes_policy_decision_id": {"type": ["string", "null"]},
+    "governance_authority_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

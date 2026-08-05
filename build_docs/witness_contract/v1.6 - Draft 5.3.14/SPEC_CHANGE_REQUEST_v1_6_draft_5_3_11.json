@@ -1,0 +1,27 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "scr:v1.6-draft-5.3.11",
+  "base_version": "v1.6-draft-5.3.10",
+  "target_version": "v1.6-draft-5.3.11",
+  "classification": "corrective_nonroot_loader_cache_chronology_canonical_json_python_matrix_revision",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "freeze_policy": "permanently_not_frozen",
+  "source_review": "refs/review/v1.6_draft_5.3.11_update_checklist.md",
+  "changes": [
+    "permit immutable root-owned filesystem and system ancestors while requiring a private service-owned final production trust root",
+    "reject root execution before production configuration is consumed",
+    "retain descriptor-relative no-follow ownership mode link-count size and stability checks for sensitive descendants",
+    "reject future cache-key status-change timestamps for active retired and revoked states",
+    "define status-change coherence with valid-from valid-until retirement revocation and rotation predecessor chronology",
+    "bind status-changed-at into signed cache validity evidence and recheck it during replay",
+    "require duplicate-free canonical JSON for every authority-bearing production configuration registry and platform evidence document",
+    "reject duplicate keys in authority schema documents before schema compilation",
+    "preserve stale cache rows after key rotation and return a stable new-idempotency-key-required conflict",
+    "generate one hash-covered Python record per interpreter target and deterministically merge without overwriting prior evidence",
+    "require validated and unavailable Python sets to be disjoint with every target represented exactly once",
+    "validate normal warnings-as-errors and full corpus workflows on Python 3.12 and 3.13",
+    "merge all active changes into a standalone package without embedded historical source archives",
+    "keep all eight external activation gates independently fail-closed"
+  ],
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled"
+}

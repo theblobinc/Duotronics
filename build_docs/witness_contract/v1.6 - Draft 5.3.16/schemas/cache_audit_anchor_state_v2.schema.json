@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_anchor_state_v2.schema.json",
+  "title": "Strict Hash-Chained Cache Audit Anchor State v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "anchor_namespace",
+    "anchor_epoch",
+    "segment_id",
+    "sequence",
+    "tail_record_sha256",
+    "segment_status",
+    "previous_sealed_segment_tail_sha256",
+    "transition_authorization_sha256",
+    "audit_signing_registry_sha256",
+    "anchor_registry_sha256",
+    "previous_anchor_state_sha256",
+    "updated_at",
+    "anchor_key_id",
+    "anchor_signer_principal_id",
+    "anchor_key_validity_evidence",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_anchor_state/v2"
+    },
+    "anchor_namespace": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "anchor_epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tail_record_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "segment_status": {
+      "enum": [
+        "open",
+        "sealed"
+      ]
+    },
+    "previous_sealed_segment_tail_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "transition_authorization_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "audit_signing_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "anchor_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "anchor_key_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "signed_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    },
+    "previous_anchor_state_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "anchor_signer_principal_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "anchor_key_validity_evidence": {
+      "type": "object"
+    }
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "freeze_state": "not_frozen",
+  "generated_at": "2026-07-31T17:56:19.487428+00:00",
+  "optional_failed": 0,
+  "overall_status": "passed",
+  "package_version": "v1.6-draft-5.3.1",
+  "phases": [
+    {
+      "details": {
+        "active_version": "v1.6-draft-5.3.1",
+        "required_phases": [
+          "descriptor",
+          "hash_closure",
+          "json_schemas",
+          "valid_fixtures",
+          "invalid_fixtures",
+          "sql_migration",
+          "sql_gate_adversarial",
+          "sql_immutability",
+          "replay_non_vacuity",
+          "openapi_security",
+          "positive_baseline_runtime",
+          "proof_signature_runtime",
+          "historical_package_integrity"
+        ]
+      },
+      "name": "descriptor",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "cryptography": "46.0.0",
+        "node": "v24.14.0",
+        "python": "3.12.13",
+        "sqlite_json1": true,
+        "yaml": "6.0.3"
+      },
+      "name": "dependencies",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "covered": 556,
+        "excluded_generated": 4,
+        "file_count": 560
+      },
+      "name": "hash_closure",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "errors": [],
+        "invalid_fixtures_rejected": 9,
+        "phase": "json_schemas_and_fixtures",
+        "schemas_compiled": 46,
+        "status": "passed",
+        "valid_fixtures_passed": 12
+      },
+      "name": "json_schemas_valid_fixtures_invalid_fixtures",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "authority_outputs_read_only": true,
+        "paths": 9,
+        "security_schemes": [
+          "MutualTLS",
+          "OAuth2"
+        ]
+      },
+      "name": "openapi_security",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "adversarial_gate_cases_rejected": 4,
+        "happy_gate": true,
+        "immutability_cases_rejected": 2,
+        "replay_non_vacuity_cases_rejected": 2,
+        "v2_tables": 14
+      },
+      "name": "sql_migration_gate_adversarial_immutability_replay_non_vacuity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK",
+        "stdout": "",
+        "tests": 8
+      },
+      "name": "positive_baseline_runtime",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "algorithm": "Ed25519",
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.006s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "name": "proof_signature_runtime",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "file_count": 492,
+        "sha256": "437395d28c452f0a20937eaf562020afae2214edf01a8df2fe6dadd062201c22",
+        "zip_integrity": "passed"
+      },
+      "name": "historical_package_integrity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "lean_advisory_status": "advisory_pass_lake_unavailable",
+        "release_authority": false,
+        "strict_lean_executed": false,
+        "strict_tlc_executed": false,
+        "tla_static_profile": "present"
+      },
+      "name": "formal_advisory",
+      "required": false,
+      "status": "passed"
+    }
+  ],
+  "required_failed": 0,
+  "required_skipped": 0,
+  "schema_version": "draft5_3_1_validation_report/v1",
+  "strict_release_evidence_complete": false
+}

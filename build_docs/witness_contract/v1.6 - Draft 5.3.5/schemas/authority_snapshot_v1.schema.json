@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/authority_snapshot_v1.schema.json",
+  "title": "SignedAuthoritySnapshotV1",
+  "type": "object", "additionalProperties": false,
+  "required": ["authority_snapshot_id", "schema_version", "evaluated_at", "policy_decision_id", "authorization_witness_id", "governance_key_id", "recorded_at", "timestamp_source", "evaluation_time_witness_id", "signed_payload_sha256", "signature"],
+  "properties": {
+    "authority_snapshot_id": {"type": "string", "minLength": 1}, "schema_version": {"const": "authority_snapshot/v1"},
+    "evaluated_at": {"type": "string", "format": "date-time"}, "policy_decision_id": {"type": "string", "minLength": 1},
+    "authorization_witness_id": {"type": "string", "minLength": 1}, "governance_key_id": {"type": "string", "minLength": 1},
+    "timestamp_source": {"enum": ["authority_service_clock", "trusted_time_witness"]}, "evaluation_time_witness_id": {"type": ["string", "null"]},
+    "recorded_at": {"type": "string", "format": "date-time"}, "signed_payload_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "signature": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43,}$"}
+  },
+  "allOf": [{"if": {"properties": {"timestamp_source": {"const": "authority_service_clock"}}, "required": ["timestamp_source"]}, "then": {"properties": {"evaluation_time_witness_id": {"type": "null"}}}, "else": {"properties": {"evaluation_time_witness_id": {"type": "string", "minLength": 1}}}}]
+}

@@ -1,0 +1,9 @@
+{
+  "base": "v1.6 Draft 5",
+  "generated": "2026-05-09T00:00:00Z",
+  "includes_draft5_1_authority_additions": true,
+  "includes_full_draft5_carry_forward": true,
+  "package": "Duotronic v1.6 Draft 5.1 complete standalone corpus",
+  "standalone_complete_corpus": true,
+  "version": "v1.6-draft-5.1"
+}

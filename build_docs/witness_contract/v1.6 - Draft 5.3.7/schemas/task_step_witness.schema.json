@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/taskStepWitness.schema.json",
+  "title": "TaskStepWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_step_witness_id",
+    "task_id",
+    "task_frame_id",
+    "syscall",
+    "instruction",
+    "input_refs",
+    "output_refs",
+    "deterministic",
+    "policy_decision_id",
+    "resource_budget_id",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "task_step_witness/v1"
+    },
+    "task_step_witness_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "task_frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "syscall": {
+      "enum": [
+        "observe",
+        "compose",
+        "infer",
+        "verify",
+        "replay",
+        "delegate",
+        "promote",
+        "compute",
+        "adjudicate",
+        "rollback",
+        "export",
+        "resolve_rule",
+        "read_memory",
+        "write_observation",
+        "promote_memory",
+        "raise_error"
+      ]
+    },
+    "instruction": {
+      "enum": [
+        "BOOT_CORPUS",
+        "LOAD_MANIFEST",
+        "VERIFY_HASH_CLOSURE",
+        "RESOLVE_ACTIVE_VERSION",
+        "LOAD_SCHEMA_REGISTRY",
+        "LOAD_AUTHORITY_TABLE",
+        "ENTER_SAFE_MODE_IF_AMBIGUOUS",
+        "RESOLVE_RULE",
+        "SELECT_ACTIVE_CONTRACT",
+        "APPLY_SUPERSESSION_CHAIN",
+        "CHECK_COMPATIBILITY_EXCEPTION",
+        "REPORT_AMBIGUITY",
+        "DECLARE_OBSERVER",
+        "CHECK_CAPABILITY",
+        "CHECK_SCOPE",
+        "CHECK_RUNTIME_MODE",
+        "CHECK_CHANNEL_AUTHORITY",
+        "CHECK_DELEGATION_CHAIN",
+        "DOWNGRADE_FORCE",
+        "DENY_OR_ESCALATE",
+        "CREATE_TASK",
+        "TYPECHECK_TASK",
+        "PLAN_TASK",
+        "ALLOCATE_BUDGET",
+        "EXECUTE_DETERMINISTIC_STEP",
+        "EMIT_STEP_WITNESS",
+        "COMMIT_RESULT",
+        "ROLLBACK_RESULT",
+        "EXPORT_TASK_TRACE",
+        "BEGIN_EVIDENCE_TX",
+        "ASSERT_PRECONDITIONS",
+        "EMIT_WITNESS",
+        "CHECK_NON_COLLAPSE",
+        "CHECK_POLICY",
+        "PERSIST_WITNESS",
+        "COMMIT_TX",
+        "ABORT_TX",
+        "RAISE_MISSING_WITNESS",
+        "RAISE_AUTHORITY_DENIED",
+        "RAISE_NON_COLLAPSE_VIOLATION",
+        "RAISE_REPLAY_ASSUMPTION_MISSING",
+        "RAISE_INDETERMINATE_RESULT",
+        "ESCALATE_TO_HUMAN_REVIEW",
+        "READ_OBJECT",
+        "HASH_OBJECT",
+        "COMPARE",
+        "VALIDATE_SCHEMA",
+        "EVALUATE_PREDICATE",
+        "RUN_PURE_FUNCTION",
+        "CHECK_RESULT",
+        "RETURN_STATUS",
+        "READ_MEMORY_CELL",
+        "WRITE_OBSERVATION",
+        "WRITE_CANDIDATE_FACT",
+        "PROMOTE_MEMORY_CELL",
+        "MARK_STALE",
+        "PURGE_WITH_WITNESS",
+        "SNAPSHOT_MEMORY",
+        "REPLAY_MEMORY_STATE",
+        "DETECT_CONFLICT",
+        "CLASSIFY_CONFLICT",
+        "OPEN_ADJUDICATION",
+        "COMPARE_AUTHORITY",
+        "COMPARE_EVIDENCE",
+        "MERGE_IF_COMPATIBLE",
+        "FORK_IF_INCOMPATIBLE",
+        "MARK_UNRESOLVED",
+        "SET_RESOURCE_BUDGET",
+        "CHECK_RECURSION_DEPTH",
+        "CHECK_TIME_BUDGET",
+        "CHECK_MEMORY_BUDGET",
+        "DENY_NETWORK",
+        "DENY_RANDOMNESS",
+        "DENY_MUTATION",
+        "ENTER_QUARANTINE_MODE"
+      ]
+    },
+    "input_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "output_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "witness_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "deterministic": {
+      "type": "boolean",
+      "const": true
+    },
+    "policy_decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "non_collapse_transition_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "claim_status_transition_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resource_budget_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "description": "Witness for one deterministic kernel execution step.",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "syscall": {
+            "const": "promote"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "non_collapse_transition_id"
+        ],
+        "properties": {
+          "non_collapse_transition_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

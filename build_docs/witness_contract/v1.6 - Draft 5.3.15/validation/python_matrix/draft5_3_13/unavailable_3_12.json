@@ -1,0 +1,9 @@
+{
+  "authority_effect": "no_current_revision_execution_claim",
+  "generated_at": "2026-08-02T02:41:01.585940+00:00",
+  "package_version": "v1.6-draft-5.3.13",
+  "reason": "Exact Python 3.12 interpreter unavailable in this packaging environment; no current-revision Python 3.12 execution claim is made.",
+  "schema_version": "python_interpreter_unavailable/v1",
+  "status": "interpreter_unavailable",
+  "target_python_version": "3.12"
+}

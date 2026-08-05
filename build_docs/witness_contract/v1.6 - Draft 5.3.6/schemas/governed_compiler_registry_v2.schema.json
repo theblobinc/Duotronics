@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/governed_compiler_registry_v2.schema.json",
+  "title": "Governed Compiler Registry v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_id", "governance_key_id", "profiles", "created_at", "signed_payload_sha256", "signature"],
+  "properties": {
+    "schema_version": {"const": "governed_compiler_registry/v2"},
+    "registry_id": {"type": "string", "minLength": 1},
+    "governance_key_id": {"type": "string", "minLength": 1},
+    "profiles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/profile"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "signature": {"type": "string", "minLength": 43}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["compiler_profile_id", "toolchain", "image_reference", "oci_image_digest", "oci_runtime_sha256", "oci_runtime_version", "lake_executable_sha256", "lean_executable_sha256", "lean_stdlib_tree_sha256", "dependency_closure_sha256", "verifier_executable_sha256", "verifier_source_revision", "verifier_build_attestation_id", "sandbox_policy_sha256", "verifier_result_signer_key_id", "verifier_result_public_key_base64url", "authorized_axioms", "valid_from"],
+      "properties": {
+        "compiler_profile_id": {"type": "string", "minLength": 1},
+        "toolchain": {"type": "string", "minLength": 1},
+        "image_reference": {"type": "string", "minLength": 1},
+        "oci_image_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "oci_runtime_sha256": {"$ref": "#/$defs/sha256"},
+        "oci_runtime_version": {"type": "string", "minLength": 1},
+        "lake_executable_sha256": {"$ref": "#/$defs/sha256"},
+        "lean_executable_sha256": {"$ref": "#/$defs/sha256"},
+        "lean_stdlib_tree_sha256": {"$ref": "#/$defs/sha256"},
+        "dependency_closure_sha256": {"$ref": "#/$defs/sha256"},
+        "verifier_executable_sha256": {"$ref": "#/$defs/sha256"},
+        "verifier_source_revision": {"type": "string", "minLength": 1},
+        "verifier_build_attestation_id": {"type": "string", "minLength": 1},
+        "sandbox_policy_sha256": {"$ref": "#/$defs/sha256"},
+        "verifier_result_signer_key_id": {"type": "string", "minLength": 1},
+        "verifier_result_public_key_base64url": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
+        "authorized_axioms": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "valid_from": {"type": "string", "format": "date-time"},
+        "valid_until": {"type": ["string", "null"], "format": "date-time"}
+      }
+    }
+  }
+}

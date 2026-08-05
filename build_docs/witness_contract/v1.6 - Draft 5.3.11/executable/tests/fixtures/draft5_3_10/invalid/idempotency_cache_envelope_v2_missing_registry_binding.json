@@ -1,0 +1,6 @@
+{
+  "schema_ref": "schemas/idempotency_cache_envelope_v2.schema.json",
+  "payload": {
+    "schema_version": "idempotency_cache_envelope/v2"
+  }
+}

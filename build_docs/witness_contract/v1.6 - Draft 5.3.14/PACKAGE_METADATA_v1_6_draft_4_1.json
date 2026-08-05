@@ -1,0 +1,34 @@
+{
+  "active_entry_points": [
+    "START_HERE.md",
+    "README.md",
+    "START_HERE_v1_6_draft_4_1.md",
+    "README_v1_6_draft_4_1.md",
+    "RELEASE_NOTES_v1_6_draft_4_1.md",
+    "CORPUS_INDEX_v1_6_draft_4_1.md",
+    "duotronic_draft4_1_contract_closeout_report.md",
+    "duotronic_draft4_1_witness_contract_version_alias_and_migration_profile_v1_0.md",
+    "mcp/mcp_recurrence_tool_availability_matrix_v1_6_draft_4_1.md",
+    "runtime/wgrnn_chat_context_injection_witness_contract_v1_0.md",
+    "browser/browser_chat_workbench_invocation_witness_contract_v1_0.md",
+    "duotronic_draft4_1_agent_lab_mutation_safety_config_witness_profile_v1_0.md",
+    "runtime/runtime_feature_applicability_witness_contract_v1_0.md",
+    "runtime/runtime_readiness_evidence_persistence_profile_v1_0.md",
+    "tests/draft4_1_conformance_delta_validation_plan_v1_0.md",
+    "refs/manifest/MANIFEST_v1_6_draft_4_1_complete.md"
+  ],
+  "base_package": "uploaded v1.6 - Draft 4.zip",
+  "bundle_id": "duotronic_v1_6_draft_4_1_complete_corpus",
+  "checksum_file": "refs/manifest/CHECKSUMS_v1_6_draft_4_1.sha256",
+  "final_file_count": 258,
+  "final_markdown_file_count": 245,
+  "final_non_markdown_file_count": 13,
+  "generated": "2026-05-09T00:00:00Z",
+  "non_claims": [
+    "not a production cluster startup certificate",
+    "not a full SRNN test-suite pass certificate",
+    "not an operator-approved production release certificate"
+  ],
+  "root": "build_docs/witness_contract/v1.6 - Draft 4.1/",
+  "version": "v1.6-draft-4.1-complete"
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/verification_result_v2.schema.json",
+  "title": "VerificationResultV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "verification_result_id", "grammar_id", "grammar_sha256", "manifest_id", "manifest_sha256", "target_ref", "status", "deterministic", "executed_instruction_results", "satisfied_assumption_ids", "verifier_principal_id", "created_at"],
+  "properties": {
+    "schema_version": {"const": "verification_result/v2"},
+    "verification_result_id": {"type": "string", "minLength": 1},
+    "grammar_id": {"type": "string", "minLength": 1},
+    "grammar_sha256": {"$ref": "#/$defs/sha256"},
+    "manifest_id": {"type": "string", "minLength": 1},
+    "manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "target_ref": {"type": "string", "minLength": 1},
+    "status": {"enum": ["pass", "fail", "inconclusive", "error"]},
+    "deterministic": {"const": true},
+    "executed_instruction_results": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/result"}},
+    "satisfied_assumption_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "verifier_principal_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "pass"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "executed_instruction_results": {"items": {"properties": {"status": {"const": "pass"}}, "required": ["status"]}}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instruction_id", "op", "status"],
+      "properties": {
+        "instruction_id": {"type": "string", "minLength": 1},
+        "op": {"type": "string", "minLength": 1},
+        "status": {"enum": ["pass", "fail", "skipped", "error"]},
+        "message": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

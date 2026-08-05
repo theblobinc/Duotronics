@@ -1,0 +1,10 @@
+{
+  "schema_version": "hermetic_lean_integration_result/v1",
+  "package_version": "v1.6-draft-5.3.3",
+  "status": "strict_fail_authority_config_unavailable",
+  "real_lean_executed": false,
+  "authority_activation_permitted": false,
+  "reason": "No protected governance-signed compiler registry, approved digest-pinned execution image, external trust anchor, or production verifier key is present in the portable corpus.",
+  "contract_freeze_policy": "never_freeze",
+  "recorded_at": "2026-07-31T00:00:00-07:00"
+}

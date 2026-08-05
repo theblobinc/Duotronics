@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 
 from .config import Settings
 from .runtime_kernel import RuntimeKernel
+from .fusion_center_mcp import call_fusion_tool, fusion_resources, fusion_tool_manifest, read_fusion_resource
+from .skill_mcp import call_skill_tool, read_skill_resource, skill_resources, skill_tool_manifest
 from .tool_services import ToolRuntime
 from .repo_mcp import XaviRepoTools, repo_resources, repo_tool_manifest
 from .ops_mcp import XaviOpsTools, ops_tool_manifest
@@ -419,13 +421,15 @@ def _tool_manifest() -> list[dict[str, Any]]:
             "read_only": False,
             "input_schema": {"type": "object", "properties": {"user_id": {"type": ["string", "null"]}, "agent_id": {"type": ["string", "null"]}, "thread_id": {"type": ["string", "null"]}}},
         },
+        *fusion_tool_manifest(),
+        *skill_tool_manifest(),
         *repo_tool_manifest(),
         *ops_tool_manifest(),
         *dev_tool_manifest(),
     ]
 
 
-def _resources() -> list[dict[str, str]]:
+def _resources(kernel: RuntimeKernel | None = None) -> list[dict[str, str]]:
     return [
         {"uri": "xavi-runtime://health", "name": "Runtime health"},
         {"uri": "xavi-runtime://models", "name": "Model registry"},
@@ -438,6 +442,8 @@ def _resources() -> list[dict[str, str]]:
         {"uri": "xavi-runtime://policy", "name": "Policy explanation"},
         {"uri": "xavi-runtime://formal", "name": "Formal observer status"},
         {"uri": "xavi-runtime://wgrnn", "name": "WG-RNN state and slots"},
+        *fusion_resources(),
+        *skill_resources(kernel.settings.corpus_dir if kernel else None),
         *repo_resources(),
     ]
 
@@ -681,6 +687,12 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
                 raise HTTPException(status_code=502, detail={"error": "model_provider_error", "message": message}) from exc
             raise
 
+    if tool.startswith("fusion.") or tool in {"search_news", "fetch_rss_news", "detect_thermal_anomalies", "check_connectivity", "check_traffic_metrics", "get_outages", "search_internet", "search_leaks", "list_osint_channels", "search_telegram", "get_channel_info", "check_ioc", "get_threat_pulse", "search_threats"}:
+        return await call_fusion_tool(tool, args)
+
+    if tool.startswith("skills.") or tool.startswith("runtime.skills_"):
+        return await call_skill_tool(kernel.settings.corpus_dir, tool, args)
+
     if tool.startswith("repo."):
         return await XaviRepoTools(kernel.settings).call(tool, args)
 
@@ -708,6 +720,14 @@ async def _read_resource(kernel: RuntimeKernel, uri: str) -> dict[str, Any]:
         "xavi-runtime://wgrnn": ("runtime.wgrnn_status", {"include_slots": True}),
     }
 
+    fusion_resource = await read_fusion_resource(uri)
+    if fusion_resource is not None:
+        return fusion_resource
+
+    skill_resource = await read_skill_resource(kernel.settings.corpus_dir, uri)
+    if skill_resource is not None:
+        return skill_resource
+
     if uri == "xavi-runtime://repo/status":
         return {"uri": uri, "contents": await XaviRepoTools(kernel.settings).call("repo.status", {})}
 
@@ -733,7 +753,7 @@ def register_xavi_runtime_mcp(app: FastAPI, kernel: RuntimeKernel, settings: Set
             "transport": "http",
             "enabled": settings.xavi_mcp_enabled,
             "tools": len(_tool_manifest()),
-            "resources": len(_resources()),
+            "resources": len(_resources(kernel)),
         }
 
     async def mcp_tools(
@@ -748,7 +768,7 @@ def register_xavi_runtime_mcp(app: FastAPI, kernel: RuntimeKernel, settings: Set
         x_xavi_mcp_key: str | None = Header(default=None),
     ) -> dict[str, Any]:
         _require_mcp_key(settings, authorization, x_xavi_mcp_key)
-        return {"app": "xavi-runtime", "resources": _resources()}
+        return {"app": "xavi-runtime", "resources": _resources(kernel)}
 
     async def mcp_resource_read(
         uri: str = Query(..., min_length=1),

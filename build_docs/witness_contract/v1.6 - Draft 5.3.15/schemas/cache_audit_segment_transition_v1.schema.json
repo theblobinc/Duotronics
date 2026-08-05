@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_segment_transition_v1.schema.json",
+  "title": "Governance-Signed Cache Audit Segment Transition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "transition_id",
+    "predecessor_segment_id",
+    "predecessor_sealed_checkpoint_sha256",
+    "predecessor_terminal_record_sha256",
+    "predecessor_tail_record_sha256",
+    "predecessor_anchor_state_sha256",
+    "successor_segment_id",
+    "successor_anchor_epoch",
+    "audit_signing_registry_sha256",
+    "anchor_registry_sha256",
+    "decision",
+    "created_at",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_segment_transition/v1"
+    },
+    "transition_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "predecessor_segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "predecessor_sealed_checkpoint_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "predecessor_terminal_record_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "predecessor_tail_record_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "predecessor_anchor_state_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "successor_segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "successor_anchor_epoch": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "audit_signing_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "anchor_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision": {
+      "const": "authorize_successor_segment"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signed_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    }
+  }
+}

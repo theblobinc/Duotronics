@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_recovery_evidence_v1.schema.json",
+  "title": "Signed Cache Audit Recovery Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "recovery_id",
+    "segment_id",
+    "action",
+    "before_state",
+    "after_state",
+    "recovery_authorization_sha256",
+    "audit_signing_registry_sha256",
+    "audit_signer_key_id",
+    "recovered_at",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_recovery_evidence/v1"
+    },
+    "recovery_id": {
+      "type": "string",
+      "pattern": "^recovery:[0-9a-f]{64}$"
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "action": {
+      "enum": [
+        "reconcile_signed_dangling_tail",
+        "remove_orphan_checkpoint_temporaries",
+        "complete_interrupted_seal",
+        "complete_interrupted_successor"
+      ]
+    },
+    "before_state": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "after_state": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "recovery_authorization_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "audit_signing_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "audit_signer_key_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "recovered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signed_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    }
+  }
+}

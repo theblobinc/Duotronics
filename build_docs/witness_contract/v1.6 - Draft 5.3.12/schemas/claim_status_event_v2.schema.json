@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/claim_status_event_v2.schema.json",
+  "title": "ClaimStatusEventV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status_event_id", "claim_id", "source_status", "target_status", "transition_kind", "allowed", "policy_decision_id", "non_collapse_transition_id", "created_at"],
+  "properties": {
+    "schema_version": {"const": "claim_status_event/v2"},
+    "status_event_id": {"type": "string", "minLength": 1},
+    "claim_id": {"type": "string", "minLength": 1},
+    "source_status": {"enum": ["unknown", "observed", "computed", "conjecture", "theorem", "proof_verified", "released"]},
+    "target_status": {"enum": ["unknown", "observed", "computed", "conjecture", "theorem", "proof_verified", "released"]},
+    "transition_kind": {"enum": ["observe", "compute", "conjecture", "prove", "verify_proof", "release", "rollback"]},
+    "allowed": {"type": "boolean"},
+    "policy_decision_id": {"type": "string", "minLength": 1},
+    "proof_witness_id": {"type": ["string", "null"]},
+    "lean_compiler_witness_id": {"type": ["string", "null"]},
+    "non_collapse_transition_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"allowed": {"const": true}, "target_status": {"enum": ["theorem", "proof_verified"]}}, "required": ["allowed", "target_status"]},
+      "then": {
+        "properties": {
+          "source_status": {"const": "conjecture"},
+          "transition_kind": {"const": "prove"},
+          "proof_witness_id": {"type": "string", "minLength": 1},
+          "lean_compiler_witness_id": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ]
+}

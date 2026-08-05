@@ -1,0 +1,41 @@
+{
+  "schema_version": "python_matrix_validation/v2",
+  "package_version": "v1.6-draft-5.3.9",
+  "generated_at": "2026-08-01T19:02:27Z",
+  "count_source": "unittest.TestResult",
+  "warning_detection": "independent_of_count_extraction",
+  "supported_python_versions": ["3.12", "3.13"],
+  "runs": [
+    {
+      "python_version": "3.12.13",
+      "tests_discovered": 211,
+      "tests_run": 211,
+      "tests_passed": 211,
+      "tests_failed": 0,
+      "tests_errored": 0,
+      "tests_skipped": 0,
+      "duplicate_test_ids": [],
+      "normal_status": "passed",
+      "development_warnings_as_errors_status": "passed",
+      "warning_output_lines": [],
+      "normal_stdout_sha256": "c32f14c63f991dd5fa67e8b69215b8cff5a62d6e92b47db89528c64c427ac5d0",
+      "normal_stderr_sha256": "f749a9fc771018f717db1016d9e5a08d0d141d0544270afe22e1b89e53a65e1d",
+      "development_stdout_sha256": "c32f14c63f991dd5fa67e8b69215b8cff5a62d6e92b47db89528c64c427ac5d0",
+      "development_stderr_sha256": "23a5abb56f4c321d791f2e8487e6ef4663194d8533a5f11eb89d81761e4d84c1"
+    }
+  ],
+  "unavailable_runs": [
+    {
+      "python_version": "3.13",
+      "status": "interpreter_unavailable",
+      "authority_effect": "no_current_draft_5_3_9_python_3_13_execution_claim"
+    }
+  ],
+  "predecessor_evidence": {
+    "package_version": "v1.6-draft-5.3.8",
+    "python_version": "3.13.14",
+    "tests_passed": 195,
+    "scope": "predecessor_only_not_reused_as_draft_5_3_9_execution"
+  },
+  "overall_status": "passed_with_declared_environment_qualification"
+}

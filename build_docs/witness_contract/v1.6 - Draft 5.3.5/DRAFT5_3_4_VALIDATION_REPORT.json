@@ -1,0 +1,419 @@
+{
+  "all_required_passed": true,
+  "authority_activation_evidence_complete": false,
+  "freeze_state": "permanently_not_frozen",
+  "generated_at": "2026-07-31T21:51:36.508139+00:00",
+  "lifecycle_policy": "living_contract_never_freeze",
+  "optional_failed": [],
+  "optional_skipped": [
+    "external_signature",
+    "hermetic_lean_integration",
+    "oci_image_build_attestation",
+    "strict_lean",
+    "strict_tlc",
+    "verifier_executable_build_attestation"
+  ],
+  "overall_status": "passed",
+  "package_version": "v1.6-draft-5.3.4",
+  "phases": [
+    {
+      "details": {
+        "active_version": "v1.6-draft-5.3.4",
+        "phase_accounting_tests": 3,
+        "required_phase_count": 26
+      },
+      "duration_seconds": 0.073719,
+      "name": "descriptor",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "cryptography": "46.0.0",
+        "node": "v24.14.0",
+        "python": "3.12.13",
+        "schema_dependencies": "vendored_hash_covered",
+        "sqlite_json1": true,
+        "yaml": "6.0.3"
+      },
+      "duration_seconds": 0.004327,
+      "name": "dependencies",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "covered": 1341,
+        "excluded_generated": 4,
+        "file_count": 1345
+      },
+      "duration_seconds": 0.126243,
+      "name": "hash_closure",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "dependency_mode": "corpus_vendored",
+        "errors": [],
+        "invalid_fixtures_rejected": 0,
+        "phase": "json_schemas",
+        "schemas_compiled": 68,
+        "status": "passed",
+        "valid_fixtures_passed": 0
+      },
+      "duration_seconds": 0.118228,
+      "name": "json_schemas",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "dependency_mode": "corpus_vendored",
+        "errors": [],
+        "invalid_fixtures_rejected": 0,
+        "phase": "valid_fixtures",
+        "schemas_compiled": 68,
+        "status": "passed",
+        "valid_fixtures_passed": 31
+      },
+      "duration_seconds": 0.229324,
+      "name": "valid_fixtures",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "dependency_mode": "corpus_vendored",
+        "errors": [],
+        "invalid_fixtures_rejected": 23,
+        "phase": "invalid_fixtures",
+        "schemas_compiled": 68,
+        "status": "passed",
+        "valid_fixtures_passed": 0
+      },
+      "duration_seconds": 0.208909,
+      "name": "invalid_fixtures",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "authority_objects": 12,
+        "compiler_profile_governance_columns": 12,
+        "compiler_witness_v3_binding_columns": 20,
+        "generations": [
+          "v1.6-draft-5.3.1",
+          "v1.6-draft-5.3.2",
+          "v1.6-draft-5.3.3",
+          "v1.6-draft-5.3.4"
+        ]
+      },
+      "duration_seconds": 0.072556,
+      "name": "sql_migration",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.196s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.291131,
+      "name": "sql_event_ledger",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.148s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.234045,
+      "name": "sql_typed_supersession",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.098s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.183746,
+      "name": "sql_immutability",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.052s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.136025,
+      "name": "historical_snapshot_stability",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "adversarial_cases_rejected": 3,
+        "happy_pass": true
+      },
+      "duration_seconds": 0.057934,
+      "name": "replay_non_vacuity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "authority_outputs_read_only": true,
+        "paths": 19,
+        "security_schemes": [
+          "MutualTLS",
+          "OAuth2"
+        ]
+      },
+      "duration_seconds": 0.029589,
+      "name": "openapi_security",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK",
+        "stdout": "",
+        "tests": 8
+      },
+      "duration_seconds": 0.059967,
+      "name": "positive_baseline_runtime",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "authority_mode": "governed_profile_immutable_snapshot_structured_result",
+        "real_lean_claimed": false,
+        "stderr": "..........................\n----------------------------------------------------------------------\nRan 26 tests in 0.225s\n\nOK",
+        "stdout": "",
+        "tests": 26
+      },
+      "duration_seconds": 0.314668,
+      "name": "proof_authority_runtime",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "request_paths_hashes_environment_timestamps": "rejected",
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.001s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.084763,
+      "name": "proof_check_service_boundary",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.025s\n\nOK",
+        "stdout": "",
+        "tests": 5
+      },
+      "duration_seconds": 0.110942,
+      "name": "result_channel_isolation",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".......\n----------------------------------------------------------------------\nRan 7 tests in 0.068s\n\nOK",
+        "stdout": "",
+        "tests": 7
+      },
+      "duration_seconds": 0.157744,
+      "name": "snapshot_derived_digests",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "......\n----------------------------------------------------------------------\nRan 6 tests in 0.099s\n\nOK",
+        "stdout": "",
+        "tests": 6
+      },
+      "duration_seconds": 0.184792,
+      "name": "signed_verifier_result",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.012s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.130526,
+      "name": "trust_root_loading",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "effective_invocation_bound": true,
+        "profile_id": "wc-hermetic-lean-v2-two-domain",
+        "tests": 2
+      },
+      "duration_seconds": 0.139319,
+      "name": "effective_sandbox_invocation",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".......\n----------------------------------------------------------------------\nRan 7 tests in 0.453s\n\nOK",
+        "stdout": "",
+        "tests": 7
+      },
+      "duration_seconds": 0.551513,
+      "name": "governance_scope_authorization",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.024s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.111517,
+      "name": "deterministic_witness_identity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "hermetic_verifier_sources": [
+          "formal/draft5_3_4/lean/WitnessAuthority/Verifier.lean",
+          "executable/trusted_verifier/compile_lean.py",
+          "executable/trusted_verifier/verify_lean.py",
+          "executable/trusted_verifier/Containerfile"
+        ],
+        "modules_checked": [
+          "EvidenceClaimGraph",
+          "TaskDelegationAndPolicyCoreSpec",
+          "NonCollapseRuntime",
+          "LogicalObserverKernel",
+          "ProofAuthorityV2",
+          "ProofAuthorityV3",
+          "ProofAuthorityV4",
+          "ProofAuthorityV5"
+        ],
+        "strict_tlc_claimed": false,
+        "tlc_available": false
+      },
+      "duration_seconds": 0.026706,
+      "name": "formal_manifest_coverage",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "active_version": "v1.6-draft-5.3.4",
+        "formal_model": "ProofAuthorityV5",
+        "legacy_files_scoped_as_history": true,
+        "npm_version": "1.6.5-3-4"
+      },
+      "duration_seconds": 0.002295,
+      "name": "version_consistency",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "archives": [
+          {
+            "archive": "v1.6 - Draft 5.2.2.zip",
+            "file_count": 492,
+            "sha256": "437395d28c452f0a20937eaf562020afae2214edf01a8df2fe6dadd062201c22"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.1.zip",
+            "file_count": 560,
+            "sha256": "26608233721f6b56ce6dfe5dfe653029c421e72a551196e004d2b2d3d59de588"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.2.zip",
+            "file_count": 1158,
+            "sha256": "57daa37189dcd8c0cf8cff990850393f4feaa70aeea9736b5edabffc58a37675"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.3.zip",
+            "file_count": 1238,
+            "sha256": "b02165cffa8b95b41a210f06b5e734e9592472a9c29630c07bb0ea318c7c3cb1"
+          }
+        ]
+      },
+      "duration_seconds": 0.143166,
+      "name": "historical_package_integrity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "duration_seconds": 0.030914,
+      "error": "strict Lean unavailable; deployment theorem authority remains disabled",
+      "name": "strict_lean",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 0.030737,
+      "error": "strict TLC unavailable; formal deployment assurance remains incomplete",
+      "name": "strict_tlc",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 0.061166,
+      "error": "approved hermetic Lean image/configuration unavailable; theorem authority remains disabled",
+      "name": "hermetic_lean_integration",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 9.5e-05,
+      "error": "signed oci_image build attestation absent; execution closure remains incomplete",
+      "name": "oci_image_build_attestation",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 2.6e-05,
+      "error": "signed trusted_verifier_executable build attestation absent; execution closure remains incomplete",
+      "name": "verifier_executable_build_attestation",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 2.8e-05,
+      "error": "external governance signature absent; package is not an external trust root",
+      "name": "external_signature",
+      "required": false,
+      "status": "skipped"
+    }
+  ],
+  "required_duplicates": [],
+  "required_failed": [],
+  "required_failed_count": 0,
+  "required_missing": [],
+  "required_missing_count": 0,
+  "required_noncanonical_status": [],
+  "required_skipped": [],
+  "required_skipped_count": 0,
+  "schema_version": "draft5_3_4_validation_report/v1",
+  "theorem_authority_enabled_by_portable_validation": false
+}

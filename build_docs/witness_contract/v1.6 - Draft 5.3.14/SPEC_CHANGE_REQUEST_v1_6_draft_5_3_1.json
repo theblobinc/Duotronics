@@ -1,0 +1,22 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "scr_id": "SCR-v1.6-D5.3.1",
+  "title": "Content-bound append-only proof authority and positive-baseline computation profile",
+  "affected_documents": [
+    "canonical boot resolver",
+    "proof authority",
+    "non-collapse",
+    "replay verification",
+    "persistence",
+    "API security",
+    "mathematical computation profiles"
+  ],
+  "change_kind": "minor",
+  "rationale": "Correct self-attesting authority, mutability, exact-match, replay-vacuity, migration, and canonical-version defects while integrating new bijective and positive-baseline work.",
+  "compatibility_impact": "V1 records remain replay-readable but cannot authorize new theorem promotion; new writes use v2 generations.",
+  "replay_impact": "Legacy records retain identity; v2 replay pass is non-vacuous.",
+  "security_impact": "Authority outputs become server-produced, signed, immutable, and scope-protected.",
+  "migration_plan": "Apply the additive Draft 5.3.1 SQL migration and reverify legacy proof bytes; never reinterpret v1 authority as v2.",
+  "decision": "proposed",
+  "release_state": "not_frozen"
+}

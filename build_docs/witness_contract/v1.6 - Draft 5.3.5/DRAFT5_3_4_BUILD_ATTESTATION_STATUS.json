@@ -1,0 +1,10 @@
+{
+  "schema_version": "build_attestation_status/v1",
+  "package_version": "v1.6-draft-5.3.4",
+  "oci_image_attestation_present": false,
+  "verifier_executable_attestation_present": false,
+  "lean_toolchain_attestation_present": false,
+  "dependency_closure_attestation_present": false,
+  "authority_activation_permitted": false,
+  "reason": "The portable corpus includes source and build definitions but no externally built, measured, and signed production artifacts."
+}

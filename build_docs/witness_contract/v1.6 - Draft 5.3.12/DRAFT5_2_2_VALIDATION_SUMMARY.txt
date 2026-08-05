@@ -1,0 +1,1 @@
+Draft 5.2.2 validation summary: closes 5.2.1 freeze blockers by removing TLA-only documentation drift, hardening SQL persistence to match Lean proof-authority schemas, adding theorem promotion gate FK/trigger guards, and recording strict Lean/TLA execution as CI/toolchain-gated before freeze.

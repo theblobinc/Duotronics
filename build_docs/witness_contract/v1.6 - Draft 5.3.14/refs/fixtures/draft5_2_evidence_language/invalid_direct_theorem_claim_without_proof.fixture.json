@@ -1,0 +1,30 @@
+{
+  "case_id": "invalid:direct-theorem-claim-without-proof-transition",
+  "schema_ref": "schemas/evidence_claim.schema.json",
+  "expected_status": "fail",
+  "reason": "A claim created directly as theorem/proof_verified must include proof_witness_refs and status_transition_id.",
+  "payload": {
+    "schema_version": "evidence_claim/v1",
+    "claim_id": "claim:bad:direct-theorem",
+    "claim_kind": "proof_claim",
+    "subject_ref": "math:fixture:conjecture",
+    "predicate": "is_theorem",
+    "claim_object": true,
+    "claim_status": "theorem",
+    "epistemic_status": "theorem",
+    "force_indicator": "assert",
+    "authority_scope": "mathematical_claim",
+    "runtime_mode": "test",
+    "evidence_refs": [
+      "artifact:fixture:computation-only"
+    ],
+    "policy_decision_id": "policy:bad:direct-theorem",
+    "pragmatic_context_id": "pragmatic:fixture:test",
+    "delegation_chain_id": null,
+    "non_collapse_state_id": "state:bad:direct-theorem",
+    "created_at": "2026-05-11T00:00:00Z",
+    "issuer_principal_id": "principal:fixture:test-runner",
+    "confidence": 1,
+    "metadata": {}
+  }
+}

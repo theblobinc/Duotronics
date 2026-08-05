@@ -1,0 +1,158 @@
+{
+  "schema_version": "normative_rule_coverage_matrix/v1.1",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "status": "draft5_2_1_lean_proof_authority_update",
+  "rules": [
+    {
+      "rule_id": "K1",
+      "normative_rule": "No effect before witness",
+      "contract": "kernel/logical_observer_kernel_contract_v1_0.md",
+      "schemas": [
+        "schemas/kernel_transaction.schema.json",
+        "schemas/task_step_witness.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_kernel_transactions",
+        "srnn_task_step_witnesses"
+      ],
+      "fixtures": [
+        "refs/fixtures/draft5_2_logical_observer_kernel/invalid_kernel_transaction_commit_without_witness.fixture.json"
+      ]
+    },
+    {
+      "rule_id": "K2",
+      "normative_rule": "No promotion without policy decision",
+      "contract": "kernel/logical_observer_kernel_contract_v1_0.md",
+      "schemas": [
+        "schemas/claim_status_transition.schema.json",
+        "schemas/non_collapse_transition.schema.json",
+        "schemas/task_step_witness.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_claim_status_transitions",
+        "srnn_non_collapse_transitions",
+        "srnn_task_step_witnesses"
+      ]
+    },
+    {
+      "rule_id": "K3",
+      "normative_rule": "No theorem/proof status without proof witness, Lean compiler witness, and theorem promotion gate",
+      "contract": "duotronic_witness_contract_v1_6_draft_5_2.md",
+      "schemas": [
+        "schemas/evidence_claim.schema.json",
+        "schemas/claim_status_transition.schema.json",
+        "schemas/inference_witness.schema.json",
+        "schemas/proof_witness.schema.json",
+        "schemas/lean_compiler_witness.schema.json",
+        "schemas/theorem_promotion_gate.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_evidence_claims",
+        "srnn_claim_status_transitions",
+        "srnn_inference_witnesses",
+        "srnn_proof_witnesses",
+        "srnn_lean_compiler_witnesses",
+        "srnn_theorem_promotion_gates"
+      ],
+      "fixtures": [
+        "refs/fixtures/draft5_2_evidence_language/invalid_theorem_without_proof.fixture.json",
+        "refs/fixtures/draft5_2_evidence_language/invalid_direct_theorem_claim_without_proof.fixture.json",
+        "refs/fixtures/draft5_2_1_lean_proof_authority/invalid_theorem_transition_without_lean_compiler.fixture.json",
+        "refs/fixtures/draft5_2_1_lean_proof_authority/invalid_lean_compiler_witness_sorry_stub.fixture.json"
+      ]
+    },
+    {
+      "rule_id": "K4",
+      "normative_rule": "No authority escalation by repetition",
+      "contract": "kernel/logical_observer_kernel_contract_v1_0.md",
+      "schemas": [
+        "schemas/observer_capability_token.schema.json",
+        "schemas/authority_delegation_chain.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_observer_capability_tokens",
+        "srnn_authority_delegation_chains"
+      ]
+    },
+    {
+      "rule_id": "K5",
+      "normative_rule": "No self-trained-to-authoritative transition without gate path",
+      "contract": "authority/nla_self_training_authority_contract_v1_0.md",
+      "schemas": [
+        "schemas/non_collapse_transition.schema.json",
+        "schemas/nla_self_training_witness.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_non_collapse_transitions"
+      ]
+    },
+    {
+      "rule_id": "K6",
+      "normative_rule": "No replay claim without assumptions and deterministic grammar",
+      "contract": "authority/semiotics_of_replay_contract_v1_0.md",
+      "schemas": [
+        "schemas/replay_assumption_manifest.schema.json",
+        "schemas/verification_grammar.schema.json",
+        "schemas/verification_result.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_replay_assumption_manifests",
+        "srnn_verification_grammars",
+        "srnn_verification_results"
+      ]
+    },
+    {
+      "rule_id": "K7",
+      "normative_rule": "No hidden state in observer computation",
+      "contract": "kernel/logical_observer_kernel_contract_v1_0.md",
+      "schemas": [
+        "schemas/task_frame.schema.json",
+        "schemas/execution_trace.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_task_frames",
+        "srnn_execution_traces"
+      ]
+    },
+    {
+      "rule_id": "K8",
+      "normative_rule": "No network, randomness, or wall-clock dependency in replay mode",
+      "contract": "kernel/logical_observer_kernel_contract_v1_0.md",
+      "schemas": [
+        "schemas/resource_budget_witness.schema.json",
+        "schemas/verification_grammar.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_resource_budget_witnesses",
+        "srnn_verification_grammars"
+      ],
+      "fixtures": [
+        "refs/fixtures/draft5_2_logical_observer_kernel/invalid_resource_budget_network_allowed.fixture.json"
+      ]
+    },
+    {
+      "rule_id": "K9",
+      "normative_rule": "Every refusal is itself a typed witness",
+      "contract": "kernel/logical_observer_kernel_contract_v1_0.md",
+      "schemas": [
+        "schemas/kernel_error_witness.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_kernel_error_witnesses"
+      ]
+    },
+    {
+      "rule_id": "K10",
+      "normative_rule": "Every ambiguity resolves to deny, defer, fork, or human escalation",
+      "contract": "kernel/corpus_boot_and_canonical_resolver_v1_0.md",
+      "schemas": [
+        "schemas/corpus_rule_resolution_witness.schema.json",
+        "schemas/kernel_error_witness.schema.json"
+      ],
+      "sql_tables": [
+        "srnn_corpus_rule_resolution_witnesses",
+        "srnn_kernel_error_witnesses"
+      ]
+    }
+  ]
+}

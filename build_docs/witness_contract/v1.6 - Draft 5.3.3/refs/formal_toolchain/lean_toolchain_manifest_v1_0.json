@@ -1,0 +1,56 @@
+{
+  "schema_version": "lean_toolchain_manifest/v1",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "integration_scope": "lean_proof_authority_root_build_and_hermetic_verifier_protocol",
+  "lean_toolchain_added": true,
+  "toolchain": "leanprover/lean4:v4.29.1",
+  "lakefile": "lakefile.lean",
+  "package_root": ".",
+  "build_command": [
+    "lake",
+    "build"
+  ],
+  "strict_mode_command": [
+    "python3",
+    "executable/formal/run_lean_build.py",
+    "--mode",
+    "strict",
+    "--json"
+  ],
+  "hermetic_integration_command": [
+    "python3",
+    "executable/formal/run_hermetic_proof_authority_integration.py",
+    "--json"
+  ],
+  "advisory_mode_command": [
+    "python3",
+    "executable/formal/run_lean_build.py",
+    "--mode",
+    "advisory",
+    "--json"
+  ],
+  "lean_modules": [
+    "Duotronic",
+    "Duotronic.All",
+    "Duotronic.Core",
+    "Duotronic.CoreMetaphysics",
+    "Duotronic.EvidenceSyntax",
+    "Duotronic.ProofAuthority",
+    "Duotronic.Kernel"
+  ],
+  "hermetic_verifier_sources": [
+    "formal/draft5_3_3/lean/WitnessAuthority/Verifier.lean"
+  ],
+  "forbidden_proof_markers": [
+    "sorry",
+    "admit"
+  ],
+  "unapproved_axiom_policy": "deny_for_theorem_promotion",
+  "compiler_witness_schema": "schemas/lean_compiler_witness_v2.schema.json",
+  "structured_result_schema": "schemas/lean_verifier_result_v1.schema.json",
+  "compiler_registry_schema": "schemas/governed_compiler_registry_v1.schema.json",
+  "proof_witness_schema": "schemas/proof_witness_v2.schema.json",
+  "sandbox_profile": "authority/hermetic_lean_sandbox_profile_v1.json",
+  "authority_activation_requires_real_image": true,
+  "contract_freeze_policy": "permanently_unfrozen"
+}

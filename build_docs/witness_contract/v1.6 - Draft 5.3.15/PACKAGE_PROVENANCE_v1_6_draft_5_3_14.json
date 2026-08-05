@@ -1,0 +1,28 @@
+{
+  "activation_effect": "committed_source_provenance_gate_incomplete",
+  "base_revision": "v1.6-draft-5.3.13",
+  "generator_name": "executable/validators/build_draft5_3_14_manifests.py",
+  "generator_sha256": "0dd40827b482c8340808a71b209b631d38fb82413b28b4733cb8f630c505a428",
+  "generator_version": "draft5_3_14_manifest_builder/v1",
+  "package_version": "v1.6-draft-5.3.14",
+  "provenance_status": "unpublished_workspace",
+  "reproducibility_class": "portable_corpus_rebuildable_from_supplied_files_but_not_committed_source_activation_ready",
+  "schema_version": "package_provenance/v1",
+  "source_commit_sha": null,
+  "source_digest_exclusions": [
+    "DRAFT5_3_14_VALIDATION_REPORT.json",
+    "PACKAGE_INVENTORY_v1_6_draft_5_3_14.json",
+    "PACKAGE_PROVENANCE_v1_6_draft_5_3_14.json",
+    "refs/manifest/CHECKSUMS_v1_6_draft_5_3_14.sha256",
+    "refs/manifest/MANIFEST_v1_6_draft_5_3_14_complete.md"
+  ],
+  "source_generation": "v1.6-draft-5.3.13",
+  "source_ref": null,
+  "source_repository": "https://github.com/TBI-Contracting/duotronic-witness-contract",
+  "source_subtree_path": ".",
+  "source_subtree_sha256": "588d8bf63187128dc663a7b88ed9ad5c14278d322f32319ef5557da0949b3a4d",
+  "transformation_change_set": "refs/review/v1.6_draft_5.3.14_update_checklist.md",
+  "transformation_change_set_sha256": "e2683dceacf4574dda25bf95b5e2a5b48e33febddeaaf2b62cae55dfb4f3ec50",
+  "workspace_clean": false,
+  "workspace_status": "unpublished_workspace"
+}

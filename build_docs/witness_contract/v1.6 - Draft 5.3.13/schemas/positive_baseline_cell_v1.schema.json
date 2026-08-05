@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/positive_baseline_cell_v1.schema.json",
+  "title": "PositiveBaselineCellV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "cell_id", "cell_type", "profiles", "payload_domain", "operator", "coefficient", "baseline", "sockets", "children", "status", "numeric_policy"],
+  "properties": {
+    "schema_version": {"const": "positive_baseline_cell/v1"},
+    "cell_id": {"type": "string", "minLength": 1},
+    "cell_type": {"enum": ["polygon-cell", "hex-cell"]},
+    "profiles": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["core-acyclic-1.2", "positive-baseline-1", "even-payload-1"]}},
+    "payload_domain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "minimum"],
+      "properties": {
+        "kind": {"const": "integer"},
+        "minimum": {"type": "integer", "minimum": 0},
+        "maximum": {"type": ["integer", "null"], "minimum": 0},
+        "multiple_of": {"type": "integer", "minimum": 1}
+      }
+    },
+    "operator": {"enum": ["global-scaled-weighted-sum", "child-scaled-weighted-sum"]},
+    "coefficient": {"type": "integer"},
+    "baseline": {"type": "integer", "minimum": 0},
+    "sockets": {"type": "array", "items": {"type": ["integer", "null"]}},
+    "direct_weights": {"type": "array", "items": {"type": "integer"}},
+    "children": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "child_weights": {"type": "array", "items": {"type": "integer"}},
+    "status": {"enum": ["VALID", "UNKNOWN", "INVALID", "FAULT"]},
+    "numeric_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overflow", "max_nodes", "max_depth"],
+      "properties": {
+        "overflow": {"const": "reject"},
+        "max_nodes": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "max_depth": {"type": "integer", "minimum": 1, "maximum": 10000}
+      }
+    },
+    "payload": {"type": "integer"},
+    "codeword": {"type": "integer"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"profiles": {"type": "array", "contains": {"const": "positive-baseline-1"}}}},
+      "then": {"properties": {"baseline": {"type": "integer", "minimum": 1}}}
+    },
+    {
+      "if": {"properties": {"profiles": {"type": "array", "contains": {"const": "even-payload-1"}}}},
+      "then": {"properties": {"payload_domain": {"type": "object", "required": ["multiple_of"], "properties": {"multiple_of": {"const": 2}}}}}
+    }
+  ]
+}

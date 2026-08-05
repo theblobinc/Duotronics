@@ -1,0 +1,25 @@
+{
+  "schema_ref": "schemas/claim_status_transition.schema.json",
+  "payload": {
+    "schema_version": "claim_status_transition/v1",
+    "claim_status_transition_id": "transition:theorem:001",
+    "claim_id": "claim:theorem:001",
+    "source_status": "conjecture",
+    "target_status": "theorem",
+    "transition_kind": "prove",
+    "allowed": true,
+    "policy_decision_id": "policy:allow:proof:001",
+    "required_witness_refs": [
+      "proof:valid:001",
+      "lean:compiler:valid:001",
+      "theorem:gate:valid:001"
+    ],
+    "proof_witness_refs": [
+      "proof:valid:001"
+    ],
+    "theorem_promotion_gate_id": "theorem:gate:valid:001",
+    "non_collapse_transition_id": "nc:transition:proof:001",
+    "created_at": "2026-05-11T00:00:00Z",
+    "reason": "Lean proof authority accepted theorem promotion."
+  }
+}

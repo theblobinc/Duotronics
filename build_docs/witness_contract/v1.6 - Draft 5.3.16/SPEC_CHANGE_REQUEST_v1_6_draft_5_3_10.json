@@ -1,0 +1,25 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "scr:v1.6-draft-5.3.10",
+  "base_version": "v1.6-draft-5.3.9",
+  "target_version": "v1.6-draft-5.3.10",
+  "classification": "corrective_sqlite_cache_key_deadline_and_compile_identity_revision",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "freeze_policy": "permanently_not_frozen",
+  "source_review": "refs/review/v1.6_draft_5.3.10_update_checklist.md",
+  "changes": [
+    "retain the complete Draft 5.3.9 governed-image and two-domain execution-evidence corrections",
+    "close SQLite connections inside the connection factory on every initialization or verification failure",
+    "verify exact normalized SQLite table and index SQL column affinities nullability defaults composite primary key constraints index ordering uniqueness and canonical schema digest",
+    "migrate only the exactly verified predecessor idempotency schema and fail closed on weakened or unknown layouts",
+    "enforce parsed cache-key validity intervals status revocation retirement predecessor ordering and acyclic rotation lineage at signing and replay",
+    "bind cache envelopes and replay evidence to the verified registry snapshot and signing-time validity decision",
+    "extend one monotonic deadline through witness validation signing cache signing final lease renewal SQLite completion and durable publication",
+    "derive SQLite busy timeouts from the remaining request budget and remove a completion that crosses its deadline",
+    "independently reconstruct the ordered Lean compile command set and recompute every digest from pinned governed inputs",
+    "stress owner-fenced lease renewal lease loss deadline cancellation and failed publication",
+    "merge all active changes into a standalone package without embedded historical source archives",
+    "version schemas fixtures OpenAPI registry tests documentation and release metadata"
+  ],
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled"
+}

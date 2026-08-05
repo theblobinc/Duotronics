@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/authority_supersession_v2.schema.json",
+  "title": "SignedAuthoritySupersessionV2",
+  "type": "object", "additionalProperties": false,
+  "required": ["supersession_id", "schema_version", "record_type", "superseded_record_id", "replacement_record_id", "reason", "effective_at", "recorded_at", "policy_decision_id", "authorization_witness_id", "governance_key_id", "timestamp_source", "effective_time_witness_id", "signed_payload_sha256", "signature"],
+  "properties": {
+    "supersession_id": {"type": "string", "minLength": 1}, "schema_version": {"const": "authority_supersession/v2"},
+    "record_type": {"enum": ["verifier_principal", "verifier_key", "compiler_witness", "proof_witness", "promotion_gate"]},
+    "superseded_record_id": {"type": "string", "minLength": 1}, "replacement_record_id": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 1}, "effective_at": {"type": "string", "format": "date-time"},
+    "recorded_at": {"type": "string", "format": "date-time"}, "policy_decision_id": {"type": "string", "minLength": 1},
+    "authorization_witness_id": {"type": "string", "minLength": 1}, "governance_key_id": {"type": "string", "minLength": 1},
+    "timestamp_source": {"enum": ["authority_service_clock", "trusted_time_witness"]}, "effective_time_witness_id": {"type": ["string", "null"]},
+    "signed_payload_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "signature": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43,}$"}
+  },
+  "allOf": [{"if": {"properties": {"timestamp_source": {"const": "authority_service_clock"}}, "required": ["timestamp_source"]}, "then": {"properties": {"effective_time_witness_id": {"type": "null"}}}, "else": {"properties": {"effective_time_witness_id": {"type": "string", "minLength": 1}}}}]
+}

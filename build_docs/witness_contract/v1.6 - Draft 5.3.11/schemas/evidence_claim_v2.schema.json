@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/evidence_claim_v2.schema.json",
+  "title": "EvidenceClaimV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "claim_id", "claim_kind", "subject_ref", "predicate", "claim_object", "claim_content_sha256", "theorem_statement", "theorem_statement_sha256", "created_at", "issuer_principal_id"],
+  "properties": {
+    "schema_version": {"const": "evidence_claim/v2"},
+    "claim_id": {"type": "string", "minLength": 1},
+    "claim_kind": {"enum": ["atomic", "measurement", "observation", "policy_decision", "proof_claim", "replay_claim", "human_attestation"]},
+    "subject_ref": {"type": "string", "minLength": 1},
+    "predicate": {"type": "string", "minLength": 1},
+    "claim_object": {
+      "oneOf": [
+        {"type": "string"},
+        {"type": "integer"},
+        {"type": "number", "not": {"type": "integer"}},
+        {"type": "boolean"},
+        {"type": "null"},
+        {"type": "object"},
+        {"type": "array"}
+      ]
+    },
+    "claim_content_sha256": {"$ref": "#/$defs/sha256"},
+    "theorem_statement": {"type": ["string", "null"]},
+    "theorem_statement_sha256": {"anyOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "evidence_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "created_at": {"type": "string", "format": "date-time"},
+    "issuer_principal_id": {"type": "string", "minLength": 1},
+    "metadata": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"claim_kind": {"const": "proof_claim"}}, "required": ["claim_kind"]},
+      "then": {
+        "properties": {
+          "theorem_statement": {"type": "string", "minLength": 1},
+          "theorem_statement_sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"claim_kind": {"not": {"const": "proof_claim"}}}, "required": ["claim_kind"]},
+      "then": {"properties": {"theorem_statement": {"type": "null"}, "theorem_statement_sha256": {"type": "null"}}}
+    }
+  ],
+  "$defs": {"sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

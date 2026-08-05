@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_record_v3.schema.json",
+  "title": "Externally Anchored Governed Cache Audit Record v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_record_id",
+    "event_idempotency_key",
+    "segment_id",
+    "sequence",
+    "previous_audit_record_sha256",
+    "previous_sealed_segment_tail_sha256",
+    "event_schema_version",
+    "event_canonical_json",
+    "event_sha256",
+    "audit_signer_principal_id",
+    "audit_signer_key_id",
+    "audit_signing_registry_sha256",
+    "audit_key_validity_evidence",
+    "anchor_namespace",
+    "anchor_registry_sha256",
+    "rotation_policy",
+    "created_at",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_record/v3"
+    },
+    "audit_record_id": {
+      "type": "string",
+      "pattern": "^audit:[0-9a-f]{64}$"
+    },
+    "event_idempotency_key": {
+      "type": "string",
+      "pattern": "^event:[0-9a-f]{64}$"
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "previous_audit_record_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "previous_sealed_segment_tail_sha256": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "event_schema_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "event_canonical_json": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 1048576
+    },
+    "event_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "audit_signer_principal_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "audit_signer_key_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "audit_signing_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "audit_key_validity_evidence": {
+      "type": "object"
+    },
+    "anchor_namespace": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "anchor_registry_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rotation_policy": {
+      "const": "governed_external_anchor_and_signed_segment_transition"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signed_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    }
+  }
+}

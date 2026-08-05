@@ -1,0 +1,61 @@
+{
+  "schema_version": "verification_grammar/v1",
+  "grammar_id": "grammar:fixture:deep-time-basic",
+  "grammar_version": "verification_grammar/v1",
+  "deterministic": true,
+  "allowed_operations": [
+    "read_manifest",
+    "hash_artifact",
+    "compare_hash",
+    "validate_schema",
+    "check_policy_ref",
+    "check_replay_assumptions",
+    "check_replay_sign",
+    "return_status"
+  ],
+  "instruction_set": [
+    "load",
+    "hash",
+    "schema",
+    "assumptions",
+    "status"
+  ],
+  "determinism_profile": {
+    "deterministic": true,
+    "network_access": false,
+    "wall_clock_access": false,
+    "randomness_access": false,
+    "max_runtime_ms": 10000
+  },
+  "instructions": [
+    {
+      "op": "read_manifest",
+      "args": {
+        "manifest_id": "manifest:fixture:deep-time"
+      }
+    },
+    {
+      "op": "check_replay_assumptions",
+      "args": {
+        "required_only": true
+      }
+    },
+    {
+      "op": "return_status",
+      "args": {
+        "on_pass": "pass",
+        "on_fail": "fail"
+      }
+    }
+  ],
+  "forbidden_operations": [
+    "write_memory",
+    "change_policy",
+    "promote_model",
+    "replace_authority",
+    "delete_evidence",
+    "network_fetch",
+    "random_sample",
+    "wall_clock_now"
+  ]
+}

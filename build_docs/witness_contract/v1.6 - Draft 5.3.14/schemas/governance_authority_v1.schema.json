@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/governance_authority_v1.schema.json",
+  "title": "GovernanceAuthorityV1",
+  "type": "object", "additionalProperties": false,
+  "required": ["governance_key_id", "schema_version", "authority_principal_id", "public_key_base64url", "public_key_fingerprint_sha256", "valid_from", "status", "provisioning_witness_id", "created_at"],
+  "properties": {
+    "governance_key_id": {"type": "string", "minLength": 1}, "schema_version": {"const": "governance_authority/v1"},
+    "authority_principal_id": {"type": "string", "minLength": 1}, "public_key_base64url": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
+    "public_key_fingerprint_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "valid_from": {"type": "string", "format": "date-time"},
+    "valid_until": {"type": ["string", "null"], "format": "date-time"}, "status": {"const": "provisioned"},
+    "provisioning_witness_id": {"type": "string", "minLength": 1}, "created_at": {"type": "string", "format": "date-time"}
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "release_gate_status/v1",
+  "package_version": "v1.6-draft-5.3.4",
+  "generated_at": "2026-07-31T00:00:00-07:00",
+  "freeze_state": "permanently_not_frozen",
+  "theorem_authority": "disabled",
+  "promotion_authority": "disabled",
+  "release_authority": false,
+  "gates": {
+    "A_result_channel_isolation": "portable_pass_real_image_pending",
+    "B_snapshot_to_artifact_identity": "portable_pass_real_image_pending",
+    "C_historical_snapshot_immutability": "portable_pass",
+    "D_execution_closure_identity": "portable_pass_build_attestations_pending",
+    "E_real_integration": "unavailable",
+    "F_governance_integrity": "portable_pass",
+    "G_formal_validation": "unavailable",
+    "H_corpus_consistency": "portable_pass",
+    "I_external_release_authorization": "absent"
+  }
+}

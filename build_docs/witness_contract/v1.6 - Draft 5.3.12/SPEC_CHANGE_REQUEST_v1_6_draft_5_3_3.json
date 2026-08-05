@@ -1,0 +1,25 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "SCR-v1.6-draft-5.3.3-authority-hardening",
+  "source_version": "v1.6-draft-5.3.2",
+  "target_version": "v1.6-draft-5.3.3",
+  "change_class": "corrective_conformance_and_authority_hardening",
+  "status": "implemented_living_contract_permanently_not_frozen",
+  "reasons": [
+    "replace caller-supplied compiler pins with a governance-signed compiler registry",
+    "bind Lake, actual Lean, stdlib, dependency closure, verifier, sandbox, and image",
+    "compile from an immutable clean source snapshot and reject prebuilt/native artifacts",
+    "consume canonical structured Lean environment/type/axiom results rather than stdout",
+    "sign and authorize key lifecycle and supersession events",
+    "add deterministic signed as-of authority snapshots",
+    "make the contract lifecycle permanently unfrozen"
+  ],
+  "compatibility": {
+    "read_pre_5_3_3_records": true,
+    "promote_from_pre_5_3_3_authority_without_reverification": false,
+    "database_migration_required": true,
+    "api_authority_outputs_remain_read_only": true
+  },
+  "freeze_requested": false,
+  "created_at": "2026-07-31T00:00:00-07:00"
+}

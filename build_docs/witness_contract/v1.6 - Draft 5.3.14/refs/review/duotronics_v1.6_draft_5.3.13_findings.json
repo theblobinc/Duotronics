@@ -1,0 +1,100 @@
+{
+  "findings": [
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/proof_check_service.py",
+        "schemas/cache_audit_record_v1.schema.json"
+      ],
+      "id": "H-01",
+      "severity": "high",
+      "title": "Signed audit chain accepts valid-prefix truncation and complete deletion"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "H-02",
+      "severity": "high",
+      "title": "Stale-cache audit publication is not bounded by the request-wide deadline"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "README.md",
+        "executable/validators/build_schema_registry_v5312.py",
+        "executable/validators/build_schema_registry_v5313.py"
+      ],
+      "id": "M-01",
+      "severity": "medium",
+      "title": "README invokes the Draft 5.3.12 schema-registry generator"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "README.md"
+      ],
+      "id": "M-02",
+      "severity": "medium",
+      "title": "Root README contains predecessor revision and obsolete environment wording"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/runtime/proof_check_service.py",
+        "schemas/cache_stale_row_evidence_v3.schema.json"
+      ],
+      "id": "M-03",
+      "severity": "medium",
+      "title": "Stale audit evidence does not bind the exact complete cache envelope"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/runtime/proof_check_service.py",
+        "schemas/cache_audit_record_v1.schema.json"
+      ],
+      "id": "M-04",
+      "severity": "medium",
+      "title": "Audit startup verifies event bytes and hashes but not event schemas"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/validators/run_production_loader_integration.py",
+        "validation/production_loader/draft5_3_13_nonroot_loader_evidence.json"
+      ],
+      "id": "P-01",
+      "severity": "pending_external_execution",
+      "title": "Production non-root loader integration remains environment_unavailable"
+    }
+  ],
+  "package": "v1.6-draft-5.3.13",
+  "verdict": "publishable_non_authoritative_not_activation_ready",
+  "verified": {
+    "adversarial_fixtures_rejected": 44,
+    "authority_enabled": false,
+    "direct_python_version": "3.13.5",
+    "direct_tests_passed": 274,
+    "direct_tests_total": 274,
+    "direct_warning_as_error": "clean",
+    "embedded_zip_files": 0,
+    "external_activation_gates_complete": 0,
+    "freeze_state": "permanently_not_frozen",
+    "hash_or_size_mismatches": 0,
+    "inventory_files": 1783,
+    "packaged_optional_activation_phases_skipped": 8,
+    "packaged_required_phases_passed": 89,
+    "packaged_required_phases_total": 89,
+    "packaged_runtime_cache_files": 0,
+    "python_3_12_current_revision_claim": false,
+    "recursive_exclusions": 4,
+    "schemas_compiled": 112,
+    "sha256_covered_files": 1779,
+    "strict_canonical_schemas": 42,
+    "valid_fixtures_passed": 42,
+    "zip_entries": 1958
+  },
+  "zip_sha256": "6b9229cd3d463053328bed84ce59585638b74bd6e2193667e48af6863305f733"
+}

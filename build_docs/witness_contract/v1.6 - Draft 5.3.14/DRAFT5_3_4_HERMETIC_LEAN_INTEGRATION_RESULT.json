@@ -1,0 +1,12 @@
+{
+  "schema_version": "hermetic_lean_integration_result/v2",
+  "package_version": "v1.6-draft-5.3.4",
+  "status": "unavailable",
+  "real_lean_executed": false,
+  "authority_activation_permitted": false,
+  "reason": "No protected governance-signed v2 compiler registry, production result-signing key, built and attested verifier executable, or approved digest-pinned OCI image is present in the portable corpus.",
+  "passed": 0,
+  "failed": 0,
+  "skipped": 1,
+  "cases": []
+}

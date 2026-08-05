@@ -1,0 +1,73 @@
+{
+  "active_version": "v1.6-draft-5.3.16",
+  "authority_use": "lineage_only_not_runtime_trust",
+  "embedded_archive_count": 0,
+  "merge_policy": "changes_merged_no_embedded_source_packages",
+  "releases": [
+    {
+      "sha256": "437395d28c452f0a20937eaf562020afae2214edf01a8df2fe6dadd062201c22",
+      "version": "v1.6-draft-5.2.2"
+    },
+    {
+      "sha256": "26608233721f6b56ce6dfe5dfe653029c421e72a551196e004d2b2d3d59de588",
+      "version": "v1.6-draft-5.3.1"
+    },
+    {
+      "sha256": "57daa37189dcd8c0cf8cff990850393f4feaa70aeea9736b5edabffc58a37675",
+      "version": "v1.6-draft-5.3.2"
+    },
+    {
+      "sha256": "b02165cffa8b95b41a210f06b5e734e9592472a9c29630c07bb0ea318c7c3cb1",
+      "version": "v1.6-draft-5.3.3"
+    },
+    {
+      "sha256": "df72f5a40fefecd408b33c81a75489797faa65d72de591842f1928669f2eae36",
+      "version": "v1.6-draft-5.3.4"
+    },
+    {
+      "sha256": "6a417c9363f29867b5dadafd8ac484b9e43371d451049cb7391a31669f96390c",
+      "version": "v1.6-draft-5.3.5"
+    },
+    {
+      "sha256": "1dded199d4642e51dc493e2d2abd682bc111c1e76aa3956219a0b6c8f1a94c17",
+      "version": "v1.6-draft-5.3.6"
+    },
+    {
+      "sha256": "ba728768f5f1375654efb805856d1f02c187aeca0f60b8442b3a55170db61206",
+      "version": "v1.6-draft-5.3.7"
+    },
+    {
+      "sha256": "8abfc95444306d366fa492d987c57d7f9e7a2422f81b64a60c99681c9c563abf",
+      "version": "v1.6-draft-5.3.8"
+    },
+    {
+      "sha256": "93a8bcb6bf6b9ccf50363c28b352fc19358ea378e3938ccd4a492e87e11a7c79",
+      "version": "v1.6-draft-5.3.9"
+    },
+    {
+      "sha256": "6956ea0f5118b3a1bf6db02cf48385c85b298300de49f9e33f225e4d4f1564ba",
+      "version": "v1.6-draft-5.3.10"
+    },
+    {
+      "sha256": "f1643c2f1a9cb4902d3685b87056548ddd8677278d7db4169e03fe82d03c62bc",
+      "version": "v1.6-draft-5.3.11"
+    },
+    {
+      "sha256": "ab2286ce73b92d05c027912ed804ecad8bdde3ce31c843ca9007077f15170eda",
+      "version": "v1.6-draft-5.3.12"
+    },
+    {
+      "sha256": "6b9229cd3d463053328bed84ce59585638b74bd6e2193667e48af6863305f733",
+      "version": "v1.6-draft-5.3.13"
+    },
+    {
+      "sha256": "625126b9e223f08c0cbf9faf0895d6b6d61077a63bdf606d57d5bb45c89c7a2a",
+      "version": "v1.6-draft-5.3.14"
+    },
+    {
+      "sha256": "f33d2c682afe312668c9d6256da59784a43cd91b29b73881109690b2709ce800",
+      "version": "v1.6-draft-5.3.15"
+    }
+  ],
+  "schema_version": "source_package_lineage/v1"
+}

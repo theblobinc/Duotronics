@@ -1,0 +1,28 @@
+FROM ghcr.io/leanprover/lean4@sha256:REPLACE_WITH_GOVERNED_IMAGE_DIGEST
+ARG GOVERNED_PYTHON_VERSION=3.12.13
+ARG GOVERNED_CRYPTOGRAPHY_VERSION=46.0.0
+RUN test "$(python3 -c 'import platform; print(platform.python_version())')" = "$GOVERNED_PYTHON_VERSION" \
+    && test "$(python3 -c 'import cryptography; print(cryptography.__version__)')" = "$GOVERNED_CRYPTOGRAPHY_VERSION" \
+    && test -x /opt/lean/bin/lean \
+    && test -x /opt/lean/bin/lake \
+    && /opt/lean/bin/lean --version >/dev/null \
+    && /opt/lean/bin/lake --version >/dev/null
+COPY executable/runtime/proof_authority.py /opt/witness-authority/lib/proof_authority.py
+COPY executable/trusted_verifier/bounded_subprocess.py /opt/witness-authority/bin/bounded_subprocess.py
+COPY executable/trusted_verifier/compile_lean.py /opt/witness-authority/bin/compile-lean
+COPY executable/trusted_verifier/verify_lean.py /opt/witness-authority/bin/verify-lean
+COPY executable/trusted_verifier/build/inspect-lean /opt/witness-authority/bin/inspect-lean
+COPY formal/draft5_3_6/lean/WitnessAuthority/Verifier.lean /opt/witness-authority/src/WitnessAuthority/Verifier.lean
+COPY schemas /opt/witness-authority/schemas
+RUN chmod 0555 /opt/witness-authority/bin/compile-lean \
+    /opt/witness-authority/bin/verify-lean \
+    /opt/witness-authority/bin/inspect-lean
+RUN python3 -m py_compile \
+    /opt/witness-authority/lib/proof_authority.py \
+    /opt/witness-authority/bin/bounded_subprocess.py \
+    /opt/witness-authority/bin/compile-lean \
+    /opt/witness-authority/bin/verify-lean \
+    && /opt/witness-authority/bin/inspect-lean --version
+USER 65534:65534
+# No fixed ENTRYPOINT. The governed host invocation MUST select exactly one
+# domain executable with OCI --entrypoint and pass only that executable's args.

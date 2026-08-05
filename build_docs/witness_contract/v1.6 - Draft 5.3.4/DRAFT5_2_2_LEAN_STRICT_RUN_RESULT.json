@@ -1,0 +1,67 @@
+{
+  "command": [
+    "lake",
+    "build"
+  ],
+  "forbidden_markers": [],
+  "lake_available": false,
+  "lakefile_hash": "0c5f357e91c8a0a37e18e99a34365f8e5c48f98cd6c3280ba84c677722aece95",
+  "lean_files": [
+    "Duotronic/All.lean",
+    "Duotronic/Core.lean",
+    "Duotronic/CoreMetaphysics.lean",
+    "Duotronic/EvidenceSyntax.lean",
+    "Duotronic/Kernel.lean",
+    "Duotronic/ProofAuthority.lean",
+    "Duotronic.lean"
+  ],
+  "mode": "strict",
+  "schema_version": "lean_build_result/v1",
+  "source_tree_hash": "b8fea3a17dce5eac37580328c59b76f89b10427d442d167e897f02d641d7d38e",
+  "status": "strict_fail_lake_unavailable",
+  "stderr_tail": "",
+  "stdout_tail": "",
+  "theorems": {
+    "Duotronic/Core.lean": [
+      "depth_policy_default_deny",
+      "completed_requires_allow",
+      "denied_task_not_completed_under_invariant"
+    ],
+    "Duotronic/CoreMetaphysics.lean": [
+      "zero_not_absence",
+      "unknown_not_invalid",
+      "empty_not_null",
+      "computation_not_theorem",
+      "conjecture_not_theorem",
+      "self_trained_not_authoritative",
+      "audit_not_active",
+      "observation_not_proof",
+      "explanation_not_fact",
+      "policy_approval_not_human_attestation",
+      "synthetic_witness_not_activation_witness",
+      "no_silent_collapse",
+      "witnessed_transition_preserves_distinction"
+    ],
+    "Duotronic/EvidenceSyntax.lean": [
+      "theorem_status_requires_proof_policy",
+      "machine_checked_proof_has_proof_ref",
+      "machine_checked_proof_has_compiler_ref",
+      "inference_witness_self_consistent"
+    ],
+    "Duotronic/Kernel.lean": [
+      "check_proof_requires_lean_compiler_witness",
+      "check_proof_requires_proof_witness",
+      "promote_requires_status_transition",
+      "promote_requires_non_collapse_transition"
+    ],
+    "Duotronic/ProofAuthority.lean": [
+      "valid_proof_witness_has_passing_compiler",
+      "valid_proof_witness_has_accepted_theorem_status",
+      "theorem_promotion_requires_valid_lean_proof",
+      "theorem_promotion_carries_passing_compiler"
+    ]
+  },
+  "toolchain": "leanprover/lean4:v4.29.1",
+  "toolchain_file": "lean-toolchain",
+  "unapproved_axiom_files": []
+}

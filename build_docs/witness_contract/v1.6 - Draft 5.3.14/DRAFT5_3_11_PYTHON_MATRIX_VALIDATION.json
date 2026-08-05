@@ -1,0 +1,96 @@
+{
+  "assembly": "merge_hash_covered_per_interpreter_records",
+  "count_source": "unittest.TestResult",
+  "evidence_set_sha256": "cdcad6294ab6a52bfc6a77baabb559a36a9744d02896d963ac64809824c7fa08",
+  "generated_at": "2026-08-01T21:04:07.744901+00:00",
+  "overall_status": "passed",
+  "package_version": "v1.6-draft-5.3.11",
+  "runs": [
+    {
+      "count_source": "unittest.TestResult",
+      "development_stderr_sha256": "5aeb3937079d6ad0a100428db066cf3b80ad9c74f0370d642d2c8224d3472541",
+      "development_stdout_sha256": "6711d0f0aeeea9c70e204683a6b785e679377ef04bf4741a3c6ce832b490f9ea",
+      "development_warnings_as_errors_status": "passed",
+      "duplicate_test_ids": [],
+      "evidence_file": "validation/python_matrix/draft5_3_11/python_3_12.json",
+      "evidence_sha256": "1e38041333b4521a70d38228b0a5c41e3a021f4dbc51a08e366b177a7f38f6f5",
+      "generated_at": "2026-08-01T21:03:45.241280+00:00",
+      "normal_command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "executable/validators/run_unittest_structured.py"
+      ],
+      "normal_status": "passed",
+      "normal_stderr_sha256": "c69e75e5d4659fe8ee8aa826ae5bb982578befb3fa921899965a2ad4048bfd20",
+      "normal_stdout_sha256": "6711d0f0aeeea9c70e204683a6b785e679377ef04bf4741a3c6ce832b490f9ea",
+      "package_version": "v1.6-draft-5.3.11",
+      "python_version": "3.12.13",
+      "schema_version": "python_interpreter_validation/v1",
+      "target_python_version": "3.12",
+      "tests_discovered": 248,
+      "tests_errored": 0,
+      "tests_failed": 0,
+      "tests_passed": 248,
+      "tests_run": 248,
+      "tests_skipped": 0,
+      "warning_detection": "independent_of_count_extraction",
+      "warning_free_command": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-X",
+        "dev",
+        "-W",
+        "error",
+        "executable/validators/run_unittest_structured.py"
+      ],
+      "warning_output_lines": []
+    },
+    {
+      "count_source": "unittest.TestResult",
+      "development_stderr_sha256": "2023d0d9a3fd1e1a6ba322bdb56db4c790aca0a2659de55d4fe934b69635be9b",
+      "development_stdout_sha256": "75fea1b5e8303a0ff7488485375d8343dd23b4a453b5cee57b0f22bb8672c62d",
+      "development_warnings_as_errors_status": "passed",
+      "duplicate_test_ids": [],
+      "evidence_file": "validation/python_matrix/draft5_3_11/python_3_13.json",
+      "evidence_sha256": "4d310b63b4224131975bdc5ba70bb4f46dc8cbe385bc74e4c567b5729549b42d",
+      "generated_at": "2026-08-01T21:04:07.744901+00:00",
+      "normal_command": [
+        "/tmp/witness-py313-venv/bin/python",
+        "executable/validators/run_unittest_structured.py"
+      ],
+      "normal_status": "passed",
+      "normal_stderr_sha256": "b64b96b509bc76e21dcb5ebc66c754f28d299e94d530c5ada2dfaba5b9a96fcb",
+      "normal_stdout_sha256": "75fea1b5e8303a0ff7488485375d8343dd23b4a453b5cee57b0f22bb8672c62d",
+      "package_version": "v1.6-draft-5.3.11",
+      "python_version": "3.13.5",
+      "schema_version": "python_interpreter_validation/v1",
+      "target_python_version": "3.13",
+      "tests_discovered": 248,
+      "tests_errored": 0,
+      "tests_failed": 0,
+      "tests_passed": 248,
+      "tests_run": 248,
+      "tests_skipped": 0,
+      "warning_detection": "independent_of_count_extraction",
+      "warning_free_command": [
+        "/tmp/witness-py313-venv/bin/python",
+        "-X",
+        "dev",
+        "-W",
+        "error",
+        "executable/validators/run_unittest_structured.py"
+      ],
+      "warning_output_lines": []
+    }
+  ],
+  "schema_version": "python_matrix_validation/v4",
+  "target_python_versions": [
+    "3.12",
+    "3.13"
+  ],
+  "unavailable_python_versions": [],
+  "unavailable_runs": [],
+  "validated_python_versions": [
+    "3.12.13",
+    "3.13.5"
+  ],
+  "warning_detection": "independent_of_count_extraction"
+}

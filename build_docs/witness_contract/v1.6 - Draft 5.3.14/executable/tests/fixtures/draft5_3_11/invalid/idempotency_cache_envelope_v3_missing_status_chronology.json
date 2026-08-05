@@ -1,0 +1,19 @@
+{
+  "schema_ref": "schemas/idempotency_cache_envelope_v3.schema.json",
+  "payload": {
+    "schema_version": "idempotency_cache_envelope/v3",
+    "cache_key_validity_evidence": {
+      "schema_version": "cache_key_validity_evidence/v1",
+      "registry_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "key_id": "cache:key",
+      "principal_id": "cache:principal",
+      "status": "active",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": "2027-01-01T00:00:00Z",
+      "rotation_predecessor_key_id": null,
+      "use": "signing",
+      "decision": "active_time_valid_rotation_valid",
+      "evaluated_at": "2026-08-01T00:00:00Z"
+    }
+  }
+}

@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/inference_witness.schema.json",
+  "title": "InferenceWitness",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "inference_witness_id",
+    "rule",
+    "premise_claim_ids",
+    "conclusion_claim_id",
+    "policy_decision_id",
+    "force_indicator",
+    "non_collapse_checked",
+    "input_epistemic_status",
+    "output_epistemic_status",
+    "conclusion_status",
+    "promotion_status",
+    "proof_required",
+    "non_collapse_transition_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "inference_witness/v1"
+    },
+    "inference_witness_id": {
+      "type": "string"
+    },
+    "rule": {
+      "enum": [
+        "conjunction_elimination",
+        "modus_ponens_proposal",
+        "temporal_propagation",
+        "replay_extension",
+        "authority_preserving_projection"
+      ]
+    },
+    "premise_claim_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "conclusion_claim_id": {
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "type": "string"
+    },
+    "force_indicator": {
+      "enum": [
+        "observe",
+        "propose",
+        "assert",
+        "defer",
+        "veto",
+        "delegate",
+        "replay_verify"
+      ]
+    },
+    "proof_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Required when output/conclusion status is theorem/proof_verified; must reference proof_witness/v1 in Draft 5.2.2."
+    },
+    "non_collapse_checked": {
+      "type": "boolean",
+      "const": true
+    },
+    "conclusion_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "draft",
+        "observed",
+        "computed",
+        "proposed",
+        "asserted",
+        "deferred",
+        "vetoed",
+        "conjecture",
+        "theorem",
+        "replay_verified",
+        "proof_verified",
+        "policy_approved",
+        "released"
+      ]
+    },
+    "input_epistemic_status": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "unknown",
+          "absent",
+          "invalid",
+          "observed",
+          "computed",
+          "conjecture",
+          "theorem",
+          "policy_approved",
+          "synthetic",
+          "audit_only",
+          "shadow",
+          "release_candidate",
+          "authoritative",
+          "self_trained",
+          "external_authority",
+          "human_attested",
+          "replay_verified",
+          "proof_verified"
+        ]
+      },
+      "minItems": 1
+    },
+    "output_epistemic_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "observed",
+        "computed",
+        "conjecture",
+        "theorem",
+        "policy_approved",
+        "synthetic",
+        "audit_only",
+        "shadow",
+        "release_candidate",
+        "authoritative",
+        "self_trained",
+        "external_authority",
+        "human_attested",
+        "replay_verified",
+        "proof_verified"
+      ]
+    },
+    "promotion_status": {
+      "enum": [
+        "none",
+        "proposed",
+        "blocked",
+        "requires_human_review",
+        "approved_for_shadow",
+        "approved_for_audit",
+        "release_candidate",
+        "promoted",
+        "rejected"
+      ]
+    },
+    "proof_required": {
+      "type": "boolean"
+    },
+    "status_transition_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "non_collapse_transition_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lean_compiler_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Required when output/conclusion status is theorem/proof_verified in Draft 5.2.2."
+    },
+    "theorem_promotion_gate_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Required when output/conclusion status is theorem/proof_verified in Draft 5.2.2; must reference theorem_promotion_gate/v1."
+    }
+  },
+  "description": "Inference witness with explicit input/output epistemic states, conclusion status, promotion state, proof locks, Lean proof authority, and theorem promotion gate locks.",
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "output_epistemic_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proof_required": {
+            "const": true
+          },
+          "proof_witness_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "proof_witness_ref"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "conclusion_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proof_required": {
+            "const": true
+          },
+          "proof_witness_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "proof_witness_ref"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "promotion_status": {
+            "enum": [
+              "promoted",
+              "release_candidate"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "status_transition_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "output_epistemic_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "proof_witness_ref",
+          "lean_compiler_witness_ref",
+          "theorem_promotion_gate_id"
+        ],
+        "properties": {
+          "lean_compiler_witness_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "theorem_promotion_gate_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "conclusion_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "proof_witness_ref",
+          "lean_compiler_witness_ref",
+          "theorem_promotion_gate_id"
+        ],
+        "properties": {
+          "lean_compiler_witness_ref": {
+            "type": "string",
+            "minLength": 1
+          },
+          "theorem_promotion_gate_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ]
+}

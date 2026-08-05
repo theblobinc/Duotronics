@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/governance_authorization_witness_v1.schema.json",
+  "title": "GovernanceAuthorizationWitnessV1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "authorization_witness_id", "action_type", "target_record_type", "target_record_id", "policy_decision_id", "decision", "valid_from", "governance_key_id", "signed_payload_sha256", "signature", "created_at"],
+  "properties": {
+    "schema_version": {"const": "governance_authorization_witness/v1"}, "authorization_witness_id": {"type": "string", "minLength": 1},
+    "action_type": {"enum": ["verifier_key_status", "authority_supersession", "authority_snapshot"]}, "target_record_type": {"type": "string", "minLength": 1},
+    "target_record_id": {"type": "string", "minLength": 1}, "policy_decision_id": {"type": "string", "minLength": 1}, "decision": {"const": "allow"},
+    "valid_from": {"type": "string", "format": "date-time"}, "valid_until": {"type": ["string", "null"], "format": "date-time"},
+    "governance_key_id": {"type": "string", "minLength": 1}, "signed_payload_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "signature": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43,}$"}, "created_at": {"type": "string", "format": "date-time"}
+  }
+}

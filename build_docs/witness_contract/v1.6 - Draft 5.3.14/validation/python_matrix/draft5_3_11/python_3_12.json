@@ -1,0 +1,35 @@
+{
+  "count_source": "unittest.TestResult",
+  "development_stderr_sha256": "5aeb3937079d6ad0a100428db066cf3b80ad9c74f0370d642d2c8224d3472541",
+  "development_stdout_sha256": "6711d0f0aeeea9c70e204683a6b785e679377ef04bf4741a3c6ce832b490f9ea",
+  "development_warnings_as_errors_status": "passed",
+  "duplicate_test_ids": [],
+  "generated_at": "2026-08-01T21:03:45.241280+00:00",
+  "normal_command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "executable/validators/run_unittest_structured.py"
+  ],
+  "normal_status": "passed",
+  "normal_stderr_sha256": "c69e75e5d4659fe8ee8aa826ae5bb982578befb3fa921899965a2ad4048bfd20",
+  "normal_stdout_sha256": "6711d0f0aeeea9c70e204683a6b785e679377ef04bf4741a3c6ce832b490f9ea",
+  "package_version": "v1.6-draft-5.3.11",
+  "python_version": "3.12.13",
+  "schema_version": "python_interpreter_validation/v1",
+  "target_python_version": "3.12",
+  "tests_discovered": 248,
+  "tests_errored": 0,
+  "tests_failed": 0,
+  "tests_passed": 248,
+  "tests_run": 248,
+  "tests_skipped": 0,
+  "warning_detection": "independent_of_count_extraction",
+  "warning_free_command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-X",
+    "dev",
+    "-W",
+    "error",
+    "executable/validators/run_unittest_structured.py"
+  ],
+  "warning_output_lines": []
+}

@@ -1,0 +1,13 @@
+Duotronic Witness Contract v1.6 Draft 5.3.4
+Status: complete required portable validation passed; LIVING CONTRACT; PERMANENTLY NOT FROZEN
+Required phases: 26 passed, 0 failed, 0 skipped, 0 missing
+Schemas: 68 compiled
+Fixtures: 31 valid accepted, 23 invalid rejected
+Proof authority: 26 two-domain, signed-result, snapshot, trust-root, and deterministic-identity regression tests passed
+Verifier/SQL authority: 13 signed theorem-chain, event-ledger, release-activation, scope, typed-supersession, immutability, and historical-cutoff tests passed
+Positive baseline and bijective mathematics: 8 runtime tests passed
+Proof-check service boundary: 3 request-isolation tests passed
+Formal manifest: 8 TLA+ modules covered, including ProofAuthorityV2, V3, V4, and V5
+Historical packages: exact Draft 5.2.2, 5.3.1, 5.3.2, and 5.3.3 archives verified
+Authority activation evidence absent: strict Lake, strict TLC, real governed image, OCI image attestation, verifier executable attestation, and external governance signature
+Portable validation does not enable theorem authority and can never freeze the living contract.

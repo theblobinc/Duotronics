@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_record_v1.schema.json",
+  "title": "Dedicated-Key Tamper-Evident Cache Audit Record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "audit_record_id", "sequence", "previous_audit_record_sha256",
+    "event_schema_version", "event_canonical_json", "event_sha256", "audit_signer_principal_id",
+    "audit_signer_key_id", "rotation_policy", "created_at", "signed_payload_sha256", "signature"
+  ],
+  "properties": {
+    "schema_version": {"const": "cache_audit_record/v1"},
+    "audit_record_id": {"type": "string", "pattern": "^audit:[0-9a-f]{64}$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "previous_audit_record_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "event_schema_version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$"},
+    "event_canonical_json": {"type": "string", "minLength": 2, "maxLength": 1048576},
+    "event_sha256": {"$ref": "#/$defs/sha256"},
+    "audit_signer_principal_id": {"$ref": "#/$defs/id"},
+    "audit_signer_key_id": {"$ref": "#/$defs/id"},
+    "rotation_policy": {"const": "manual_governance_sealed_segment"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "signed_payload_sha256": {"$ref": "#/$defs/sha256"},
+    "signature": {"type": "string", "minLength": 43}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

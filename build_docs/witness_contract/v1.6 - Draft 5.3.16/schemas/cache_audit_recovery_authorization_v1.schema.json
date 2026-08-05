@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_recovery_authorization_v1.schema.json",
+  "title": "Governance-Signed Cache Audit Recovery Authorization v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "segment_id",
+    "action",
+    "checkpoint_sequence_before",
+    "checkpoint_tail_before",
+    "log_sequence_after",
+    "log_tail_after",
+    "decision",
+    "created_at",
+    "expires_at",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_recovery_authorization/v1"
+    },
+    "authorization_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "action": {
+      "enum": [
+        "reconcile_signed_dangling_tail",
+        "remove_orphan_checkpoint_temporaries",
+        "complete_interrupted_seal",
+        "complete_interrupted_successor"
+      ]
+    },
+    "checkpoint_sequence_before": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "checkpoint_tail_before": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "log_sequence_after": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "log_tail_after": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "decision": {
+      "const": "authorize_governed_recovery"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signed_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": "python_matrix_validation/v1",
+  "package_version": "v1.6-draft-5.3.8",
+  "generated_at": "2026-08-01T17:32:55Z",
+  "count_source": "unittest.TestResult",
+  "warning_detection": "independent_of_count_extraction",
+  "supported_python_versions": ["3.12", "3.13"],
+  "runs": [
+    {
+      "python_version": "3.12.13",
+      "tests_discovered": 195,
+      "tests_run": 195,
+      "tests_passed": 195,
+      "tests_failed": 0,
+      "tests_errored": 0,
+      "tests_skipped": 0,
+      "duplicate_test_ids": [],
+      "normal_status": "passed",
+      "development_warnings_as_errors_status": "passed",
+      "warning_output_lines": [],
+      "normal_stdout_sha256": "93066197e335ceb4765c7af165caaf62a5a87fcd82ba1db1fcf3d483988064bf",
+      "normal_stderr_sha256": "af9079abdfebc5d33114bc25462ac1c555c497ff5d4d68fcba492f6fe9c6b1c1",
+      "development_stdout_sha256": "93066197e335ceb4765c7af165caaf62a5a87fcd82ba1db1fcf3d483988064bf",
+      "development_stderr_sha256": "c9af8b3a651246b485fbc9baa61c53e455815b29902f90e8b645e80abb9000c1"
+    },
+    {
+      "python_version": "3.13.14",
+      "tests_discovered": 195,
+      "tests_run": 195,
+      "tests_passed": 195,
+      "tests_failed": 0,
+      "tests_errored": 0,
+      "tests_skipped": 0,
+      "duplicate_test_ids": [],
+      "normal_status": "passed",
+      "development_warnings_as_errors_status": "passed",
+      "warning_output_lines": [],
+      "normal_stdout_sha256": "698ebfb696492271b444f0ce2c71b8e36bbb6c7a7c0fe95b40503cc40064586b",
+      "normal_stderr_sha256": "cbc1bc5d93620bede193f08d327affa1960a4fc9aae5428dff1c8d2a1d3a9bbe",
+      "development_stdout_sha256": "698ebfb696492271b444f0ce2c71b8e36bbb6c7a7c0fe95b40503cc40064586b",
+      "development_stderr_sha256": "651e6109b3fb1ea551849c2859883232c4134678fb17c759e9912862186c6ad3"
+    }
+  ],
+  "overall_status": "passed"
+}

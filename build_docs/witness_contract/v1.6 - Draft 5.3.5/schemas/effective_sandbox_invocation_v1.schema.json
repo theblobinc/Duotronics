@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/effective_sandbox_invocation_v1.schema.json",
+  "title": "Effective Sandbox Invocation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["domain", "oci_runtime_sha256", "oci_runtime_version", "image_reference", "image_digest", "entrypoint", "arguments", "container_uid", "container_gid", "network_mode", "read_only_rootfs", "capability_drop_set", "security_options", "seccomp_profile_sha256", "apparmor_profile", "selinux_label", "user_namespace_mode", "pid_limit", "memory_limit", "cpu_limit", "file_size_limit", "open_file_limit", "timeout", "environment_allowlist", "mount_manifest", "working_directory"],
+  "properties": {
+    "domain": {"enum": ["untrusted_compilation", "trusted_verifier"]},
+    "oci_runtime_sha256": {"$ref": "#/$defs/sha256"}, "oci_runtime_version": {"type": "string", "minLength": 1},
+    "image_reference": {"type": "string", "minLength": 1}, "image_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "entrypoint": {"type": "string", "pattern": "^/opt/witness-authority/bin/(compile|verify)-lean$"},
+    "arguments": {"type": "array", "items": {"type": "string"}}, "container_uid": {"type": "integer", "minimum": 1}, "container_gid": {"type": "integer", "minimum": 1},
+    "network_mode": {"const": "none"}, "read_only_rootfs": {"const": true}, "capability_drop_set": {"type": "array", "contains": {"const": "ALL"}},
+    "security_options": {"type": "array", "contains": {"const": "no-new-privileges"}}, "seccomp_profile_sha256": {"$ref": "#/$defs/sha256"},
+    "apparmor_profile": {"type": "string", "minLength": 1}, "selinux_label": {"type": "string", "minLength": 1}, "user_namespace_mode": {"type": "string", "minLength": 1},
+    "pid_limit": {"type": "integer", "minimum": 1}, "memory_limit": {"type": "string", "minLength": 1}, "cpu_limit": {"type": "string", "minLength": 1},
+    "file_size_limit": {"type": "integer", "minimum": 1}, "open_file_limit": {"type": "integer", "minimum": 1}, "timeout": {"type": "integer", "minimum": 1},
+    "environment_allowlist": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "mount_manifest": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["host", "container", "mode"], "properties": {"host": {"type": "string", "minLength": 1}, "container": {"type": "string", "pattern": "^/"}, "mode": {"enum": ["ro", "rw"]}}}},
+    "working_directory": {"type": "string", "pattern": "^/"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

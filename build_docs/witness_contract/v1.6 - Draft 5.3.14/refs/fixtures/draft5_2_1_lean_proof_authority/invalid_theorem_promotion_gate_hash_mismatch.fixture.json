@@ -1,0 +1,17 @@
+{
+  "schema_ref": "schemas/theorem_promotion_gate.schema.json",
+  "payload": {
+    "schema_version": "theorem_promotion_gate/v1",
+    "theorem_promotion_gate_id": "theorem:gate:invalid:hash",
+    "claim_id": "claim:theorem:001",
+    "claim_status_transition_id": "transition:theorem:001",
+    "proof_witness_id": "proof:valid:001",
+    "lean_compiler_witness_id": "lean:compiler:valid:001",
+    "non_collapse_transition_id": "nc:transition:proof:001",
+    "policy_decision_id": "policy:allow:proof:001",
+    "allowed": true,
+    "source_hash_matches_claim": false,
+    "rejection_reason": null,
+    "created_at": "2026-05-11T00:00:00Z"
+  }
+}

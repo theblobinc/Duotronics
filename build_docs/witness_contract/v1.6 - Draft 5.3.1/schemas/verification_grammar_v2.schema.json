@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/verification_grammar_v2.schema.json",
+  "title": "VerificationGrammarV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "grammar_id", "deterministic", "instructions", "forbidden_operations", "grammar_sha256", "created_at"],
+  "properties": {
+    "schema_version": {"const": "verification_grammar/v2"},
+    "grammar_id": {"type": "string", "minLength": 1},
+    "deterministic": {"const": true},
+    "instructions": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/instruction"}},
+    "forbidden_operations": {"type": "array", "minItems": 8, "uniqueItems": true, "items": {"enum": ["write_memory", "change_policy", "promote_model", "replace_authority", "delete_evidence", "network_fetch", "random_sample", "wall_clock_now"]}},
+    "grammar_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "instruction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["instruction_id", "op", "args", "required_for_pass"],
+      "properties": {
+        "instruction_id": {"type": "string", "minLength": 1},
+        "op": {"enum": ["read_manifest", "hash_artifact", "compare_hash", "validate_schema", "check_policy_ref", "check_non_collapse_transition", "check_replay_assumptions", "execute_deterministic_replay", "compare_replay_output", "return_status"]},
+        "args": {"type": "object"},
+        "required_for_pass": {"type": "boolean"}
+      }
+    }
+  }
+}

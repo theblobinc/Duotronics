@@ -1,0 +1,24 @@
+{
+  "schema_ref": "schemas/cache_signing_registry_v2.schema.json",
+  "payload": {
+    "schema_version": "cache_signing_registry/v2",
+    "registry_id": "registry:test",
+    "governance_key_id": "governance:test",
+    "created_at": "2026-08-01T00:00:00Z",
+    "keys": [
+      {
+        "key_id": "cache:test",
+        "principal_id": "principal:cache",
+        "public_key_base64url": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        "authorization_scope": "idempotency_cache_envelope_signing",
+        "status": "active",
+        "valid_from": "2026-01-01T00:00:00Z",
+        "valid_until": "not-a-date",
+        "status_changed_at": "2026-01-01T00:00:00Z",
+        "rotation_predecessor_key_id": null
+      }
+    ],
+    "signed_payload_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "signature": "invalid"
+  }
+}

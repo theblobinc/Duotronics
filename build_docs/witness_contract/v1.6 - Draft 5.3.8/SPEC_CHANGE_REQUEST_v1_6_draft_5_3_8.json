@@ -1,0 +1,22 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "scr:v1.6-draft-5.3.8",
+  "base_version": "v1.6-draft-5.3.7",
+  "target_version": "v1.6-draft-5.3.8",
+  "classification": "corrective_authority_path_cache_identity_sandbox_and_validation_revision",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "freeze_policy": "permanently_not_frozen",
+  "source_review": "refs/review/v1.6_draft_5.3.8_update_checklist.md",
+  "changes": [
+    "treat completed idempotency rows as signed untrusted cache envelopes and reverify current authority bindings on every hit",
+    "require authenticated middleware principal identity and forbid caller-controlled subjects",
+    "require measured environment_allowlist and explicit_entrypoint evidence with complete environment key rejection",
+    "separate semantic witness identity from signed execution evidence identity",
+    "close every SQLite connection and secure database WAL SHM parent ownership modes links and symlinks",
+    "bound global and per-principal inflight rows completed rows total rows database bytes and expired leases",
+    "support Python 3.12 and 3.13 with structured unittest result accounting and independent warning detection",
+    "merge all active changes into a standalone package without embedded historical source archives",
+    "version schemas fixtures OpenAPI registry tests documentation and release metadata"
+  ],
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled"
+}

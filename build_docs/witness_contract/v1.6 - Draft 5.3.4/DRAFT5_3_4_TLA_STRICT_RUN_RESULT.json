@@ -1,0 +1,11 @@
+{
+  "schema_version": "tla_model_check_result/v1",
+  "package_version": "v1.6-draft-5.3.4",
+  "mode": "strict",
+  "status": "strict_fail_tlc_unavailable",
+  "tlc_available": false,
+  "authority_activation_permitted": false,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 1
+}

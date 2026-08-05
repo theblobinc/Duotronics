@@ -1,0 +1,12 @@
+{
+  "package_version": "v1.6-draft-5.2.2",
+  "status": "completion_candidate_sql_hardened_not_frozen",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "lean_toolchain_added": true,
+  "sql_persistence_hardened": true,
+  "theorem_promotion_gate_orphan_guarded": true,
+  "stale_tla_only_text_removed_from_primary_docs": true,
+  "strict_lean_build_status": "not_run_here_lake_unavailable_expected_to_run_in_ci",
+  "strict_tla_model_check_status": "not_run_here_tlc_unavailable_expected_to_run_in_ci",
+  "freeze_state": "not_frozen_pending_strict_lake_build_and_strict_tlc_run"
+}

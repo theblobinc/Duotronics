@@ -1,0 +1,9 @@
+FROM ghcr.io/leanprover/lean4@sha256:REPLACE_WITH_GOVERNED_LEAN_BUILD_IMAGE_DIGEST AS builder
+WORKDIR /src
+ENV HOME=/nonexistent LANG=C.UTF-8 LC_ALL=C.UTF-8 TZ=UTC SOURCE_DATE_EPOCH=0
+COPY lean-toolchain lakefile.lean ./
+COPY formal/draft5_3_5/lean formal/draft5_3_5/lean
+RUN lake build witnessAuthorityInspector
+
+FROM scratch AS export
+COPY --from=builder /src/.lake/build/bin/witnessAuthorityInspector /inspect-lean

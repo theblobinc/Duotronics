@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/lean_verifier_request_v4.schema.json",
+  "title": "Trusted Lean Verifier Request v4",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "request_id", "compiler_profile_id", "claim_content_sha256", "policy_decision_id", "policy_decision_sha256", "theorem_statement_sha256", "proof_artifact_relative_path", "proof_artifact_sha256", "proof_module", "theorem_name", "immutable_snapshot_id", "immutable_snapshot_tree_sha256", "lakefile_sha256", "lake_manifest_sha256", "lean_toolchain_sha256", "generated_binding_module_sha256", "generated_binding_module_path", "generated_binding_declaration", "authorized_axioms", "normalization_policy", "sandbox_policy_sha256", "sandbox_template_sha256", "effective_resource_limits", "effective_resource_limits_sha256"],
+  "properties": {
+    "schema_version": {"const": "wc_lean_verifier_request/v4"},
+    "request_id": {"type": "string", "pattern": "^request:[0-9a-f]{64}$"},
+    "compiler_profile_id": {"type": "string", "minLength": 1},
+    "claim_content_sha256": {"$ref": "#/$defs/sha256"},
+    "policy_decision_id": {"type": "string", "minLength": 1},
+    "policy_decision_sha256": {"$ref": "#/$defs/sha256"},
+    "theorem_statement_sha256": {"$ref": "#/$defs/sha256"},
+    "proof_artifact_relative_path": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\).+[.]lean$"},
+    "proof_artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "proof_module": {"type": "string", "minLength": 1},
+    "theorem_name": {"type": "string", "minLength": 1},
+    "immutable_snapshot_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "immutable_snapshot_tree_sha256": {"$ref": "#/$defs/sha256"},
+    "lakefile_sha256": {"$ref": "#/$defs/sha256"},
+    "lake_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "lean_toolchain_sha256": {"$ref": "#/$defs/sha256"},
+    "generated_binding_module_sha256": {"$ref": "#/$defs/sha256"},
+    "generated_binding_module_path": {"type": "string", "pattern": "^WitnessAuthorityGenerated/Check_[0-9a-f]{32}[.]lean$"},
+    "generated_binding_declaration": {"const": "WitnessAuthorityGenerated.BoundClaim"},
+    "authorized_axioms": {"$ref": "#/$defs/name_set"},
+    "normalization_policy": {"const": "lean_isDefEq_reducibility_regular/v1"},
+    "sandbox_policy_sha256": {"$ref": "#/$defs/sha256"},
+    "sandbox_template_sha256": {"$ref": "#/$defs/sha256"},
+    "effective_resource_limits": {"$ref": "#/$defs/resource_limits"},
+    "effective_resource_limits_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "name_set": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "resource_limits": {"type": "object", "additionalProperties": false, "required": ["timeout_seconds", "source_total_bytes", "compiler_artifact_file_bytes", "handoff_total_bytes", "inspection_output_bytes", "final_result_bytes", "stdout_bytes", "stderr_bytes", "combined_output_bytes"], "properties": {"timeout_seconds": {"type": "integer", "minimum": 1}, "source_total_bytes": {"type": "integer", "minimum": 1}, "compiler_artifact_file_bytes": {"type": "integer", "minimum": 1}, "handoff_total_bytes": {"type": "integer", "minimum": 1}, "inspection_output_bytes": {"type": "integer", "minimum": 1}, "final_result_bytes": {"type": "integer", "minimum": 1}, "stdout_bytes": {"type": "integer", "minimum": 1}, "stderr_bytes": {"type": "integer", "minimum": 1}, "combined_output_bytes": {"type": "integer", "minimum": 1}}}
+  }
+}

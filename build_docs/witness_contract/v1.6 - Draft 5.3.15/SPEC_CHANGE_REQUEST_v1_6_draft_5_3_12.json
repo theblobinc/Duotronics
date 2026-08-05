@@ -1,0 +1,26 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "scr:v1.6-draft-5.3.12",
+  "base_version": "v1.6-draft-5.3.11",
+  "target_version": "v1.6-draft-5.3.12",
+  "classification": "corrective_validator_reaping_authenticated_historical_cache_and_nonroot_loader_integration_revision",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "freeze_policy": "permanently_not_frozen",
+  "source_review": "refs/review/v1.6_draft_5.3.12_update_checklist.md",
+  "changes": [
+    "replace validator pipe capture with bounded temporary files and bounded descendant-aware termination and reaping",
+    "close parent capture descriptors on normal timeout and error paths",
+    "emit nested substage progress markers for full regression phases",
+    "load current and governed historical cache-signing registries through a signed acyclic lineage",
+    "authenticate stale cache rows before registry-rotation classification or evidence emission",
+    "treat unknown forged altered or revoked historical signers as cache-integrity failures",
+    "emit schema-validated signed-lineage stale evidence only after successful historical authentication",
+    "provide an actual chroot then setgid setuid production-loader integration harness for an /etc-style hierarchy",
+    "record this environment's inability to represent a non-root UID as unavailable and keep that execution claim fail-closed",
+    "preserve the tiered trust-root and root-execution rejection regressions from Draft 5.3.11",
+    "validate normal warnings-as-errors and full corpus workflows on every interpreter actually available",
+    "merge all active changes into a standalone package without embedded historical source archives",
+    "keep all eight external activation gates independently fail-closed"
+  ],
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled"
+}

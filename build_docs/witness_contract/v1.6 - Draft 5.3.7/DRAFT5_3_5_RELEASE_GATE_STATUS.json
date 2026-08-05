@@ -1,0 +1,20 @@
+{
+  "schema_version": "release_gate_status/v5",
+  "package_version": "v1.6-draft-5.3.5",
+  "freeze_state": "permanently_not_frozen",
+  "theorem_authority_default": "disabled",
+  "promotion_authority_default": "disabled",
+  "release_authority": false,
+  "gates": {
+    "A_oci_domain_dispatch": "portable_pass_real_image_pending",
+    "B_effective_sandbox_equivalence": "portable_pass_runtime_inspection_pending",
+    "C_policy_authority_binding": "portable_pass",
+    "D_trusted_inspector_build": "portable_contract_pass_reproducible_build_pending",
+    "E_bounded_source_and_processes": "portable_pass",
+    "F_schema_and_api_authority": "portable_pass",
+    "G_package_provenance": "unpublished_workspace",
+    "H_formal_validation": "strict_toolchains_pending",
+    "I_external_release_authorization": "pending"
+  },
+  "activation_ready": false
+}

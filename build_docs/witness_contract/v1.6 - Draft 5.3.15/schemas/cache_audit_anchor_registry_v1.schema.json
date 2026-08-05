@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/cache_audit_anchor_registry_v1.schema.json",
+  "title": "Governed External Audit Anchor Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "registry_id",
+    "governance_key_id",
+    "created_at",
+    "keys",
+    "signed_payload_sha256",
+    "signature"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cache_audit_anchor_registry/v1"
+    },
+    "registry_id": {
+      "$ref": "#/$defs/id"
+    },
+    "governance_key_id": {
+      "$ref": "#/$defs/id"
+    },
+    "created_at": {
+      "$ref": "#/$defs/date"
+    },
+    "keys": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key_id",
+          "principal_id",
+          "public_key_base64url",
+          "authorization_scope",
+          "status",
+          "valid_from",
+          "valid_until",
+          "status_changed_at",
+          "rotation_predecessor_key_id"
+        ],
+        "properties": {
+          "key_id": {
+            "$ref": "#/$defs/id"
+          },
+          "principal_id": {
+            "$ref": "#/$defs/id"
+          },
+          "public_key_base64url": {
+            "$ref": "#/$defs/public"
+          },
+          "authorization_scope": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "retired",
+              "revoked"
+            ]
+          },
+          "valid_from": {
+            "$ref": "#/$defs/date"
+          },
+          "valid_until": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_changed_at": {
+            "$ref": "#/$defs/date"
+          },
+          "rotation_predecessor_key_id": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "signed_payload_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "signature": {
+      "$ref": "#/$defs/signature"
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signature": {
+      "type": "string",
+      "minLength": 43
+    },
+    "public": {
+      "type": "string",
+      "minLength": 43,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
+  }
+}

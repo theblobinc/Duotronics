@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/trusted_time_witness_v1.schema.json",
+  "title": "TrustedTimeWitnessV1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "time_witness_id", "asserted_time", "clock_authority_id", "policy_decision_id", "signed_payload_sha256", "signature", "recorded_at"],
+  "properties": {
+    "schema_version": {"const": "trusted_time_witness/v1"}, "time_witness_id": {"type": "string", "minLength": 1},
+    "asserted_time": {"type": "string", "format": "date-time"}, "clock_authority_id": {"type": "string", "minLength": 1},
+    "policy_decision_id": {"type": "string", "minLength": 1}, "signed_payload_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "signature": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43,}$"}, "recorded_at": {"type": "string", "format": "date-time"}
+  }
+}

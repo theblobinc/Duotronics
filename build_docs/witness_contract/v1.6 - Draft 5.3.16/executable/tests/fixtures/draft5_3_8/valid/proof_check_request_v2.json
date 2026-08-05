@@ -1,0 +1,1 @@
+{"schema_ref":"schemas/proof_check_request_v2.schema.json","payload":{"request_id":"request:1","idempotency_key":"idempotency:1","compiler_profile_id":"profile:1","claim_id":"claim:1","canonical_claim":{"statement":"True"},"theorem_statement":"True","theorem_name":"Proof.t","source_bundle_id":"bundle:1","proof_artifact_relative_path":"Proof.lean","policy_decision_id":"policy:1"}}

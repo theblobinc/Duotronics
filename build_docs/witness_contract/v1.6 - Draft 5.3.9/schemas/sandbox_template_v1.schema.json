@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/sandbox_template_v1.schema.json",
+  "title": "Two-Domain Sandbox Template v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile", "network", "read_only_rootfs", "untrusted_final_result_mount", "trusted_final_result_mount", "trusted_inspection_mount", "runtime_sha256"],
+  "properties": {
+    "schema_version": {"const": "sandbox_template/v1"},
+    "profile": {"type": "string", "minLength": 1},
+    "network": {"const": "none"},
+    "read_only_rootfs": {"const": true},
+    "untrusted_final_result_mount": {"const": false},
+    "trusted_final_result_mount": {"const": false},
+    "trusted_inspection_mount": {"const": true},
+    "runtime_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

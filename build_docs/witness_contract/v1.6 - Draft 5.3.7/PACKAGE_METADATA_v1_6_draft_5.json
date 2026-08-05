@@ -1,0 +1,20 @@
+{
+  "package_name": "Duotronic v1.6 Draft 5 Witness Corpus",
+  "version": "v1.6-draft-5",
+  "status": "contract-complete; implementation deferred to separate file",
+  "generated_date": "2026-05-09",
+  "generated_timestamp": "2026-05-09T00:00:00Z",
+  "base_package": "v1.6 Draft 4.1",
+  "active_root": "v1.6 - Draft 5",
+  "primary_addition": "Natural Language Autoencoder witness layer for WG-RNN",
+  "new_witness_layer": "L2n Natural-Language Activation Witness",
+  "policy_default": "audit_only",
+  "non_claims": [
+    "No production NLA deployment claimed",
+    "No activation capture service claimed",
+    "No AV/AR runtime service claimed",
+    "No native WG-RNN model-specific NLA training claimed",
+    "No memory-write authority granted to NLA"
+  ],
+  "required_next_artifact": "separate implementation plan Markdown file"
+}

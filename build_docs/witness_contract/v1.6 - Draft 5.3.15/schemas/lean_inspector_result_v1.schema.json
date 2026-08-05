@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/lean_inspector_result_v1.schema.json",
+  "title": "Lean Environment Inspector Result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["declaration_found", "declaration_type_matches", "expected_type_expression_fingerprint", "actual_type_expression_fingerprint", "direct_dependencies", "dependency_closure", "axiom_set", "forbidden_axiom_set", "sorry_ax_present", "unsafe_dependency_present", "opaque_dependency_policy_result"],
+  "properties": {
+    "declaration_found": {"type": "boolean"},
+    "declaration_type_matches": {"type": "boolean"},
+    "expected_type_expression_fingerprint": {"type": "string", "minLength": 1, "maxLength": 1048576},
+    "actual_type_expression_fingerprint": {"type": "string", "maxLength": 1048576},
+    "direct_dependencies": {"$ref": "#/$defs/name_set"},
+    "dependency_closure": {"$ref": "#/$defs/name_set"},
+    "axiom_set": {"$ref": "#/$defs/name_set"},
+    "forbidden_axiom_set": {"$ref": "#/$defs/name_set"},
+    "sorry_ax_present": {"type": "boolean"},
+    "unsafe_dependency_present": {"type": "boolean"},
+    "opaque_dependency_policy_result": {"enum": ["passed", "failed", "not_evaluated"]}
+  },
+  "$defs": {"name_set": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}
+}

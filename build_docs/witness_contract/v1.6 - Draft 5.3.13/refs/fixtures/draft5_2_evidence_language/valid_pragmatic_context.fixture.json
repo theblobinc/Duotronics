@@ -1,0 +1,19 @@
+{
+  "schema_version": "pragmatic_context/v1",
+  "pragmatic_context_id": "pragmatic:fixture:test",
+  "issuer_principal_id": "principal:fixture:test-runner",
+  "audience": [
+    "audience:fixture:reviewer"
+  ],
+  "channel": "test_fixture",
+  "force_indicator": "assert",
+  "authority_scope": "diagnostic",
+  "runtime_mode": "test",
+  "delegation_chain_id": null,
+  "policy_decision_id": "policy:fixture:allow-observation",
+  "human_review_required": false,
+  "non_collapse_checked": true,
+  "created_at": "2026-05-11T00:00:00Z",
+  "expires_at": null,
+  "constraints": []
+}

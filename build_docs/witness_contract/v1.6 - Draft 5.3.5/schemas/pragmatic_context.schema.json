@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/pragmatic_context.schema.json",
+  "title": "PragmaticContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pragmatic_context_id",
+    "issuer_principal_id",
+    "audience",
+    "channel",
+    "force_indicator",
+    "authority_scope",
+    "runtime_mode",
+    "policy_decision_id",
+    "human_review_required",
+    "non_collapse_checked",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "pragmatic_context/v1"
+    },
+    "pragmatic_context_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "issuer_principal_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "audience": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "channel": {
+      "enum": [
+        "api",
+        "mcp_tool",
+        "cli",
+        "admin_ui",
+        "scheduler",
+        "replay",
+        "test_fixture",
+        "human_review",
+        "agent_runtime"
+      ]
+    },
+    "force_indicator": {
+      "enum": [
+        "observe",
+        "propose",
+        "assert",
+        "defer",
+        "veto",
+        "delegate",
+        "replay_verify"
+      ]
+    },
+    "authority_scope": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "local_session",
+        "tenant",
+        "repo",
+        "service",
+        "cluster",
+        "system",
+        "release",
+        "mathematical_claim",
+        "nla_training",
+        "policy",
+        "memory_write",
+        "model_promotion",
+        "truth_observer"
+      ]
+    },
+    "runtime_mode": {
+      "enum": [
+        "observe",
+        "test",
+        "simulation",
+        "shadow",
+        "audit",
+        "migration",
+        "release_candidate",
+        "production",
+        "rollback"
+      ]
+    },
+    "delegation_chain_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "human_review_required": {
+      "type": "boolean"
+    },
+    "non_collapse_checked": {
+      "type": "boolean",
+      "const": true
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    }
+  }
+}

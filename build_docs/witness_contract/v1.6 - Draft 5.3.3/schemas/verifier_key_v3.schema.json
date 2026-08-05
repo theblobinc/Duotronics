@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronics.local/schemas/verifier_key_v3.schema.json",
+  "title": "VerifierKeyV3",
+  "description": "Append-only verifier key registration containing the public bytes required for in-database signature verification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "key_id", "verifier_principal_id", "signature_algorithm", "public_key_base64url", "public_key_fingerprint_sha256", "valid_from", "valid_until", "created_at"],
+  "properties": {
+    "schema_version": {"const": "verifier_key/v3"},
+    "key_id": {"type": "string", "minLength": 1},
+    "verifier_principal_id": {"type": "string", "minLength": 1},
+    "signature_algorithm": {"const": "Ed25519"},
+    "public_key_base64url": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
+    "public_key_fingerprint_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "valid_from": {"type": "string", "format": "date-time"},
+    "valid_until": {"type": ["string", "null"], "format": "date-time"},
+    "created_at": {"type": "string", "format": "date-time"}
+  }
+}

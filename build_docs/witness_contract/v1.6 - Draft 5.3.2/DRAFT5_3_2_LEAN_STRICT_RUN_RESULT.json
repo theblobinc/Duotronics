@@ -1,0 +1,11 @@
+{
+  "schema_version": "lean_build_result/v1",
+  "package_version": "v1.6-draft-5.3.2",
+  "mode": "strict",
+  "status": "strict_fail_lake_unavailable",
+  "lake_available": false,
+  "toolchain": "leanprover/lean4:v4.29.1",
+  "release_authority": false,
+  "freeze_blocker": true,
+  "recorded_at": "2026-07-31T00:00:00-07:00"
+}
