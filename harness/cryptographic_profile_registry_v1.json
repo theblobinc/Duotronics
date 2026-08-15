@@ -1,0 +1,57 @@
+{
+  "schema": "duotronic-cryptographic-profile-registry/v1",
+  "registry_version": "1.0.0",
+  "active_profile": "duotronic-pq-2026.1",
+  "profiles": {
+    "duotronic-pq-2026.1": {
+      "status": "candidate",
+      "identity": {
+        "algorithm": "SHAKE256-512",
+        "domain_separation": "length-prefixed-utf8-v1",
+        "identifier_prefix": "duoid:shake256-512:"
+      },
+      "message_authentication": {
+        "algorithm": "KMAC256",
+        "output_bits": 512,
+        "customization_prefix": "DUOTRONIC/"
+      },
+      "signatures": {
+        "algorithm": "ML-DSA-87",
+        "standard": "FIPS-204",
+        "uses": ["witness", "gate-evidence", "qualification-report", "candidate-manifest"]
+      },
+      "key_encapsulation": {
+        "algorithm": "ML-KEM-1024",
+        "standard": "FIPS-203",
+        "uses": ["evidence-transport", "candidate-export", "encrypted-recovery"]
+      },
+      "authenticated_encryption": {
+        "algorithm": "AES-256-GCM-SIV",
+        "nonce_bytes": 12,
+        "key_derivation": "KMAC256-256"
+      },
+      "providers": {
+        "pqcrypto": "0.3.4",
+        "pycryptodomex": "3.23.0",
+        "cryptography": "46.0.0"
+      },
+      "key_lifecycle": {
+        "states": ["preactive", "active", "retired", "revoked", "destroyed"],
+        "maximum_active_signing_keys": 2,
+        "rotation_requires_distinct_successor": true,
+        "revocation_is_append_only": true,
+        "destroyed_private_material_must_be_absent": true
+      },
+      "legacy_policy": {
+        "ed25519_active_use": "forbidden",
+        "sha256_active_use": "forbidden",
+        "external_sha256": {
+          "allowed_only_as": "untrusted-interoperability-indicator",
+          "may_confer_identity": false,
+          "may_confer_authority": false,
+          "must_be_namespaced": true
+        }
+      }
+    }
+  }
+}

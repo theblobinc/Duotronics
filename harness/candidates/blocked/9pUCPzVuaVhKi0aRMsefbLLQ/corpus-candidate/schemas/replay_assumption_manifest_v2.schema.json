@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "assumption": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "assumption_type": {
+          "enum": [
+            "semantic",
+            "metrological",
+            "computational",
+            "schema",
+            "policy",
+            "cryptographic",
+            "environmental",
+            "temporal"
+          ]
+        },
+        "description": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required_for_pass": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "satisfied",
+            "unsatisfied",
+            "unknown",
+            "waived_with_policy"
+          ]
+        },
+        "validation_method": {
+          "enum": [
+            "schema_validation",
+            "hash_check",
+            "policy_check",
+            "human_attestation",
+            "deterministic_replay",
+            "formal_model_check",
+            "external_witness"
+          ]
+        }
+      },
+      "required": [
+        "assumption_id",
+        "description",
+        "assumption_type",
+        "validation_method",
+        "required_for_pass",
+        "status"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/replay_assumption_manifest_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assumptions": {
+      "items": {
+        "$ref": "#/$defs/assumption"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "deep_time_intent": {
+      "enum": [
+        "local_replay",
+        "deep_time_replay",
+        "migration_replay",
+        "cross_version_replay"
+      ]
+    },
+    "failure_mode": {
+      "enum": [
+        "block",
+        "reject",
+        "escalate",
+        "mark_inconclusive"
+      ]
+    },
+    "manifest_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "manifest_shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    },
+    "required_assumption_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "schema_version": {
+      "const": "replay_assumption_manifest/v2"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "deep_time_intent",
+    "assumptions",
+    "required_assumption_ids",
+    "failure_mode",
+    "manifest_shake256_512",
+    "created_at"
+  ],
+  "title": "ReplayAssumptionManifestV2",
+  "type": "object"
+}

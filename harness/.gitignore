@@ -10,3 +10,12 @@ htmlcov/
 **/*.pyc
 **/*.pyo
 **/*.pyd
+logs/*
+!logs/.gitkeep
+artifacts/
+evidence/private/
+*.backup-dev-rpc-*
+workspaces/*
+!workspaces/.gitkeep
+state/*
+!state/.gitkeep

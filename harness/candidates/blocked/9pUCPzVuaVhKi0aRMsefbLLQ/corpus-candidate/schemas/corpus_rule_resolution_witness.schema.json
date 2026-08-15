@@ -1,0 +1,111 @@
+{
+  "$id": "https://duotronics.local/schemas/corpusRuleResolutionWitness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "ambiguity_status": {
+            "enum": [
+              "ambiguous",
+              "denied",
+              "escalated"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "kernel_error_witness_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kernel_error_witness_id"
+        ]
+      }
+    }
+  ],
+  "description": "Witness proving that an active canonical rule was selected.",
+  "properties": {
+    "active_rule_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "ambiguity_status": {
+      "enum": [
+        "resolved",
+        "ambiguous",
+        "denied",
+        "escalated",
+        "forked"
+      ]
+    },
+    "compatibility_exceptions": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "concept": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "corpus_rule_resolution_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "kernel_error_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "requested_rule_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "corpus_rule_resolution_witness/v1"
+    },
+    "supersession_chain": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "version_selected": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_rule_resolution_witness_id",
+    "concept",
+    "active_rule_ref",
+    "version_selected",
+    "supersession_chain",
+    "ambiguity_status",
+    "policy_decision_id",
+    "created_at"
+  ],
+  "title": "CorpusRuleResolutionWitness",
+  "type": "object"
+}

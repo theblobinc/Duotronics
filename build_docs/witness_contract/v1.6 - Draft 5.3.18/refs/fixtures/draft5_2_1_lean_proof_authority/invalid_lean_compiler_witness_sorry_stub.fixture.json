@@ -1,0 +1,36 @@
+{
+  "payload": {
+    "command": [
+      "lake",
+      "build"
+    ],
+    "compiled_modules": [
+      "Duotronic",
+      "Duotronic.All",
+      "Duotronic.ProofAuthority",
+      "Duotronic.Kernel"
+    ],
+    "contains_admit": false,
+    "contains_sorry": true,
+    "created_at": "2026-05-11T00:00:00Z",
+    "lakefile_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "lean_compiler_witness_id": "lean:compiler:invalid:sorry",
+    "result": "passed",
+    "schema_version": "lean_compiler_witness/v1",
+    "source_tree_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "stderr_ref": null,
+    "stdout_ref": null,
+    "theorem_statuses": [
+      {
+        "axioms": [],
+        "file_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "source_hash_matches": true,
+        "status": "proved",
+        "theorem_name": "theorem_promotion_requires_valid_lean_proof"
+      }
+    ],
+    "toolchain": "leanprover/lean4:v4.29.1",
+    "unapproved_axiom_count": 0
+  },
+  "schema_ref": "schemas/lean_compiler_witness.schema.json"
+}

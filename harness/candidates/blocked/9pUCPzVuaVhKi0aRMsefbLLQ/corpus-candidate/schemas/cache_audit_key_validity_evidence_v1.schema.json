@@ -1,0 +1,93 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_key_validity_evidence_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authorization_scope": {
+      "enum": [
+        "cache_audit_record_signing",
+        "cache_audit_receipt_signing",
+        "cache_audit_monotonic_anchor_signing",
+        "cache_audit_recovery_signing"
+      ]
+    },
+    "decision": {
+      "enum": [
+        "active_time_valid_rotation_valid",
+        "inactive_or_time_invalid"
+      ]
+    },
+    "evaluated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "key_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "principal_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "rotation_predecessor_key_id": {
+      "oneOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "cache_audit_key_validity_evidence/v1"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "retired",
+        "revoked"
+      ]
+    },
+    "status_changed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "valid_until": {
+      "oneOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "registry_shake256_512",
+    "key_id",
+    "principal_id",
+    "authorization_scope",
+    "status",
+    "valid_from",
+    "valid_until",
+    "status_changed_at",
+    "rotation_predecessor_key_id",
+    "decision",
+    "evaluated_at"
+  ],
+  "title": "Cache Audit Key Validity Evidence v1",
+  "type": "object"
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "xavi-vm-ssh-import/v1",
+  "github_users": ["theblobinc"],
+  "guest_users": ["xavi"],
+  "preserve_existing_authorized_keys": true,
+  "source": "https://github.com/{github_user}.keys",
+  "notes": "Public SSH keys only. Import during VM provisioning and allow bounded post-provision resynchronization via QEMU guest agent."
+}

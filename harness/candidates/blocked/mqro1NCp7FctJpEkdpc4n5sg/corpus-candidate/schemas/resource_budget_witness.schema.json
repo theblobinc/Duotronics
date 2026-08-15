@@ -1,0 +1,78 @@
+{
+  "$id": "https://duotronics.local/schemas/resourceBudgetWitness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Resource and safety budget for deterministic observer execution.",
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "max_memory_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "max_recursion_depth": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "max_steps": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "max_time_budget_ms": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "mutation_allowed": {
+      "type": "boolean"
+    },
+    "mutation_requires_transaction": {
+      "const": true,
+      "type": "boolean"
+    },
+    "network_allowed": {
+      "const": false,
+      "type": "boolean"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "randomness_allowed": {
+      "const": false,
+      "type": "boolean"
+    },
+    "resource_budget_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "resource_budget_witness/v1"
+    },
+    "scope_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "wall_clock_allowed": {
+      "const": false,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "resource_budget_id",
+    "scope_ref",
+    "max_steps",
+    "max_recursion_depth",
+    "max_memory_bytes",
+    "network_allowed",
+    "randomness_allowed",
+    "wall_clock_allowed",
+    "mutation_allowed",
+    "policy_decision_id",
+    "created_at"
+  ],
+  "title": "ResourceBudgetWitness",
+  "type": "object"
+}

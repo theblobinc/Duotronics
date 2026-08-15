@@ -1,0 +1,12 @@
+Draft 4.1 generated: 2026-05-09
+Base copied from: /mnt/data/v1.6 - Draft 4.zip
+Package root: v1.6 - Draft 4.1
+Final files: 258
+Final Markdown files: 245
+Final non-Markdown files: 13
+Primary manifest: refs/manifest/MANIFEST_v1_6_draft_4_1_complete.md
+Release JSON: refs/manifest/MANIFEST_v1_6_draft_4_1_release.json
+Checksums: refs/manifest/CHECKSUMS_v1_6_draft_4_1.shake256_512
+Runtime certification: not performed in package-generation environment
+Full SRNN test-suite run: not performed in package-generation environment
+Zip verification: performed after package write

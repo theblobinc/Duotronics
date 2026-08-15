@@ -1,0 +1,22 @@
+FROM docker.io/library/python:3.12-slim-bookworm
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates curl git jq openjdk-17-jre-headless sqlite3 zstd \
+ && rm -rf /var/lib/apt/lists/*
+ARG LEAN_VERSION=4.29.1
+RUN curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 --max-time 900 \
+    --output /tmp/lean.tar.zst \
+    "https://github.com/leanprover/lean4/releases/download/v${LEAN_VERSION}/lean-${LEAN_VERSION}-linux.tar.zst" \
+ && tar --use-compress-program=unzstd -xf /tmp/lean.tar.zst -C /opt \
+ && mv "/opt/lean-${LEAN_VERSION}-linux" "/opt/lean-${LEAN_VERSION}" \
+ && for tool in "/opt/lean-${LEAN_VERSION}"/bin/*; do ln -sf "$tool" "/usr/bin/$(basename "$tool")"; done \
+ && rm -f /tmp/lean.tar.zst
+RUN python3 -m pip install --no-cache-dir \
+    cryptography==46.0.0 \
+    jsonschema==4.25.0 \
+    pqcrypto==0.3.4 \
+    pycryptodomex==3.23.0
+RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin harness
+WORKDIR /opt/harness
+ENV PYTHONHASHSEED=0 PYTHONDONTWRITEBYTECODE=1
+USER harness

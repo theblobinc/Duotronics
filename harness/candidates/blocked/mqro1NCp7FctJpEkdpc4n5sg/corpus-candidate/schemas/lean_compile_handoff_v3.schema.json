@@ -1,0 +1,201 @@
+{
+  "$defs": {
+    "path": {
+      "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\).+[.]olean$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/lean_compile_handoff_v3.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifact_count": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "artifacts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "enum": [
+              "0440",
+              "0600",
+              "0640",
+              "0644"
+            ]
+          },
+          "path": {
+            "$ref": "#/$defs/path"
+          },
+          "shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          },
+          "size_bytes": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "size_bytes",
+          "shake256_512",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "binding_module_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "binding_olean_path": {
+      "$ref": "#/$defs/path"
+    },
+    "binding_olean_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "command_reconstruction_policy": {
+      "const": "lean_compile_command_reconstruction/v1"
+    },
+    "compilation_commands": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "argv_shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          },
+          "module": {
+            "pattern": "^(?:[A-Za-z_][A-Za-z0-9_']*[.])*[A-Za-z_][A-Za-z0-9_']*$",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "submitted_source",
+              "generated_binding"
+            ]
+          }
+        },
+        "required": [
+          "module",
+          "role",
+          "argv_shake256_512"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "compilation_environment_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "compiled_modules": {
+      "contains": {
+        "properties": {
+          "role": {
+            "const": "generated_binding"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "type": "object"
+      },
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "module": {
+            "pattern": "^(?:[A-Za-z_][A-Za-z0-9_']*[.])*[A-Za-z_][A-Za-z0-9_']*$",
+            "type": "string"
+          },
+          "olean_path": {
+            "$ref": "#/$defs/path"
+          },
+          "olean_shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          },
+          "role": {
+            "enum": [
+              "submitted_source",
+              "generated_binding"
+            ]
+          },
+          "source_shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          }
+        },
+        "required": [
+          "module",
+          "role",
+          "source_shake256_512",
+          "olean_path",
+          "olean_shake256_512"
+        ],
+        "type": "object"
+      },
+      "maxContains": 1,
+      "minContains": 1,
+      "minItems": 1,
+      "type": "array"
+    },
+    "lean_executable_path": {
+      "pattern": "^/(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\).+/lean$",
+      "type": "string"
+    },
+    "lean_executable_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "maximum_artifact_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "maximum_handoff_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "lean_compile_handoff/v3"
+    },
+    "total_handoff_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "warning_as_error_cli_option": {
+      "const": "-DwarningAsError=true"
+    },
+    "warnings_as_errors": {
+      "const": true
+    },
+    "working_directory": {
+      "pattern": "^/(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\).+",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "compiled_modules",
+    "compilation_commands",
+    "warnings_as_errors",
+    "warning_as_error_cli_option",
+    "command_reconstruction_policy",
+    "lean_executable_path",
+    "lean_executable_shake256_512",
+    "working_directory",
+    "compilation_environment_shake256_512",
+    "binding_module_shake256_512",
+    "binding_olean_path",
+    "binding_olean_shake256_512",
+    "artifacts",
+    "artifact_count",
+    "total_handoff_bytes",
+    "maximum_artifact_bytes",
+    "maximum_handoff_bytes"
+  ],
+  "title": "Independently Reconstructable Lean Compile Handoff Manifest v3",
+  "type": "object"
+}

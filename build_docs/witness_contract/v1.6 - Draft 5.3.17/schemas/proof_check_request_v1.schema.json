@@ -1,0 +1,67 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/proof_check_request_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "canonical_claim": {
+      "maxProperties": 1024,
+      "type": "object"
+    },
+    "claim_id": {
+      "$ref": "#/$defs/id"
+    },
+    "compiler_profile_id": {
+      "$ref": "#/$defs/id"
+    },
+    "idempotency_key": {
+      "$ref": "#/$defs/id"
+    },
+    "policy_decision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "proof_artifact_relative_path": {
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\)(?!.*//)(?![.]/).+[.]lean$",
+      "type": "string"
+    },
+    "request_id": {
+      "$ref": "#/$defs/id"
+    },
+    "source_bundle_id": {
+      "$ref": "#/$defs/id"
+    },
+    "subject_id": {
+      "$ref": "#/$defs/id"
+    },
+    "theorem_name": {
+      "pattern": "^(?:[A-Za-z_][A-Za-z0-9_']*\\.)*[A-Za-z_][A-Za-z0-9_']*$",
+      "type": "string"
+    },
+    "theorem_statement": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "idempotency_key",
+    "subject_id",
+    "compiler_profile_id",
+    "claim_id",
+    "canonical_claim",
+    "theorem_statement",
+    "theorem_name",
+    "source_bundle_id",
+    "proof_artifact_relative_path",
+    "policy_decision_id"
+  ],
+  "title": "Canonical Proof Check Request v1",
+  "type": "object"
+}

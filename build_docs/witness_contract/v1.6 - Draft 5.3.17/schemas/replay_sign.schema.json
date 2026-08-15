@@ -1,0 +1,64 @@
+{
+  "$id": "https://duotronics.local/schemas/replay_sign.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifact_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "replay_sign_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "replay_sign/v1"
+    },
+    "shake256_512": {
+      "pattern": "^(shake256_512:)?[A-Fa-f0-9]{128}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "sign_status": {
+      "enum": [
+        "declared",
+        "verified",
+        "failed",
+        "superseded"
+      ]
+    },
+    "sign_type": {
+      "enum": [
+        "iconic",
+        "indexical",
+        "structural",
+        "procedural"
+      ]
+    },
+    "target_ref": {
+      "type": "string"
+    },
+    "verification_result_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "replay_sign_id",
+    "sign_type",
+    "target_ref",
+    "description",
+    "sign_status"
+  ],
+  "title": "ReplaySign",
+  "type": "object"
+}

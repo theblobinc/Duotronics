@@ -1,0 +1,133 @@
+{
+  "findings": [
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "H-01",
+      "severity": "high",
+      "title": "Coordinated restoration of an older log and matching checkpoint is accepted"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "H-02",
+      "severity": "high",
+      "title": "Successor segment provisioning accepts an arbitrary predecessor tail without verifying a sealed predecessor"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "H-03",
+      "severity": "high",
+      "title": "A segment at maximum record or byte capacity cannot append its required terminal seal"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "H-04",
+      "severity": "high",
+      "title": "Synchronous audit persistence is not hard-bounded by the request deadline"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "M-01",
+      "severity": "medium",
+      "title": "Audit log is fully read before the configured maximum byte bound is enforced"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "M-02",
+      "severity": "medium",
+      "title": "Checkpoint failure leaves temporary files and log-ahead-of-checkpoint state"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "M-03",
+      "severity": "medium",
+      "title": "Audit signing identity has no governance-signed validity and rotation registry"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "M-04",
+      "severity": "medium",
+      "title": "Audit parent ownership, mode, ancestry, and independent protection are not enforced"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/validators/validate_draft5_3_14_corpus.py"
+      ],
+      "id": "M-05",
+      "severity": "medium",
+      "title": "External SIGTERM of the validator leaves active phase descendants alive"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/validators/validate_draft5_3_14_corpus.py"
+      ],
+      "id": "M-06",
+      "severity": "medium",
+      "title": "Complete validator runtime was not independently reproducible although component suites passed"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/validators/run_production_loader_integration.py",
+        "validation/production_loader/draft5_3_14_nonroot_loader_evidence.json"
+      ],
+      "id": "P-01",
+      "severity": "pending_external_execution",
+      "title": "Production non-root loader integration remains environment_unavailable"
+    }
+  ],
+  "package": "v1.6-draft-5.3.14",
+  "verdict": "publishable_non_authoritative_not_activation_ready",
+  "verified": {
+    "adversarial_fixtures_rejected": 47,
+    "authority_enabled": false,
+    "direct_python_version": "3.13.5",
+    "direct_tests_passed": 290,
+    "direct_tests_total": 290,
+    "direct_warning_as_error_tests_passed": 290,
+    "direct_warning_lines": 0,
+    "directory_entries": 180,
+    "duplicate_zip_entries": 0,
+    "embedded_zip_files": 0,
+    "external_activation_gates_complete": 0,
+    "freeze_state": "permanently_not_frozen",
+    "hash_or_size_mismatches": 0,
+    "inventory_files": 1838,
+    "packaged_optional_activation_phases_skipped": 8,
+    "packaged_required_phases_passed": 94,
+    "packaged_required_phases_total": 94,
+    "packaged_runtime_cache_files": 0,
+    "recursive_exclusions": 4,
+    "schemas_compiled": 117,
+    "shake256_512_covered_files": 1834,
+    "strict_canonical_schemas": 45,
+    "valid_fixtures_passed": 45,
+    "zip_entries": 2018
+  },
+  "zip_shake256_512": "625126b9e223f08c0cbf9faf0895d6b6d61077a63bdf606d57d5bb45c89c7a2a"
+}

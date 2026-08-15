@@ -1,0 +1,75 @@
+{
+  "modules": [
+    {
+      "id": "runtime.kernel",
+      "kind": "control_plane",
+      "profile": "core",
+      "enabled": true,
+      "capabilities": ["evidence", "policy", "non_collapse", "corpus_abi", "mcp"],
+      "evidence_outputs": ["WitnessEnvelope", "PolicyDecisionWitness", "CorpusValidationWitness"]
+    },
+    {
+      "id": "ollama.local",
+      "kind": "model_provider",
+      "profile": "models",
+      "endpoint": "${OLLAMA_HOST}",
+      "enabled_env": "OLLAMA_ENABLED",
+      "capabilities": ["text_generation", "embeddings"],
+      "evidence_outputs": ["ModelOutputWitness", "EmbeddingWitness"]
+    },
+    {
+      "id": "llama_cpp.local",
+      "kind": "model_provider",
+      "profile": "models",
+      "endpoint": "${LLAMA_CPP_BASE_URL}",
+      "enabled_env": "LLAMA_CPP_ENABLED",
+      "capabilities": ["openai_chat_completion"],
+      "evidence_outputs": ["ModelOutputWitness"]
+    },
+    {
+      "id": "tlaplus.tlc",
+      "kind": "formal_observer",
+      "profile": "formal",
+      "image": "localhost/duotronic-tlaplus:latest",
+      "enabled_env": "FORMAL_OBSERVERS_ENABLED",
+      "capabilities": ["model_check"],
+      "evidence_outputs": ["TLAObserverWitness"]
+    },
+    {
+      "id": "lean4.local",
+      "kind": "proof_observer",
+      "profile": "formal",
+      "image": "localhost/duotronic-lean4:latest",
+      "enabled_env": "FORMAL_OBSERVERS_ENABLED",
+      "capabilities": ["proof_check"],
+      "evidence_outputs": ["LeanProofWitness"]
+    },
+    {
+      "id": "stable_diffusion.local",
+      "kind": "media_generator",
+      "profile": "media",
+      "endpoint": "${STABLE_DIFFUSION_URL}",
+      "enabled_env": "STABLE_DIFFUSION_ENABLED",
+      "capabilities": ["image_generation"],
+      "evidence_outputs": ["MediaGenerationWitness"]
+    },
+    {
+      "id": "transformers_js.local",
+      "kind": "encoder",
+      "profile": "encoders",
+      "endpoint": "${TRANSFORMERS_JS_URL}",
+      "enabled_env": "TRANSFORMERS_JS_ENABLED",
+      "capabilities": ["embedding", "classification", "rerank"],
+      "evidence_outputs": ["EmbeddingWitness", "ClassificationWitness"]
+    },
+    {
+      "id": "librechat.surface",
+      "kind": "ui_surface",
+      "profile": "ui",
+      "endpoint": "${LIBRECHAT_URL}",
+      "enabled_env": "LIBRECHAT_ENABLED",
+      "capabilities": ["chat_ui"],
+      "evidence_outputs": ["ConversationSurfaceWitness"]
+    }
+  ]
+}

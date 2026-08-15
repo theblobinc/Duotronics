@@ -12,7 +12,7 @@ from urllib.parse import quote_plus
 import httpx
 
 from .config import Settings
-from .evidence import sha256_ref
+from .evidence import shake256_ref
 
 
 @dataclass
@@ -39,7 +39,7 @@ class ToolRuntime:
         return witness
 
     def write_artifact(self, data: bytes, suffix: str, media_type: str, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
-        digest = sha256_ref(data)
+        digest = shake256_ref(data)
         artifact_id = "artifact_" + digest.split(":", 1)[1][:32]
         filename = artifact_id + suffix
         path = self.artifact_dir / filename
@@ -69,7 +69,7 @@ class ToolRuntime:
         contract = self.tool_contracts()["code_interpreter_execute"]
         payload = {
             "language": language,
-            "code_digest": sha256_ref(code),
+            "code_digest": shake256_ref(code),
             "status": "requires_sandbox_backend",
             "message": "Code interpreter API is wired, but no hardened execution sandbox backend is configured yet.",
             "required_backend": contract["backend_env"][0],
@@ -87,20 +87,38 @@ class ToolRuntime:
             response = await client.post(endpoint.rstrip("/") + "/execute", json={"language": language, "code": code, "stdin": stdin, "timeout_seconds": timeout_seconds})
             response.raise_for_status()
             result = response.json()
-        payload = {"language": language, "code_digest": sha256_ref(code), "backend": endpoint, "result": result, "created_at_ms": int(time.time() * 1000)}
+        payload = {"language": language, "code_digest": shake256_ref(code), "backend": endpoint, "result": result, "created_at_ms": int(time.time() * 1000)}
         witness = self.record_witness("CodeExecutionWitness", payload, status="accepted" if result.get("ok") else "recorded", observer_id="code_interpreter.local")
         return {"ok": bool(result.get("ok")), "witness": witness, **payload}
 
-    async def search_xavi(self, *, query: str, top_k: int = 5, engine: str = "xavi") -> dict[str, Any]:
+    async def search_xavi(
+        self,
+        *,
+        query: str,
+        top_k: int = 5,
+        engine: str = "xavi",
+        channel: str = "web",
+    ) -> dict[str, Any]:
         query = query.strip()
+        if not query:
+            raise ValueError("query is required")
         top_k = max(1, min(int(top_k), 10))
+        normalized_channel = str(channel or "web").strip().lower()
+        aliases = {"general": "web", "search": "web", "image": "images", "pictures": "images", "new": "news"}
+        normalized_channel = aliases.get(normalized_channel, normalized_channel)
+        if normalized_channel not in {"web", "news", "images"}:
+            raise ValueError("channel must be one of web, news, images")
+
         base_url = self.settings.xavi_search_url or os.environ.get("XAVI_SEARCH_URL") or os.environ.get("SEARCH_API_URL") or ""
         api_key = self.settings.xavi_search_api_key or os.environ.get("XAVI_SEARCH_API_KEY") or os.environ.get("SEARCH_API_KEY") or ""
+        searx_url = os.environ.get("XAVI_SEARX_URL") or "http://searxng-research:8080"
         results: list[dict[str, Any]] = []
         errors: list[str] = []
         source = "fallback"
+
+        # Preserve the configured Xavi search adapter when present.
         if base_url:
-            async with httpx.AsyncClient(timeout=20.0) as client:
+            async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
                 headers = {"accept": "application/json"}
                 if api_key:
                     headers["authorization"] = "Bearer " + api_key
@@ -112,33 +130,86 @@ class ToolRuntime:
                 ]
                 for method, url in urls:
                     try:
-                        r = await client.get(url, headers=headers) if method == "GET" else await client.post(url, headers=headers, json={"query": query, "top_k": top_k, "limit": top_k})
+                        r = await client.get(url, headers=headers) if method == "GET" else await client.post(
+                            url,
+                            headers=headers,
+                            json={"query": query, "top_k": top_k, "limit": top_k, "channel": normalized_channel},
+                        )
                         if r.status_code >= 400:
-                            errors.append(f"{method} status={r.status_code}")
+                            errors.append(f"configured:{method}:status={r.status_code}")
                             continue
                         data = r.json()
                         raw = data.get("results") or data.get("items") or data.get("data") or []
                         if isinstance(raw, dict):
                             raw = list(raw.values())
                         for item in raw[:top_k]:
-                            if isinstance(item, dict):
-                                results.append({
-                                    "title": str(item.get("title") or item.get("name") or item.get("url") or "Untitled"),
-                                    "url": str(item.get("url") or item.get("link") or ""),
-                                    "snippet": str(item.get("snippet") or item.get("summary") or item.get("content") or "")[:2000],
-                                    "source": str(item.get("source") or engine),
-                                    "score": item.get("score"),
-                                })
+                            if not isinstance(item, dict):
+                                continue
+                            results.append({
+                                "title": str(item.get("title") or item.get("name") or item.get("url") or "Untitled"),
+                                "url": str(item.get("url") or item.get("link") or ""),
+                                "snippet": str(item.get("snippet") or item.get("summary") or item.get("content") or "")[:2000],
+                                "source": str(item.get("source") or engine),
+                                "score": item.get("score"),
+                                "published_at": item.get("published_at") or item.get("publishedDate"),
+                                "image_url": item.get("image_url") or item.get("img_src"),
+                                "thumbnail_url": item.get("thumbnail_url") or item.get("thumbnail_src"),
+                            })
                         if results:
                             source = url
                             break
                     except Exception as exc:
-                        errors.append(f"{method} {exc.__class__.__name__}")
-        if not results:
-            results = [{"title": "Xavi search engine not configured", "url": "", "snippet": "Set XAVI_SEARCH_URL or SEARCH_API_URL to enable live Xavi web search evidence.", "source": "runtime.fallback", "score": 0}]
-        payload = {"query": query, "engine": engine, "source": source, "top_k": top_k, "results": results, "errors": errors, "retrieved_at_ms": int(time.time() * 1000), "results_digest": sha256_ref(json.dumps(results, sort_keys=True))}
-        witness = self.record_witness("SearchResultWitness", payload, status="accepted" if source != "fallback" else "recorded", observer_id="search.xavi")
-        return {"ok": True, "witness": witness, **payload}
+                        errors.append(f"configured:{method}:{exc.__class__.__name__}")
+
+        # Native local SearXNG path: private Podman research bus, no host/LAN publication.
+        if not results and searx_url:
+            category = {"web": "general", "news": "news", "images": "images"}[normalized_channel]
+            try:
+                async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
+                    r = await client.get(
+                        searx_url.rstrip("/") + "/search",
+                        params={"q": query, "format": "json", "categories": category, "safesearch": 0},
+                        headers={"accept": "application/json"},
+                    )
+                    r.raise_for_status()
+                    data = r.json()
+                    raw = data.get("results") or []
+                    for item in raw[:top_k]:
+                        if not isinstance(item, dict):
+                            continue
+                        engines = item.get("engines") or []
+                        source_name = ",".join(str(x) for x in engines[:4]) if isinstance(engines, list) else str(engines or "searxng")
+                        results.append({
+                            "title": str(item.get("title") or item.get("url") or "Untitled"),
+                            "url": str(item.get("url") or ""),
+                            "snippet": str(item.get("content") or item.get("snippet") or "")[:2000],
+                            "source": source_name or "searxng",
+                            "score": item.get("score"),
+                            "published_at": item.get("publishedDate") or item.get("published_at"),
+                            "image_url": item.get("img_src") or item.get("image_src"),
+                            "thumbnail_url": item.get("thumbnail_src") or item.get("thumbnail"),
+                            "category": item.get("category") or category,
+                        })
+                    if results:
+                        source = searx_url.rstrip("/") + "/search"
+            except Exception as exc:
+                errors.append(f"searx:{exc.__class__.__name__}:{str(exc)[:120]}")
+
+        payload = {
+            "query": query,
+            "engine": engine,
+            "channel": normalized_channel,
+            "source": source,
+            "top_k": top_k,
+            "results": results,
+            "result_count": len(results),
+            "errors": errors,
+            "retrieved_at_ms": int(time.time() * 1000),
+            "results_digest": shake256_ref(json.dumps(results, sort_keys=True, separators=(",", ":"), ensure_ascii=False)),
+        }
+        status = "accepted" if results else "recorded"
+        witness = self.record_witness("SearchResultWitness", payload, status=status, observer_id=f"search.xavi.{normalized_channel}")
+        return {"ok": bool(results), "witness": witness, **payload}
 
     async def generate_image(self, *, prompt: str, size: str = "1024x1024", model: str | None = None, n: int = 1) -> dict[str, Any]:
         endpoint = self.settings.stable_diffusion_url or os.environ.get("STABLE_DIFFUSION_URL") or os.environ.get("IMAGE_GENERATION_URL") or ""
@@ -160,17 +231,21 @@ class ToolRuntime:
                             raw_images = [x.get("b64_json") or x.get("url") for x in data["data"] if isinstance(x, dict)]
                         for item in raw_images[:n]:
                             if isinstance(item, str) and item.startswith("http"):
-                                images.append({"url": item, "media_type": "image/remote", "digest": sha256_ref(item)})
+                                images.append({"url": item, "media_type": "image/remote", "digest": shake256_ref(item)})
                             elif isinstance(item, str):
                                 data_bytes = base64.b64decode(item.split(",")[-1])
-                                images.append(self.write_artifact(data_bytes, ".png", "image/png", {"prompt_digest": sha256_ref(prompt), "generator": url}))
+                                images.append(self.write_artifact(data_bytes, ".png", "image/png", {"prompt_digest": shake256_ref(prompt), "generator": url}))
                         if images:
                             break
                     except Exception as exc:
                         errors.append(exc.__class__.__name__)
-        payload = {"prompt": prompt, "prompt_digest": sha256_ref(prompt), "size": size, "model": model, "n": n, "images": images, "errors": errors, "enabled": bool(endpoint), "created_at_ms": int(time.time() * 1000)}
+        payload = {"prompt": prompt, "prompt_digest": shake256_ref(prompt), "size": size, "model": model, "n": n, "images": images, "errors": errors, "enabled": bool(endpoint), "created_at_ms": int(time.time() * 1000)}
         witness = self.record_witness("MediaGenerationWitness", payload, status="accepted" if images else "recorded", observer_id="image_generation.local")
         return {"ok": bool(images), "witness": witness, **payload}
+
+    async def sandbox_vm_manage(self, *, action: str, request: dict[str, Any] | None = None) -> dict[str, Any]:
+        from .sandbox_vm import SandboxVMRuntime
+        return await SandboxVMRuntime(self.kernel).execute(action=action, request=request or {})
 
     def tool_contracts(self) -> dict[str, dict[str, Any]]:
         return {
@@ -197,12 +272,22 @@ class ToolRuntime:
             "xavi_search_evidence": {
                 "witness_type": "SearchResultWitness",
                 "observer_id": "search.xavi",
-                "capabilities": ["evidence_retrieval", "search"],
-                "backend_env": ["XAVI_SEARCH_URL", "SEARCH_API_URL"],
+                "capabilities": ["evidence_retrieval", "search", "web_search", "news_search", "image_search"],
+                "backend_env": ["XAVI_SEARCH_URL", "SEARCH_API_URL", "XAVI_SEARX_URL"],
                 "bounds": {"top_k": {"minimum": 1, "maximum": 10}, "timeout_seconds": 20},
                 "success_status": "accepted",
                 "fallback_status": "recorded",
                 "disabled_error": None,
+            },
+            "sandbox_vm_manage": {
+                "witness_type": "SandboxVMOperationWitness",
+                "observer_id": "sandbox.vm.xavi-sandbox-1",
+                "capabilities": ["sandbox_vm", "container_lifecycle", "code_execution", "image_build", "artifact_staging"],
+                "backend_env": ["XAVI_SANDBOX_AGENT_URL", "XAVI_SANDBOX_AGENT_KEY_FILE"],
+                "bounds": {"control_plane": "management-only", "container_engine": "rootless-podman", "host_podman_socket": False, "primary_node_fabric": "10.77.0.0/24"},
+                "success_status": "executed",
+                "fallback_status": "observer_error",
+                "disabled_error": "sandbox_vm_not_configured",
             },
             "operation_plan": {
                 "witness_type": "OperationPlanWitness",
@@ -249,9 +334,15 @@ class ToolRuntime:
                 "env": "STABLE_DIFFUSION_URL|IMAGE_GENERATION_URL",
             },
             "search": {
-                "configured": bool(self.settings.xavi_search_url or os.environ.get("XAVI_SEARCH_URL") or os.environ.get("SEARCH_API_URL")),
-                "env": "XAVI_SEARCH_URL|SEARCH_API_URL",
+                "configured": True,
+                "backend": self.settings.xavi_search_url or os.environ.get("XAVI_SEARCH_URL") or os.environ.get("SEARCH_API_URL") or os.environ.get("XAVI_SEARX_URL") or "http://searxng-research:8080",
+                "channels": ["web", "news", "images"],
+                "env": "XAVI_SEARCH_URL|SEARCH_API_URL|XAVI_SEARX_URL",
             },
+            "content_rating": __import__("duotronic_runtime.content_rating", fromlist=["ContentRatingRuntime"]).ContentRatingRuntime(self.kernel).capability(),
+            "child_safety": __import__("duotronic_runtime.child_safety", fromlist=["ChildSafetyRuntime"]).ChildSafetyRuntime(self.kernel).capability(),
+            "model_observers": __import__("duotronic_runtime.model_observer", fromlist=["ModelObservationRuntime"]).ModelObservationRuntime(self.kernel).capability(),
+            "sandbox_vm": __import__("duotronic_runtime.sandbox_vm", fromlist=["SandboxVMRuntime"]).SandboxVMRuntime(self.kernel).capability(),
         }
 
         payload = {
@@ -275,12 +366,13 @@ class ToolRuntime:
             "tool_capabilities": tool_capabilities,
             "backends": backends,
         }
-        payload["capabilities_digest"] = sha256_ref(json.dumps(digest_payload, sort_keys=True, default=str))
+        payload["capabilities_digest"] = shake256_ref(json.dumps(digest_payload, sort_keys=True, default=str))
         return payload
 
     def openai_tools(self) -> list[dict[str, Any]]:
         return [
-            {"type": "function", "function": {"name": "xavi_search_evidence", "description": "Search the Xavi/web search engine and return evidence-backed search results with a witness.", "parameters": {"type": "object", "properties": {"query": {"type": "string"}, "top_k": {"type": "integer", "minimum": 1, "maximum": 10}}, "required": ["query"]}}},
+            {"type": "function", "function": {"name": "xavi_search_evidence", "description": "Search Xavi/SearXNG using web, news, or image channels and return evidence-backed results with a witness.", "parameters": {"type": "object", "properties": {"query": {"type": "string"}, "top_k": {"type": "integer", "minimum": 1, "maximum": 10}, "channel": {"type": "string", "enum": ["web", "news", "images"]}}, "required": ["query"]}}},
             {"type": "function", "function": {"name": "code_interpreter_execute", "description": "Run Python through the configured code-interpreter sandbox and return stdout, stderr, artifacts, and a witness.", "parameters": {"type": "object", "properties": {"code": {"type": "string"}, "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 60}}, "required": ["code"]}}},
+            {"type": "function", "function": {"name": "sandbox_vm_manage", "description": "Control isolated rootless Podman workloads inside the managed Xavi sandbox VM. Use for bounded container/image/file lifecycle operations; WG-RNN remains adjudication authority.", "parameters": {"type": "object", "properties": {"action": {"type": "string", "enum": ["health", "containers", "images", "logs", "file_list", "file_put", "image_pull", "image_build", "container_run", "container_action", "container_exec"]}, "request": {"type": "object", "additionalProperties": True}}, "required": ["action"]}}},
             {"type": "function", "function": {"name": "image_generate", "description": "Generate an image through the configured image backend and return artifact references with a witness.", "parameters": {"type": "object", "properties": {"prompt": {"type": "string"}, "size": {"type": "string"}}, "required": ["prompt"]}}},
         ]

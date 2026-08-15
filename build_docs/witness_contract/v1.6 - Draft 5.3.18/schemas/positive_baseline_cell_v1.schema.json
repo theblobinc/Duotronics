@@ -1,0 +1,204 @@
+{
+  "$id": "https://duotronics.local/schemas/positive_baseline_cell_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "profiles": {
+            "contains": {
+              "const": "positive-baseline-1"
+            },
+            "type": "array"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "baseline": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "profiles": {
+            "contains": {
+              "const": "even-payload-1"
+            },
+            "type": "array"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload_domain": {
+            "properties": {
+              "multiple_of": {
+                "const": 2
+              }
+            },
+            "required": [
+              "multiple_of"
+            ],
+            "type": "object"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "baseline": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "cell_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "cell_type": {
+      "enum": [
+        "polygon-cell",
+        "hex-cell"
+      ]
+    },
+    "child_weights": {
+      "items": {
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "children": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "codeword": {
+      "type": "integer"
+    },
+    "coefficient": {
+      "type": "integer"
+    },
+    "direct_weights": {
+      "items": {
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "numeric_policy": {
+      "additionalProperties": false,
+      "properties": {
+        "max_depth": {
+          "maximum": 10000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_nodes": {
+          "maximum": 1000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "overflow": {
+          "const": "reject"
+        }
+      },
+      "required": [
+        "overflow",
+        "max_nodes",
+        "max_depth"
+      ],
+      "type": "object"
+    },
+    "operator": {
+      "enum": [
+        "global-scaled-weighted-sum",
+        "child-scaled-weighted-sum"
+      ]
+    },
+    "payload": {
+      "type": "integer"
+    },
+    "payload_domain": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "integer"
+        },
+        "maximum": {
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "minimum": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "multiple_of": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "minimum"
+      ],
+      "type": "object"
+    },
+    "profiles": {
+      "items": {
+        "enum": [
+          "core-acyclic-1.2",
+          "positive-baseline-1",
+          "even-payload-1"
+        ]
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "schema_version": {
+      "const": "positive_baseline_cell/v1"
+    },
+    "sockets": {
+      "items": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "VALID",
+        "UNKNOWN",
+        "INVALID",
+        "FAULT"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "cell_id",
+    "cell_type",
+    "profiles",
+    "payload_domain",
+    "operator",
+    "coefficient",
+    "baseline",
+    "sockets",
+    "children",
+    "status",
+    "numeric_policy"
+  ],
+  "title": "PositiveBaselineCellV1",
+  "type": "object"
+}

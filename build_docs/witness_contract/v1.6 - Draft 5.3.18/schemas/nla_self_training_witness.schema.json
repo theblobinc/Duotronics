@@ -1,0 +1,221 @@
+{
+  "$id": "https://duotronic.local/schemas/nla_self_training_witness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_ar_model_id": {
+      "type": "string"
+    },
+    "candidate_av_model_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "additionalProperties": false,
+      "properties": {
+        "approval_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rollback_ref": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "rejected",
+            "accepted_for_shadow",
+            "accepted_for_audit",
+            "release_candidate",
+            "promoted"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "rollback_ref"
+      ],
+      "type": "object"
+    },
+    "evaluation": {
+      "additionalProperties": false,
+      "properties": {
+        "confabulation_rate_after": {
+          "type": "number"
+        },
+        "confabulation_rate_before": {
+          "type": "number"
+        },
+        "mse_after": {
+          "type": "number"
+        },
+        "mse_before": {
+          "type": "number"
+        },
+        "reconstruction_cosine_after": {
+          "type": "number"
+        },
+        "reconstruction_cosine_before": {
+          "type": "number"
+        },
+        "regression_count": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "replay_pass_rate": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "reconstruction_cosine_before",
+        "reconstruction_cosine_after",
+        "mse_before",
+        "mse_after",
+        "confabulation_rate_before",
+        "confabulation_rate_after",
+        "replay_pass_rate",
+        "regression_count"
+      ],
+      "type": "object"
+    },
+    "parent_ar_model_id": {
+      "type": "string"
+    },
+    "parent_av_model_id": {
+      "type": "string"
+    },
+    "safety": {
+      "additionalProperties": false,
+      "properties": {
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "may_change_policy_authority": {
+          "const": false
+        },
+        "may_replace_active_model": {
+          "type": "boolean"
+        },
+        "may_write_memory": {
+          "const": false
+        }
+      },
+      "required": [
+        "may_write_memory",
+        "may_change_policy_authority",
+        "may_replace_active_model",
+        "human_review_required"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "nla-self-training-witness/v1"
+    },
+    "training_data": {
+      "additionalProperties": false,
+      "properties": {
+        "activation_layers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "curriculum_examples": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "curriculum_manifest_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "failure_examples": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "heldout_examples": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "heldout_manifest_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observer_model_families": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "curriculum_examples",
+        "failure_examples",
+        "heldout_examples",
+        "observer_model_families",
+        "activation_layers"
+      ],
+      "type": "object"
+    },
+    "training_method": {
+      "additionalProperties": false,
+      "properties": {
+        "compute_budget": {
+          "type": "string"
+        },
+        "max_steps": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "method": {
+          "enum": [
+            "lora",
+            "adapter",
+            "projection_head",
+            "full_finetune",
+            "distillation"
+          ]
+        },
+        "offline_only": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "method",
+        "max_steps",
+        "compute_budget",
+        "offline_only"
+      ],
+      "type": "object"
+    },
+    "training_run_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "training_run_id",
+    "parent_av_model_id",
+    "parent_ar_model_id",
+    "candidate_av_model_id",
+    "candidate_ar_model_id",
+    "training_data",
+    "training_method",
+    "evaluation",
+    "safety",
+    "decision",
+    "created_at"
+  ],
+  "title": "NlaSelfTrainingWitness",
+  "type": "object"
+}

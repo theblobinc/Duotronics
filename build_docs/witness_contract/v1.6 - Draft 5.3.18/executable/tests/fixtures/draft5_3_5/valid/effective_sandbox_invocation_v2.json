@@ -1,0 +1,132 @@
+{
+  "payload": {
+    "apparmor_profile": "witness-authority-default",
+    "applied_controls": [
+      "apparmor",
+      "capabilities_dropped",
+      "cpu_limit",
+      "environment_allowlist",
+      "explicit_entrypoint",
+      "file_size_limit",
+      "memory_limit",
+      "mount_manifest",
+      "network_none",
+      "no_new_privileges",
+      "non_root_user",
+      "open_file_limit",
+      "pid_limit",
+      "private_user_namespace",
+      "read_only_rootfs",
+      "seccomp",
+      "selinux",
+      "working_directory"
+    ],
+    "arguments": [
+      "--request",
+      "/input/control/request.json",
+      "--result-dir",
+      "/trusted-inspection"
+    ],
+    "capability_drop_set": [
+      "ALL"
+    ],
+    "container_gid": 65534,
+    "container_uid": 65534,
+    "cpu_limit": "2",
+    "domain": "trusted_verifier",
+    "entrypoint": "/opt/witness-authority/bin/verify-lean",
+    "environment_allowlist": [
+      "HOME=/nonexistent",
+      "LANG=C.UTF-8"
+    ],
+    "file_size_limit": 1048576,
+    "image_digest": "shake256-512:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "image_reference": "registry.example.invalid/witness/lean-verifier",
+    "immutable_policy_files": [
+      {
+        "path": "/etc/witness-authority/seccomp.json",
+        "shake256_512": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ],
+    "memory_limit": "2g",
+    "mount_manifest": [
+      {
+        "destination": "/input/source",
+        "domain": "trusted_verifier",
+        "lifecycle": "request",
+        "mode": "ro",
+        "purpose": "sealed_source",
+        "source": "snapshot:1"
+      },
+      {
+        "destination": "/input/generated",
+        "domain": "trusted_verifier",
+        "lifecycle": "request",
+        "mode": "ro",
+        "purpose": "generated_type_binding",
+        "source": "generated:1"
+      },
+      {
+        "destination": "/handoff",
+        "domain": "trusted_verifier",
+        "lifecycle": "request",
+        "mode": "ro",
+        "purpose": "compiled_artifact_input",
+        "source": "ephemeral:compile-handoff"
+      },
+      {
+        "destination": "/input/control",
+        "domain": "trusted_verifier",
+        "lifecycle": "request",
+        "mode": "ro",
+        "purpose": "trusted_verifier_request",
+        "source": "control:1"
+      },
+      {
+        "destination": "/trusted-inspection",
+        "domain": "trusted_verifier",
+        "lifecycle": "request",
+        "mode": "rw",
+        "purpose": "private_inspection_output",
+        "source": "ephemeral:trusted-inspection"
+      }
+    ],
+    "network_mode": "none",
+    "oci_runtime_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "oci_runtime_version": "podman version 5.4.0",
+    "oci_runtime_version_output_shake256_512": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "open_file_limit": 256,
+    "pid_limit": 128,
+    "read_only_rootfs": true,
+    "requested_controls": [
+      "apparmor",
+      "capabilities_dropped",
+      "cpu_limit",
+      "environment_allowlist",
+      "explicit_entrypoint",
+      "file_size_limit",
+      "memory_limit",
+      "mount_manifest",
+      "network_none",
+      "no_new_privileges",
+      "non_root_user",
+      "open_file_limit",
+      "pid_limit",
+      "private_user_namespace",
+      "read_only_rootfs",
+      "seccomp",
+      "selinux",
+      "working_directory"
+    ],
+    "seccomp_profile_path": "/etc/witness-authority/seccomp.json",
+    "seccomp_profile_shake256_512": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "security_options": [
+      "no-new-privileges"
+    ],
+    "selinux_label": "container_t",
+    "timeout": 600,
+    "user_namespace_mode": "private",
+    "working_directory": "/work"
+  },
+  "schema_ref": "schemas/effective_sandbox_invocation_v2.schema.json"
+}

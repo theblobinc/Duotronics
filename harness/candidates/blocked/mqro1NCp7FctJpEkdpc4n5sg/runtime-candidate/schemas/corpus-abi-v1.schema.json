@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Duotronic Corpus ABI v1",
+  "type": "object",
+  "required": ["corpus_id", "version", "schema_version"],
+  "properties": {
+    "corpus_id": {"type": "string"},
+    "version": {"type": "string"},
+    "schema_version": {"const": "corpus-abi-v1"},
+    "description": {"type": "string"},
+    "entrypoints": {"type": "object"},
+    "required_gates": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

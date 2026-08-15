@@ -1,0 +1,81 @@
+{
+  "$id": "duotronic://schemas/encrypted_payload/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "aead": {
+      "const": "AES-256-GCM-SIV"
+    },
+    "associated_data": {
+      "type": "object"
+    },
+    "ciphertext": {
+      "minLength": 22,
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "type": "string"
+    },
+    "kdf": {
+      "const": "KMAC256"
+    },
+    "nonce": {
+      "pattern": "^[A-Za-z0-9_-]{16}$",
+      "type": "string"
+    },
+    "recipients": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "encapsulated_key": {
+            "minLength": 2091,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "kem": {
+            "const": "ML-KEM-1024"
+          },
+          "key_epoch": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "recipient_key_id": {
+            "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+            "type": "string"
+          },
+          "wrapped_content_key": {
+            "minLength": 64,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "recipient_key_id",
+          "key_epoch",
+          "kem",
+          "encapsulated_key",
+          "wrapped_content_key"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "encrypted_payload/v1"
+    },
+    "suite_id": {
+      "const": "duotronic-pq1-shake256-512-mldsa87-mlkem1024-kmac256-aes256gcmsiv"
+    }
+  },
+  "required": [
+    "schema_version",
+    "suite_id",
+    "kdf",
+    "aead",
+    "associated_data",
+    "nonce",
+    "recipients",
+    "ciphertext"
+  ],
+  "title": "EncryptedPayload/v1",
+  "type": "object"
+}

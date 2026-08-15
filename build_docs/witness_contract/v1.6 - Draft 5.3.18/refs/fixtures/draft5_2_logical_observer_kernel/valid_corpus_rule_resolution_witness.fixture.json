@@ -1,0 +1,24 @@
+{
+  "case_id": "valid_corpus_rule_resolution_witness",
+  "expected_status": "pass",
+  "payload": {
+    "active_rule_ref": "schemas/evidence_claim.schema.json",
+    "ambiguity_status": "resolved",
+    "compatibility_exceptions": [
+      "Draft 5.1 NLA gates retained unless strengthened."
+    ],
+    "concept": "claim_status",
+    "corpus_rule_resolution_witness_id": "resolution:fixture:kernel",
+    "created_at": "2026-05-11T00:00:00Z",
+    "kernel_error_witness_id": null,
+    "policy_decision_id": "policy:fixture:kernel",
+    "requested_rule_ref": null,
+    "schema_version": "corpus_rule_resolution_witness/v1",
+    "supersession_chain": [
+      "README_v1_6_draft_5_1.md",
+      "README.md"
+    ],
+    "version_selected": "v1.6-draft-5.2"
+  },
+  "schema_ref": "schemas/corpus_rule_resolution_witness.schema.json"
+}

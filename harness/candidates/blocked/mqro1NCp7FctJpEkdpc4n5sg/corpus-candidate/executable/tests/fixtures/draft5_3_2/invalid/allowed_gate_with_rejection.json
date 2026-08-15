@@ -1,0 +1,19 @@
+{
+  "payload": {
+    "allowed": true,
+    "claim_content_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "claim_id": "claim:proof",
+    "created_at": "2026-07-31T12:04:00Z",
+    "lean_compiler_witness_id": "lean:1",
+    "non_collapse_transition_id": "nc:1",
+    "policy_decision_id": "policy:1",
+    "proof_witness_id": "proof:1",
+    "rejection_reason": "contradiction",
+    "schema_version": "theorem_promotion_gate/v2",
+    "status_event_id": "status:1",
+    "theorem_promotion_gate_id": "gate:bad",
+    "theorem_statement_shake256_512": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "verifier_principal_id": "verifier:1"
+  },
+  "schema_ref": "schemas/theorem_promotion_gate_v2.schema.json"
+}

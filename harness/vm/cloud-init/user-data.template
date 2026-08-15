@@ -1,0 +1,85 @@
+#cloud-config
+hostname: duotronic-witness-harness
+manage_etc_hosts: true
+package_update: true
+package_upgrade: false
+packages:
+  - podman
+  - podman-compose
+  - buildah
+  - skopeo
+  - uidmap
+  - slirp4netns
+  - fuse-overlayfs
+  - git
+  - rsync
+  - python3
+  - python3-venv
+  - python3-pip
+  - openjdk-17-jre-headless
+  - jq
+  - qemu-guest-agent
+  - nftables
+users:
+  - default
+  - name: harness
+    gecos: Duotronic Witness Harness
+    groups: [users]
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - @@SSH_RSA_PUBLIC_KEY@@
+write_files:
+  - path: /etc/containers/containers.conf.d/90-duotronic-harness.conf
+    permissions: '0644'
+    content: |
+      [engine]
+      events_logger="file"
+      runtime="crun"
+      [containers]
+      pids_limit=512
+  - path: /etc/nftables.conf
+    permissions: '0644'
+    content: |
+      flush ruleset
+      table inet duotronic_harness {
+        chain output {
+          type filter hook output priority 0; policy accept;
+          ct state established,related accept
+          oifname "lo" accept
+          udp dport { 53, 67 } accept
+          tcp dport 53 accept
+          ip daddr 10.0.0.0/8 reject
+          ip daddr 172.16.0.0/12 reject
+          ip daddr 192.168.0.0/16 reject
+        }
+      }
+  - path: /etc/systemd/system/duotronic-harness-idle-shutdown.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Power off idle Duotronic witness harness VM
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/systemctl poweroff
+  - path: /etc/systemd/system/duotronic-harness-idle-shutdown.timer
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Fail-safe shutdown for Duotronic witness harness VM
+      [Timer]
+      OnBootSec=6h
+      Unit=duotronic-harness-idle-shutdown.service
+      [Install]
+      WantedBy=timers.target
+runcmd:
+  - [mkdir, -p, /srv/duotronic-harness, /srv/duotronic-runs]
+  - [chown, -R, 'harness:harness', /srv/duotronic-harness, /srv/duotronic-runs]
+  - [usermod, --add-subuids, '100000-165535', harness]
+  - [usermod, --add-subgids, '100000-165535', harness]
+  - [systemctl, enable, --now, qemu-guest-agent.service]
+  - [systemctl, enable, --now, nftables.service]
+  - [systemctl, enable, --now, duotronic-harness-idle-shutdown.timer]
+  - [loginctl, enable-linger, harness]
+  - [runuser, -u, harness, --, podman, --remote=false, info]
+final_message: "Duotronic witness harness VM guest is ready"

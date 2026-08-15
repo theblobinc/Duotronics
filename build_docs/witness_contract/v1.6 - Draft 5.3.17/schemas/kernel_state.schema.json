@@ -1,0 +1,88 @@
+{
+  "$id": "https://duotronics.local/schemas/kernelState.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Serializable logical observer kernel state.",
+  "properties": {
+    "active_rule_set_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "audit_log_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "authority_registry_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "corpus_manifest_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "evidence_store_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "kernel_state_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "non_collapse_graph_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "observer_registry_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_engine_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "replay_store_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "safe_mode": {
+      "type": "boolean"
+    },
+    "schema_registry_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "kernel_state/v1"
+    },
+    "task_queue_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kernel_state_id",
+    "corpus_manifest_ref",
+    "active_rule_set_ref",
+    "schema_registry_ref",
+    "authority_registry_ref",
+    "observer_registry_ref",
+    "task_queue_refs",
+    "evidence_store_ref",
+    "non_collapse_graph_ref",
+    "replay_store_ref",
+    "policy_engine_ref",
+    "audit_log_ref",
+    "created_at"
+  ],
+  "title": "KernelState",
+  "type": "object"
+}

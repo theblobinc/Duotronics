@@ -1,0 +1,81 @@
+{
+  "$id": "duotronic://schemas/evidence_checkpoint/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceCheckpoint/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "evidence_checkpoint/v1"
+    },
+    "checkpoint_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "merkle_root_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "ordered_leaf_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "authority_namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_profile": {
+      "enum": [
+        "sandbox-test-only",
+        "production"
+      ]
+    },
+    "production_eligible": {
+      "type": "boolean"
+    },
+    "trust_registry_snapshot_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "cryptographic_suite_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "first_edge_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "last_edge_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "signature_envelope_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "checkpoint_id",
+    "merkle_root_id",
+    "ordered_leaf_count",
+    "authority_namespace",
+    "authority_profile",
+    "production_eligible",
+    "trust_registry_snapshot_id",
+    "cryptographic_suite_id",
+    "policy_id",
+    "first_edge_id",
+    "last_edge_id",
+    "created_at",
+    "signature_envelope_id"
+  ]
+}

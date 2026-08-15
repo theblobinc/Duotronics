@@ -1,0 +1,24 @@
+{
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled",
+  "base_version": "v1.6-draft-5.3.13",
+  "change_id": "scr:v1.6-draft-5.3.14",
+  "changes": [
+    "require an explicitly provisioned production audit segment and independently stored signed tail checkpoint",
+    "reject valid-prefix truncation complete log deletion older-segment restoration checkpoint mismatch and competing genesis creation",
+    "seal audit segments with a signed terminal event and bind successor segments to the predecessor terminal record hash",
+    "pass the request-wide monotonic deadline through cached-result verification and cache-audit publication",
+    "bound audit lock acquisition chain verification append file synchronization checkpoint replacement and directory synchronization",
+    "return cache_audit_publication_failed rather than a rotation classification when audit persistence exceeds the request budget",
+    "activate cache_stale_row_evidence/v4 with signed-payload canonical-envelope and original-signature bindings",
+    "allowlist and schema-validate embedded audit events before append and during startup verification",
+    "correct the documented schema-registry generator and prove exact regeneration from an absent current registry",
+    "update root documentation with the actual Draft 5.3.13 changes and precise procfs integration limitation",
+    "preserve the environment-unavailable non-root integration result and all eight fail-closed external activation gates"
+  ],
+  "classification": "corrective_rollback_resistant_deadline_bounded_self_contained_audit_revision",
+  "freeze_policy": "permanently_not_frozen",
+  "schema_version": "spec_change_request/v1",
+  "source_review": "refs/review/v1.6_draft_5.3.14_update_checklist.md",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "target_version": "v1.6-draft-5.3.14"
+}

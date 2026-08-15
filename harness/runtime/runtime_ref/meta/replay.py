@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import hashlib
 import json
+
+from runtime_ref.crypto import shake256_ref
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -57,8 +58,7 @@ class ShadowReplaySpec:
         }
 
     def compute_hash(self) -> str:
-        digest = hashlib.sha256(_stable_json(self.material_payload()).encode()).hexdigest()[:16]
-        return f"sha256:{digest}"
+        return shake256_ref(self.material_payload())
 
     @property
     def replay_identity(self) -> str:

@@ -1,0 +1,1043 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "active_version_scope": "v1.6-draft-5.3.6",
+  "entries": [
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/authority_delegation_chain.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/authority_delegation_chain.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/authority_signature_binding_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/authority_signature_binding_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/authority_signature_binding.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/authority_snapshot_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/authority_snapshot_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/authority_snapshot.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/snapshot_without_cutoff.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/authority_snapshot_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/authority_snapshot_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/authority_snapshot_v2.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/authority_supersession_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/authority_supersession_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/authority_supersession.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/authority_supersession_v2.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/authority_supersession_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/signed_supersession.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/supersession_wrong_record_type.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/authority_supersession_v3.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/authority_supersession_v3.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/authority_supersession_v3.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/build_attestation_without_signature.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/build_attestation_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/build_attestation_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/build_attestation_v1.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/build_attestation_v2.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/build_attestation_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/build_attestation_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/build_attestation_v2.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/claim_status_event_v2.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/claim_status_event_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/claim_status_event_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/claim_status_event.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/claim_status_transition.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/claim_status_transition.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/composition_policy.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/composition_policy.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/compound_claim_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/compound_claim_witness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/conflict_adjudication_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/conflictAdjudicationWitness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/corpus_rule_resolution_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/corpusRuleResolutionWitness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/sandbox_with_network.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/effective_sandbox_invocation_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/effective_sandbox_invocation_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/effective_sandbox_invocation_v2.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/effective_sandbox_invocation_v2.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/effective_sandbox_invocation_v2.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/effective_sandbox_invocation_v3.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/effective_sandbox_invocation_v3.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v3.schema.json",
+      "valid_fixtures": [
+        "runtime:test_exact_executed_argv_and_mount_binding"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/evidence_claim.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/evidence_claim.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/proof_claim_missing_statement.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/evidence_claim_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/evidence_claim_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/evidence_claim_integer.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/execution_trace.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/executionTrace.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/governance_authority_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/governance_authority_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/governance_authority_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/governance_authority_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/governance_authorization_witness_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/governance_authorization_witness_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/governance_authorization.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/broad_governance_scope_v2.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/governance_authorization_witness_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/governance_authorization_witness_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/governance_authorization_v2.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/backdated_event_without_correction.json",
+        "executable/tests/fixtures/draft5_3_4/invalid/governance_event_scope_mismatch_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/governance_event_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/governance_event_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/governance_event_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/governed_compiler_registry_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/governed_compiler_registry_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/governed_compiler_registry.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/governed_compiler_registry_v2.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/governed_compiler_registry_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/governed_compiler_registry_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/governed_compiler_registry_v2.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/inference_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/inference_witness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/kernel_error_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/kernelErrorWitness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/kernel_state.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/kernelState.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/kernel_transaction.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/kernelTransaction.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/lean_compile_handoff_v2.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/lean_compile_handoff_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/lean_compile_handoff_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/valid/lean_compile_handoff_v2.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/lean_compiler_witness.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/compiler_pass_contains_sorry.json",
+        "executable/tests/fixtures/draft5_3_4/invalid/compiler_pass_without_hermetic_closure.json",
+        "executable/tests/fixtures/draft5_3_4/invalid/compiler_pass_without_statement_binding.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/lean_compiler_witness_v2.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/compiler_witness.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/passed_compiler_witness_without_trusted_result_payload_v3.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/lean_compiler_witness_v3.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v3.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/lean_compiler_witness_v3.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/lean_compiler_witness_v4.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/lean_compiler_witness_v4.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v4.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/lean_compiler_witness_v4.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/lean_compiler_witness_v5.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/lean_compiler_witness_v5.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v5.schema.json",
+      "valid_fixtures": [
+        "runtime:test_compiler_witness_schema_boundary"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/lean_inspector_result_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/lean_inspector_result_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/lean_inspector_result_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/valid/lean_inspector_result_v1.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/lean_verifier_request_v4.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/lean_verifier_request_v4.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_request_v4.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/valid/lean_verifier_request_v4.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/structured_result_duplicate_axiom.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/lean_verifier_result_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/lean_verifier_result.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/lean_verifier_result_v2.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v2.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/lean_verifier_result_v3.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/lean_verifier_result_v3.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v3.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/lean_verifier_result_v3.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/lean_verifier_result_v4.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/lean_verifier_result_v4.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v4.schema.json",
+      "valid_fixtures": [
+        "runtime:test_signed_verifier_result_schema_boundary"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/logical_memory_cell.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/logicalMemoryCell.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/logical_observer_profile.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/logicalObserverProfile.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/nla_activation_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronic.local/schemas/nla_activation_witness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/nla_observer_graph_extension.schema.yaml",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": null,
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/nla_self_training_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronic.local/schemas/nla_self_training_witness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/non_collapse_state.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/non_collapse_state.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/non_collapse_transition.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/non_collapse_transition.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/non_collapse_proof_upgrade_without_proof.json",
+        "executable/tests/fixtures/draft5_3_4/invalid/non_collapse_zero_to_absence_identity.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/non_collapse_transition_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/non_collapse_transition_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/non_collapse_proof_upgrade.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/observer_capability_token.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/observerCapabilityToken.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/observer_task.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/observerTask.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/package_provenance_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/package_provenance_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/package_provenance_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/package_provenance_v1.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/platform_capability_probe_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/platform_capability_probe_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/platform_capability_probe_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/valid/platform_capability_probe_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/policy_decision_evidence_extension.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/policy_decision_evidence_extension.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/even_profile_without_even_domain.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/positive_baseline_cell_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/positive_baseline_cell_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/positive_baseline_cell.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/pragmatic_context.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/pragmatic_context.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/proof_check_request_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/proof_check_request_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/proof_check_request_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/valid/proof_check_request_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/proof_check_result_v3.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/proof_check_result_v3.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/proof_check_result_v3.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/proof_check_result_v4.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/proof_check_result_v4.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/proof_check_result_v4.schema.json",
+      "valid_fixtures": [
+        "runtime:test_openapi_proof_check_response_matches_application"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/proof_policy_decision_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/proof_policy_decision_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/proof_policy_decision_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/proof_policy_decision_v1.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/proof_policy_registry_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/proof_policy_registry_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/proof_policy_registry_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/proof_policy_registry_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/proof_witness.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/proof_witness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/proof_witness_v2.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/proof_witness_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/proof_witness_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/proof_witness.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/incomplete_release_activation_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/release_activation_evidence_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/release_activation_evidence_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/release_activation_evidence_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/replay_assumption_manifest.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/replay_assumption_manifest.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/empty_replay_manifest.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/replay_assumption_manifest_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/replay_assumption_manifest_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/replay_manifest.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/replay_sign.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/replay_sign.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/resource_budget_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/resourceBudgetWitness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/sandbox_template_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/sandbox_template_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/sandbox_template_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/sandbox_template_v1.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/schema_registry_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/schema_registry_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/schema_registry_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/schema_registry_v1.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/source_snapshot_limits_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/source_snapshot_limits_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/source_snapshot_limits_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/valid/source_snapshot_limits_v1.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/task_frame.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/taskFrame.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/task_result_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/taskResultWitness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/task_step_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/taskStepWitness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/temporal_scope_witness.schema.json",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": "https://duotronics.local/schemas/temporal_scope_witness.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/theorem_promotion_gate.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/theorem_promotion_gate.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/allowed_gate_with_rejection.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/theorem_promotion_gate_v2.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/theorem_promotion_gate_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/theorem_gate.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/theorem_promotion_gate_v3.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/theorem_promotion_gate_v3.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/theorem_promotion_gate_v3.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/theorem_promotion_gate_v3.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/invalid/trusted_artifact_attestation_registry_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/trusted_artifact_attestation_registry_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/trusted_artifact_attestation_registry_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_6/valid/trusted_artifact_attestation_registry_v1.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/trusted_time_witness_v1.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/trusted_time_witness_v1.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/trusted_time_witness_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/trusted_time_witness.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "experimental_research",
+      "path": "schemas/truth_observer_activation_profile.schema.yaml",
+      "rationale": "Carried research or non-authoritative profile; excluded from active authority writes.",
+      "schema_id": null,
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/verification_grammar.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/verification_grammar.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/empty_verification_grammar.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/verification_grammar_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/verification_grammar_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/verification_grammar.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/verification_result.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/verification_result.schema.json",
+      "valid_fixtures": []
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/pass_result_with_failed_instruction.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/verification_result_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/verification_result_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/verification_result.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/supersession_without_replacement_key.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/verifier_key_status_event_v1.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/verifier_key_status_event_v1.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/verifier_key_status_event.json"
+      ]
+    },
+    {
+      "active_surface": false,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/invalid/unsigned_key_status_event.json"
+      ],
+      "lifecycle": "legacy_compatibility",
+      "path": "schemas/verifier_key_status_event_v2.schema.json",
+      "rationale": "Read/replay compatibility only; new writes are forbidden.",
+      "schema_id": "https://duotronics.local/schemas/verifier_key_status_event_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/signed_key_status_event.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/verifier_key_v3.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/verifier_key_v3.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/verifier_key_v3.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/verifier_key.json"
+      ]
+    },
+    {
+      "active_surface": true,
+      "invalid_fixtures": [
+        "executable/tests/fixtures/draft5_3_5/invalid/verifier_principal_v2.json"
+      ],
+      "lifecycle": "canonical",
+      "path": "schemas/verifier_principal_v2.schema.json",
+      "rationale": "Active Draft 5.3.6 API, persistence, witness, or validation surface.",
+      "schema_id": "https://duotronics.local/schemas/verifier_principal_v2.schema.json",
+      "valid_fixtures": [
+        "executable/tests/fixtures/draft5_3_4/valid/verifier_principal.json"
+      ]
+    }
+  ],
+  "registry_version": "v1.6-draft-5.3.6",
+  "rules": {
+    "authority_output_creation": "server_only",
+    "canonical_fixture_coverage": "valid_and_invalid_required",
+    "freeze_policy": "living_contract_never_freeze",
+    "legacy_new_write": "reject",
+    "legacy_replay": "allow_with_generation_marker",
+    "strict_mode": "canonical_schemas_strict_true",
+    "unclassified_active_surface": "reject",
+    "unknown_schema": "reject"
+  },
+  "strict_mode_exceptions": []
+}

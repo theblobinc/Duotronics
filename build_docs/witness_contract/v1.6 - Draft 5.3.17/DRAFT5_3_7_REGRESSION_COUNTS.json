@@ -1,0 +1,41 @@
+{
+  "draft5_3_6_baseline_tests_discovered": 128,
+  "duplicate_test_ids": [],
+  "generated_at": "2026-08-01T16:00:12.846905+00:00",
+  "normal_command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "executable/tests",
+    "-p",
+    "test*.py",
+    "-v"
+  ],
+  "normal_stderr_shake256_512": "191444a19817fd08b7a3ff3eba0062039dc2d05dee2ed436139a818758ddadcb",
+  "normal_stdout_shake256_512": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "package_version": "v1.6-draft-5.3.7",
+  "schema_version": "draft5_3_7_regression_counts/v1",
+  "tests_discovered": 154,
+  "tests_passed": 154,
+  "tests_skipped": 0,
+  "warning_free_command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-X",
+    "dev",
+    "-W",
+    "error",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "executable/tests",
+    "-p",
+    "test*.py",
+    "-v"
+  ],
+  "warning_free_stderr_shake256_512": "0d30253e24b034e0347bd89d832b95d2ab1e8b719686c4595d22c6c5aa3677dd",
+  "warning_free_stdout_shake256_512": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "warning_output_lines": []
+}

@@ -1,0 +1,19 @@
+{
+  "case_id": "valid_task_frame",
+  "expected_status": "pass",
+  "payload": {
+    "call_stack": [
+      "compute"
+    ],
+    "created_at": "2026-05-11T00:00:00Z",
+    "deterministic": true,
+    "hidden_state_allowed": false,
+    "local_bindings": {},
+    "parent_frame_id": null,
+    "schema_version": "task_frame/v1",
+    "step_index": 0,
+    "task_frame_id": "frame:fixture:kernel",
+    "task_id": "task:fixture:kernel"
+  },
+  "schema_ref": "schemas/task_frame.schema.json"
+}

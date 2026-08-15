@@ -1,0 +1,29 @@
+# Human-readable policy template for the generated per-run compose.resolved.json.
+# The host orchestrator resolves absolute read-only corpus/source/evidence mounts,
+# a unique project/container name, selected gates, UID/GID, and output directory.
+version: "3.8"
+services:
+  activation-gates:
+    image: localhost/duotronic-wc-activation-harness:5.3.17
+    networks:
+      - activation-isolated
+    read_only: true
+    userns_mode: keep-id
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 4
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=512m
+      - /work:rw,nosuid,nodev,size=2048m
+    environment:
+      PYTHONPATH: /work/corpus
+      TLA2TOOLS_JAR: /opt/tla2tools/tla2tools.jar
+      JAVA_TOOL_OPTIONS: -XX:+UseParallelGC
+    restart: "no"
+networks:
+  activation-isolated:
+    internal: true

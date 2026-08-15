@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import hashlib
 import re
 from pathlib import Path
+
+from .crypto_primitives import shake256_file
 from typing import Any
 
 
@@ -34,7 +35,7 @@ class SkillLibrary:
             "path": rel,
             "namespace": rel.split("/", 1)[0] if "/" in rel else "default",
             "bytes": path.stat().st_size,
-            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            "shake256_512": shake256_file(path),
             "content": text,
         }
 
@@ -87,7 +88,7 @@ class SkillLibrary:
                 "name": item["name"],
                 "description": item["description"],
                 "path": item["path"],
-                "sha256": item["sha256"],
+                "shake256_512": item["shake256_512"],
                 "score": score,
                 "snippet": snippet,
             })

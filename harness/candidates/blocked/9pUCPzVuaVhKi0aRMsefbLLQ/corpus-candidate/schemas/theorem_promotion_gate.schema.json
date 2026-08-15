@@ -1,0 +1,91 @@
+{
+  "$id": "https://duotronics.local/schemas/theorem_promotion_gate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "allowed": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "rejection_reason": {
+            "type": "null"
+          },
+          "source_hash_matches_claim": {
+            "const": true
+          }
+        }
+      }
+    }
+  ],
+  "description": "Gate object binding claim status promotion to proof witness, Lean compiler witness, non-collapse transition, and policy decision.",
+  "properties": {
+    "allowed": {
+      "type": "boolean"
+    },
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "claim_status_transition_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "lean_compiler_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "non_collapse_transition_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "proof_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "theorem_promotion_gate/v1"
+    },
+    "source_hash_matches_claim": {
+      "type": "boolean"
+    },
+    "theorem_promotion_gate_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "theorem_promotion_gate_id",
+    "claim_id",
+    "claim_status_transition_id",
+    "proof_witness_id",
+    "lean_compiler_witness_id",
+    "non_collapse_transition_id",
+    "policy_decision_id",
+    "allowed",
+    "source_hash_matches_claim",
+    "created_at"
+  ],
+  "title": "TheoremPromotionGate",
+  "type": "object"
+}

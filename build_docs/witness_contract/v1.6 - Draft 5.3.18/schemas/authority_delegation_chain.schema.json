@@ -1,0 +1,150 @@
+{
+  "$id": "https://duotronics.local/schemas/authority_delegation_chain.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "revoked": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "revocation_reason"
+        ]
+      }
+    }
+  ],
+  "description": "Authority delegation chain with locked scope, force limit, runtime mode, channel authority, depth, and revocation semantics.",
+  "properties": {
+    "channel_authority": {
+      "enum": [
+        "api",
+        "mcp_tool",
+        "cli",
+        "admin_ui",
+        "scheduler",
+        "replay",
+        "test_fixture",
+        "human_review",
+        "agent_runtime"
+      ]
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "delegate_principal_id": {
+      "type": "string"
+    },
+    "delegation_chain_id": {
+      "type": "string"
+    },
+    "delegation_depth": {
+      "maximum": 8,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "delegation_path": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "delegator_principal_id": {
+      "type": "string"
+    },
+    "force_limit": {
+      "enum": [
+        "observe",
+        "propose",
+        "assert",
+        "veto",
+        "delegate"
+      ]
+    },
+    "parent_delegation_chain_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_decision_id": {
+      "type": "string"
+    },
+    "revocation_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "revoked": {
+      "type": "boolean"
+    },
+    "runtime_mode_limit": {
+      "enum": [
+        "observe",
+        "test",
+        "simulation",
+        "shadow",
+        "audit",
+        "migration",
+        "release_candidate",
+        "production",
+        "rollback"
+      ]
+    },
+    "schema_version": {
+      "const": "authority_delegation_chain/v1"
+    },
+    "scope": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "local_session",
+        "tenant",
+        "repo",
+        "service",
+        "cluster",
+        "system",
+        "release",
+        "mathematical_claim",
+        "nla_training",
+        "policy",
+        "memory_write",
+        "model_promotion",
+        "truth_observer"
+      ]
+    },
+    "valid_from": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "delegation_chain_id",
+    "delegator_principal_id",
+    "delegate_principal_id",
+    "scope",
+    "force_limit",
+    "valid_from",
+    "valid_until",
+    "policy_decision_id",
+    "revoked",
+    "delegation_depth",
+    "delegation_path",
+    "created_at"
+  ],
+  "title": "AuthorityDelegationChain",
+  "type": "object"
+}

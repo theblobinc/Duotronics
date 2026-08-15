@@ -1,0 +1,23 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "scr:v1.6-draft-5.3.6",
+  "base_version": "v1.6-draft-5.3.5",
+  "target_version": "v1.6-draft-5.3.6",
+  "classification": "corrective_security_and_conformance_revision",
+  "status": "implemented_portable_validation_pending",
+  "freeze_policy": "permanently_not_frozen",
+  "source_review": "refs/review/DRAFT5_3_5_INDEPENDENT_REMEDIATION_CHECKLIST.md",
+  "changes": [
+    "recursive Lean declaration dependency and unauthorized-axiom inspection",
+    "actual isDefEq statement check and structural expression fingerprints",
+    "single sealed sandbox invocation that hashes the exact OCI argv",
+    "policy-derived resource limits bound through request result witness and identity",
+    "fail-closed schema validation at every signed trust boundary",
+    "requested emitted accepted measured and derived control separation",
+    "exact compile-handoff manifest consumption and verification",
+    "durable bounded principal-scoped idempotency with leases and recovery",
+    "separate compiler artifact handoff inspection and final-result limits",
+    "governance-signed trusted artifact attestation registry"
+  ],
+  "authority_effect": "theorem_and_promotion_authority_remain_disabled"
+}

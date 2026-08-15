@@ -1,0 +1,12 @@
+{
+  "schema_version": "package_provenance/v12",
+  "contract_version": "v1.6-draft-5.3.18",
+  "created_from": "published:v1.6 - Draft 5.3.17",
+  "parent_corpus_root_id": "duoid:shake256-512:PwumHENNZOLdwjqnhCyzcycfDDhNmEIweoUd5Fxc46fXMpYS-7TrWGObq7xJYyDZkqYaC8wXa1cucGeKPrJBcw",
+  "workspace_path": "harness/workspaces/v1.6 - Draft 5.3.18",
+  "authority_activated": false,
+  "runtime_connected": false,
+  "production_eligible": false,
+  "creation_method": "harness contract_control exact parent copy followed by additive 5.3.18 development edits",
+  "validation_environment": "isolated QEMU/libvirt guest with rootless Podman Compose"
+}

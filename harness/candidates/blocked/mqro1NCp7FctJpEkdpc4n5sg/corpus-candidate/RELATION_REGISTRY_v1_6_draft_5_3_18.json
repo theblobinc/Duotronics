@@ -1,0 +1,160 @@
+{
+  "registry_version": "meta_object_relation_registry/v2",
+  "authority_semantics": "Only registered edges with valid endpoint, policy, registry, chronology, signature, and authority-domain checks can contribute to activation.",
+  "relations": [
+    {
+      "relation_type": "supports",
+      "inverse": "supported_by",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": false
+    },
+    {
+      "relation_type": "supported_by",
+      "inverse": "supports",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": false
+    },
+    {
+      "relation_type": "contradicts",
+      "inverse": "contradicts",
+      "symmetric": true,
+      "transitive": false,
+      "authoritative": false
+    },
+    {
+      "relation_type": "supersedes",
+      "inverse": "superseded_by",
+      "symmetric": false,
+      "transitive": true,
+      "authoritative": true
+    },
+    {
+      "relation_type": "superseded_by",
+      "inverse": "supersedes",
+      "symmetric": false,
+      "transitive": true,
+      "authoritative": true
+    },
+    {
+      "relation_type": "derives",
+      "inverse": "derived_from",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": false
+    },
+    {
+      "relation_type": "derived_from",
+      "inverse": "derives",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": false
+    },
+    {
+      "relation_type": "co_occurs_with",
+      "inverse": "co_occurs_with",
+      "symmetric": true,
+      "transitive": false,
+      "authoritative": false
+    },
+    {
+      "relation_type": "measured_by",
+      "inverse": "measures",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "measures",
+      "inverse": "measured_by",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "attested_by",
+      "inverse": "attests_measurement",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "attests_measurement",
+      "inverse": "attested_by",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "revalidated_by",
+      "inverse": "revalidates_measurement",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "revalidates_measurement",
+      "inverse": "revalidated_by",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "satisfies_gate",
+      "inverse": "satisfied_by",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "satisfied_by",
+      "inverse": "satisfies_gate",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "aggregated_by",
+      "inverse": "aggregates_gate",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "aggregates_gate",
+      "inverse": "aggregated_by",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "activated_by",
+      "inverse": "activates_domain",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "activates_domain",
+      "inverse": "activated_by",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "bound_to_registry",
+      "inverse": "binds_evidence",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    },
+    {
+      "relation_type": "binds_evidence",
+      "inverse": "bound_to_registry",
+      "symmetric": false,
+      "transitive": false,
+      "authoritative": true
+    }
+  ]
+}

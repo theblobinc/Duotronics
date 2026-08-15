@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "date": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "public": {
+      "maxLength": 3456,
+      "minLength": 3456,
+      "pattern": "^[A-Za-z0-9_-]{3456}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/cache_audit_anchor_registry_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "$ref": "#/$defs/date"
+    },
+    "governance_key_id": {
+      "$ref": "#/$defs/id"
+    },
+    "keys": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "authorization_scope": {
+            "type": "string"
+          },
+          "key_id": {
+            "$ref": "#/$defs/id"
+          },
+          "principal_id": {
+            "$ref": "#/$defs/id"
+          },
+          "public_key_base64url": {
+            "$ref": "#/$defs/public"
+          },
+          "rotation_predecessor_key_id": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/id"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "active",
+              "retired",
+              "revoked"
+            ]
+          },
+          "status_changed_at": {
+            "$ref": "#/$defs/date"
+          },
+          "valid_from": {
+            "$ref": "#/$defs/date"
+          },
+          "valid_until": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/date"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "key_id",
+          "principal_id",
+          "public_key_base64url",
+          "authorization_scope",
+          "status",
+          "valid_from",
+          "valid_until",
+          "status_changed_at",
+          "rotation_predecessor_key_id"
+        ],
+        "type": "object"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "type": "array"
+    },
+    "registry_id": {
+      "$ref": "#/$defs/id"
+    },
+    "schema_version": {
+      "const": "cache_audit_anchor_registry/v1"
+    },
+    "signature": {
+      "$ref": "#/$defs/signature"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    }
+  },
+  "required": [
+    "schema_version",
+    "registry_id",
+    "governance_key_id",
+    "created_at",
+    "keys",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Governed External Audit Anchor Registry v1",
+  "type": "object"
+}

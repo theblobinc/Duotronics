@@ -1,0 +1,63 @@
+{
+  "$id": "https://duotronics.local/schemas/governance_authority_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authority_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "governance_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "provisioning_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "public_key_base64url": {
+      "maxLength": 3456,
+      "minLength": 3456,
+      "pattern": "^[A-Za-z0-9_-]{3456}$",
+      "type": "string"
+    },
+    "public_key_fingerprint_shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "governance_authority/v1"
+    },
+    "status": {
+      "const": "provisioned"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "governance_key_id",
+    "schema_version",
+    "authority_principal_id",
+    "public_key_base64url",
+    "public_key_fingerprint_shake256_512",
+    "valid_from",
+    "status",
+    "provisioning_witness_id",
+    "created_at"
+  ],
+  "title": "GovernanceAuthorityV1",
+  "type": "object"
+}

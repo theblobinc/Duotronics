@@ -1,0 +1,64 @@
+{
+  "$id": "duotronic://schemas/activation_state_vector/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ActivationStateVector/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "activation_state_vector/v1"
+    },
+    "authority_namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "non_authoritative": {
+      "const": true
+    },
+    "gate_ordinals": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 7
+      }
+    },
+    "graph_completeness_ordinal": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "freshness_ordinal": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "contradiction_pressure_ordinal": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "revalidation_ordinal": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authority_namespace",
+    "non_authoritative",
+    "gate_ordinals",
+    "graph_completeness_ordinal",
+    "freshness_ordinal",
+    "contradiction_pressure_ordinal",
+    "revalidation_ordinal",
+    "observed_at"
+  ]
+}

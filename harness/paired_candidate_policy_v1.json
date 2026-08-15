@@ -1,0 +1,43 @@
+{
+  "schema": "duotronic-paired-candidate-policy/v1",
+  "authority_profile": "sandbox-test-only",
+  "authority_namespace": "duotronic://authority/sandbox/witness-harness-vm",
+  "production_eligible": false,
+  "parent_snapshots_immutable": true,
+  "candidate_pair_required": true,
+  "maximum_cycles": 8,
+  "maximum_changed_files_per_cycle": 64,
+  "maximum_written_bytes_per_cycle": 2097152,
+  "allowed_corpus_prefixes": ["architecture/", "authority/", "executable/", "formal/", "mathematics/", "refs/", "runtime/", "schemas/", "security/", "tests/", "validation/", "vectors/"],
+  "allowed_runtime_prefixes": ["app/", "config/", "formal/", "migrations/", "ops_agent/", "schemas/", "tests/", "tools/"],
+  "allowed_root_files": ["README.md", "START_HERE.md", "RELEASE_NOTES.md", "RUNTIME_HANDOFF_CHECKLIST.md", "Containerfile", "compose.yaml", "pyproject.toml", "requirements.txt"],
+  "external_data": {
+    "default_mode": "mcp-synchronized-snapshot",
+    "network_fetch_default": false,
+    "maximum_files": 4096,
+    "maximum_total_bytes": 1073741824,
+    "credentials_in_snapshots_forbidden": true,
+    "mutable_mounts_forbidden": true
+  },
+  "required_pair_checks": [
+    "parent_lineage",
+    "corpus_portable_validation",
+    "runtime_compile",
+    "runtime_unit_tests",
+    "runtime_health",
+    "corpus_runtime_compatibility",
+    "external_snapshot_provenance",
+    "recursive_witness_replay",
+    "migration_dry_run",
+    "rollback_restore",
+    "twelve_external_activation_gates"
+  ],
+  "promotion": {
+    "automatic_sandbox_candidate": true,
+    "automatic_sandbox_activation": true,
+    "automatic_publication": false,
+    "automatic_production_stage": false,
+    "automatic_production_activation": false,
+    "human_or_external_governance_required_for_production": true
+  }
+}

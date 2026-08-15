@@ -1,0 +1,53 @@
+{
+  "$id": "duotronic://schemas/authority_domain/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AuthorityDomain/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "authority_domain/v1"
+    },
+    "authority_namespace": {
+      "type": "string",
+      "pattern": "^duotronic://authority/[a-z0-9][a-z0-9./_-]{2,127}$"
+    },
+    "authority_profile": {
+      "enum": [
+        "sandbox-test-only",
+        "production"
+      ]
+    },
+    "evidence_environment": {
+      "enum": [
+        "isolated-vm-harness",
+        "production-runtime"
+      ]
+    },
+    "production_eligible": {
+      "type": "boolean"
+    },
+    "trust_registry_snapshot_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "cryptographic_suite_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authority_namespace",
+    "authority_profile",
+    "evidence_environment",
+    "production_eligible",
+    "trust_registry_snapshot_id",
+    "cryptographic_suite_id",
+    "created_at"
+  ]
+}

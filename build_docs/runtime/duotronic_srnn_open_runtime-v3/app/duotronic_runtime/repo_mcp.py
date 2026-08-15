@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import os
 import re
@@ -13,6 +11,7 @@ from typing import Any
 
 from fastapi import HTTPException
 
+from .crypto_primitives import kmac256_hex, shake256_hex
 from .config import Settings
 
 
@@ -323,12 +322,12 @@ class XaviRepoTools:
         return self._run(["git", "diff", "--"], cwd=worktree).stdout
 
     def _diff_digest(self, worktree: Path) -> str:
-        return hashlib.sha256(self._diff_text(worktree).encode("utf-8")).hexdigest()
+        return shake256_hex(self._diff_text(worktree))
 
     def _approval_token(self, *, worktree_id: str, diff_digest: str, message: str) -> str:
         payload = f"{worktree_id}\n{diff_digest}\n{message}".encode("utf-8")
         secret = self.settings.xavi_repo_approval_secret.encode("utf-8")
-        return hmac.new(secret, payload, hashlib.sha256).hexdigest()
+        return kmac256_hex(secret, payload, custom=b"Xavi-Repo-Approval-v1")
 
     def status(self) -> dict[str, Any]:
         self._mark_safe_directory(self.repo_root)
@@ -483,7 +482,7 @@ class XaviRepoTools:
             raise HTTPException(status_code=403, detail="latest test did not pass")
 
         diff_digest = self._diff_digest(worktree)
-        if not diff_digest or diff_digest == hashlib.sha256(b"").hexdigest():
+        if not diff_digest or diff_digest == shake256_hex(b""):
             raise HTTPException(status_code=422, detail="no diff to approve")
 
         if last_test.get("diff_digest") != diff_digest:
@@ -552,7 +551,7 @@ class XaviRepoTools:
     ) -> str:
         payload = f"integrate\n{worktree_id}\n{commit_sha}\n{main_head}\n{message}\n{target_branch}".encode("utf-8")
         secret = self.settings.xavi_repo_approval_secret.encode("utf-8")
-        return hmac.new(secret, payload, hashlib.sha256).hexdigest()
+        return kmac256_hex(secret, payload, custom=b"Xavi-Repo-Integration-v1")
 
     def _require_clean_tracked_tree(self, path: Path) -> None:
         unstaged = self._run(["git", "diff", "--quiet"], cwd=path, check=False)

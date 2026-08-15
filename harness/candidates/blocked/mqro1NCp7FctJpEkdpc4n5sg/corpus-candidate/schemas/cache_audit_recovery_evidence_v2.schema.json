@@ -1,0 +1,108 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_recovery_evidence_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "reconcile_signed_dangling_tail",
+        "remove_orphan_checkpoint_temporaries",
+        "complete_interrupted_seal",
+        "complete_interrupted_successor"
+      ]
+    },
+    "after_state": {
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "type": "object"
+    },
+    "audit_key_validity_evidence": {
+      "type": "object"
+    },
+    "audit_signer_key_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "audit_signer_principal_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "audit_signing_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "before_state": {
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "type": "object"
+    },
+    "recovered_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "recovery_authorization_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "recovery_id": {
+      "pattern": "^recovery:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "cache_audit_recovery_evidence/v2"
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "recovery_id",
+    "segment_id",
+    "action",
+    "before_state",
+    "after_state",
+    "recovery_authorization_shake256_512",
+    "audit_signing_registry_shake256_512",
+    "audit_signer_key_id",
+    "audit_signer_principal_id",
+    "audit_key_validity_evidence",
+    "recovered_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Lifecycle-Governed Cache Audit Recovery Evidence v2",
+  "type": "object"
+}

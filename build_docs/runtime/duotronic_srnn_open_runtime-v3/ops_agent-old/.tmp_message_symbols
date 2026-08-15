@@ -1,0 +1,36 @@
+app/duotronic_runtime/project_tasks.py:628:                       delegation_id, message_type, subject, left(body, 4000) AS body,
+app/duotronic_runtime/project_tasks.py:629:                       status, created_at, delivered_at, read_at, acknowledged_at
+app/duotronic_runtime/project_tasks.py:630:                  FROM mcp_session_messages
+app/duotronic_runtime/session_delegation.py:14:CREATE TABLE IF NOT EXISTS mcp_session_messages (
+app/duotronic_runtime/session_delegation.py:21:  message_type TEXT NOT NULL DEFAULT 'message'
+app/duotronic_runtime/session_delegation.py:22:    CHECK (message_type IN ('message','suggestion','handoff','request','result','system')),
+app/duotronic_runtime/session_delegation.py:31:  acknowledged_at TIMESTAMPTZ,
+app/duotronic_runtime/session_delegation.py:34:CREATE INDEX IF NOT EXISTS mcp_session_messages_recipient_idx
+app/duotronic_runtime/session_delegation.py:35:  ON mcp_session_messages(recipient_session_id, status, created_at DESC);
+app/duotronic_runtime/session_delegation.py:36:CREATE INDEX IF NOT EXISTS mcp_session_messages_sender_idx
+app/duotronic_runtime/session_delegation.py:37:  ON mcp_session_messages(sender_session_id, created_at DESC);
+app/duotronic_runtime/session_delegation.py:38:CREATE INDEX IF NOT EXISTS mcp_session_messages_work_idx
+app/duotronic_runtime/session_delegation.py:39:  ON mcp_session_messages(work_id, created_at DESC);
+app/duotronic_runtime/session_delegation.py:158:            "name": "session.send_message",
+app/duotronic_runtime/session_delegation.py:159:            "description": "Send a durable addressed message to another MCP session. The recipient sees it through session.inbox on its next MCP turn.",
+app/duotronic_runtime/session_delegation.py:161:            "input_schema": {"type": "object", "required": ["recipient_session_id", "body"], "properties": {"recipient_session_id": {"type": "string"}, "subject": {"type": "string"}, "body": {"type": "string"}, "message_type": {"type": "string", "enum": ["message","suggestion","handoff","request","result","system"], "default": "message"}, "project_key": {"type": "string"}, "work_id": {"type": ["string","null"]}, "delegation_id": {"type": ["string","null"]}, "payload": {"type": "object"}, "expires_seconds": {"type": ["integer","null"], "minimum": 60, "maximum": 604800}}, "additionalProperties": True},
+app/duotronic_runtime/session_delegation.py:171:            "description": "Acknowledge one addressed session message.",
+app/duotronic_runtime/session_delegation.py:305:                       (SELECT count(*) FROM mcp_session_messages m WHERE m.recipient_session_id=s.session_id AND m.status IN ('queued','delivered')) AS unread_messages
+app/duotronic_runtime/session_delegation.py:315:    def send_message(self, args: dict[str, Any]) -> dict[str, Any]:
+app/duotronic_runtime/session_delegation.py:323:        message_type = _safe_text(args.get("message_type"), "message", 20)
+app/duotronic_runtime/session_delegation.py:324:        if message_type not in {"message","suggestion","handoff","request","result","system"}:
+app/duotronic_runtime/session_delegation.py:325:            raise HTTPException(422, "invalid message_type")
+app/duotronic_runtime/session_delegation.py:339:                INSERT INTO mcp_session_messages(sender_session_id,recipient_session_id,project_key,work_id,delegation_id,message_type,subject,body,payload,expires_at)
+app/duotronic_runtime/session_delegation.py:343:                (sender, recipient, _project(args.get("project_key")), work_id, delegation_id, message_type, _safe_text(args.get("subject"), "", 500), body, Jsonb(args.get("payload") or {}), expires_at),
+app/duotronic_runtime/session_delegation.py:356:            conn.execute("UPDATE mcp_session_messages SET status='expired' WHERE status IN ('queued','delivered') AND expires_at IS NOT NULL AND expires_at < now()")
+app/duotronic_runtime/session_delegation.py:358:                rows = conn.execute("SELECT * FROM mcp_session_messages WHERE recipient_session_id=%s AND status=%s ORDER BY created_at ASC LIMIT %s", (session_id, requested_status, limit)).fetchall()
+app/duotronic_runtime/session_delegation.py:360:                rows = conn.execute("SELECT * FROM mcp_session_messages WHERE recipient_session_id=%s AND status IN ('queued','delivered','read') ORDER BY created_at ASC LIMIT %s", (session_id, limit)).fetchall()
+app/duotronic_runtime/session_delegation.py:364:                    conn.execute("UPDATE mcp_session_messages SET status='read',delivered_at=COALESCE(delivered_at,now()),read_at=COALESCE(read_at,now()) WHERE message_id = ANY(%s::uuid[])", (ids,))
+app/duotronic_runtime/session_delegation.py:366:                    conn.execute("UPDATE mcp_session_messages SET status='delivered',delivered_at=COALESCE(delivered_at,now()) WHERE message_id = ANY(%s::uuid[]) AND status='queued'", (ids,))
+app/duotronic_runtime/session_delegation.py:376:                UPDATE mcp_session_messages SET
+app/duotronic_runtime/session_delegation.py:380:                  acknowledged_at=now()
+app/duotronic_runtime/session_delegation.py:437:                self.send_message({"session_id": delegator, "recipient_session_id": delegate_session, "project_key": project_key, "work_id": work_id, "delegation_id": delegation_id, "message_type": "request", "subject": "Delegated work", "body": objective, "payload": {"required_capabilities": capabilities, "resource_hints": args.get("resource_hints") or {}, "acceptance": args.get("acceptance") or {}}})
+app/duotronic_runtime/session_delegation.py:533:                message = self.send_message({
+app/duotronic_runtime/session_delegation.py:539:                    "message_type": "result",
+app/duotronic_runtime/session_delegation.py:652:        if name == "session.send_message":
+app/duotronic_runtime/session_delegation.py:653:            return self.send_message(args)

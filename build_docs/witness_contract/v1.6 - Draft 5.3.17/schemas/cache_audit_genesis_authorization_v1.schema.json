@@ -1,0 +1,60 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_genesis_authorization_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchor_namespace": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "anchor_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_signing_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "authorization_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "const": "authorize_audit_genesis"
+    },
+    "schema_version": {
+      "const": "cache_audit_genesis_authorization/v1"
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "segment_id",
+    "anchor_namespace",
+    "audit_signing_registry_shake256_512",
+    "anchor_registry_shake256_512",
+    "decision",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Governance-Signed Audit Genesis Authorization v1",
+  "type": "object"
+}

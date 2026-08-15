@@ -1,15 +1,54 @@
 from __future__ import annotations
 
+import asyncio
 import json
+import time
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel, Field
 
+from .crypto_primitives import shake256_hex, shake256_ref
 from .config import Settings
 from .http_mcp import _call_tool, _read_resource, _require_mcp_key, _resources, _tool_manifest
 from .runtime_kernel import RuntimeKernel
+from .autonomy_stack import sanitize_training_value
+from .conversation_identity import resolve as resolve_conversation, schema_properties as conversation_schema_properties, strip as strip_conversation_args
+
+
+_AUTO_CAPTURE_EXACT = {
+    # Operational liveness/inventory probes are not training events.
+    "runtime.health",
+    "runtime.models",
+    "runtime.modules",
+    "runtime.session_append",
+    "runtime.session_index",
+    "runtime.session_search",
+    "runtime.session_find",
+    "runtime.session_tail",
+    "runtime.session_summary",
+    "runtime.session_verify",
+    "runtime.transcript_ingest",
+    "runtime.transcript_search",
+}
+
+
+def _capture_tool(tool_name: str) -> bool:
+    return tool_name not in _AUTO_CAPTURE_EXACT and not tool_name.startswith("runtime.autonomy_")
+
+
+def _mcp_session_context(request: Request) -> dict[str, str]:
+    headers = request.headers
+    explicit = headers.get("x-xavi-session-id") or headers.get("x-mcp-session-id") or headers.get("mcp-session-id")
+    agent_id = headers.get("x-xavi-agent-id") or headers.get("x-agent-id") or "mcp-client"
+    device = headers.get("x-xavi-device-id") or headers.get("x-device-id") or headers.get("user-agent") or "unknown-device"
+    if explicit:
+        session_id = explicit.strip()
+    else:
+        seed = json.dumps({"agent": agent_id, "device": device, "client": headers.get("user-agent", "")}, sort_keys=True)
+        session_id = "runtime-mcp-" + shake256_hex(seed)[:20]
+    return {"session_id": session_id[:160], "agent_id": agent_id[:120], "device_digest": shake256_ref(device)}
 
 
 class McpJsonRpcRequest(BaseModel):
@@ -58,14 +97,21 @@ def _mcp_tools() -> list[dict[str, Any]]:
         if not name:
             continue
 
+        schema = item.get(
+            "input_schema",
+            {"type": "object", "properties": {}, "additionalProperties": True},
+        )
+        if isinstance(schema, dict) and schema.get("type") == "object":
+            schema = dict(schema)
+            properties = dict(schema.get("properties") or {})
+            for identity_name, identity_schema in conversation_schema_properties().items():
+                properties.setdefault(identity_name, identity_schema)
+            schema["properties"] = properties
         tools.append(
             {
                 "name": name,
                 "description": item.get("description", ""),
-                "inputSchema": item.get(
-                    "input_schema",
-                    {"type": "object", "properties": {}, "additionalProperties": True},
-                ),
+                "inputSchema": schema,
             }
         )
 
@@ -81,11 +127,12 @@ def _server_info() -> dict[str, Any]:
 
 
 def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Settings) -> None:
-    async def handle_mcp(
+    async def _handle_mcp_inner(
         req: McpJsonRpcRequest,
-        authorization: str | None = Header(default=None),
-        x_xavi_mcp_key: str | None = Header(default=None),
-        x_api_key: str | None = Header(default=None, alias="x-api-key"),
+        request: Request,
+        authorization: str | None = None,
+        x_xavi_mcp_key: str | None = None,
+        x_api_key: str | None = None,
     ) -> Response:
         try:
             _authorize(settings, authorization, x_xavi_mcp_key, x_api_key)
@@ -112,7 +159,11 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
                     "instructions": (
                         "Use tools/list to discover Xavi Runtime tools. "
                         "Use resources/list and resources/read for runtime and Concrete CMS skill resources. "
-                        "Use tools/call with a tool name and arguments to operate the runtime, repo worktrees, and bounded ops."
+                        "Use tools/call with a tool name and arguments to operate the runtime, repo worktrees, and bounded ops. "
+                        "For every tool call in one chat, provide the same durable conversation_id and conversation_source. Prefer a real source-native id when the client exposes one; otherwise generate one stable UUID-based id once for that chat and keep reusing it. Never reuse one conversation_id across unrelated chats. "
+                        "When transcript access exists, use runtime.transcript_ingest under the same conversation identity for real user/assistant turns; never fabricate unseen transcript content. "
+                        "At the beginning of substantive work, inspect session.inbox and delegation.inbox, acknowledge addressed messages when handled, and consult any _collaboration peer-awareness/task-backlog context before choosing work. "
+                        "Use session.send_message for peer handoffs and delegation.assign for suitable session/WG-RNN work instead of duplicating active peer tasks; use task.claim_next for unclaimed backlog work."
                     ),
                 },
             )
@@ -133,9 +184,94 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
             if not isinstance(arguments, dict):
                 return _jsonrpc_error(req.id, -32602, "tools/call params.arguments must be an object")
 
+            context = _mcp_session_context(request)
+            conversation = resolve_conversation(request.headers, arguments, context["session_id"])
+            if tool_name in {"runtime.transcript_ingest", "runtime.transcript_search"}:
+                arguments = dict(arguments)
+                arguments["session_id"] = conversation["conversation_id"]
+                if tool_name == "runtime.transcript_ingest":
+                    metadata = dict(arguments.get("metadata") or {}) if isinstance(arguments.get("metadata"), dict) else {}
+                    metadata.setdefault("conversation_id", conversation["conversation_id"])
+                    metadata.setdefault("conversation_source", conversation["conversation_source"])
+                    if conversation.get("source_conversation_id"):
+                        metadata.setdefault("source_conversation_id", conversation["source_conversation_id"])
+                    if conversation.get("continued_from_conversation_id"):
+                        metadata.setdefault("continued_from_conversation_id", conversation["continued_from_conversation_id"])
+                    arguments["metadata"] = metadata
+            arguments = strip_conversation_args(arguments)
+            if tool_name.startswith(("session.", "delegation.", "worker.", "task.")):
+                # Session/delegation authority is transport-bound. Never trust caller-supplied
+                # sender identity for cross-agent messaging or delegated work.
+                arguments = dict(arguments)
+                arguments["session_id"] = context["session_id"]
+                arguments["agent_id"] = context["agent_id"]
+                arguments["client_name"] = "native-mcp"
+            ledger_session_id = conversation.get("conversation_id") or context["session_id"]
+            capture = _capture_tool(tool_name)
+            started_ms = int(time.time() * 1000)
+            start_event = None
+            if capture:
+                start_event = kernel.autonomy.record_event(
+                    session_id=ledger_session_id,
+                    event_type="mcp_call_start",
+                    actor=context["agent_id"],
+                    content={
+                        "tool_name": tool_name,
+                        "request_id": req.id,
+                        "arguments": sanitize_training_value(arguments),
+                        "arguments_digest": shake256_ref(arguments),
+                        "device_digest": context["device_digest"],
+                        **conversation,
+                        "transport": "native-mcp-jsonrpc",
+                    },
+                    tags=["mcp", "tool-call", tool_name],
+                )
+
             try:
                 result = await _call_tool(kernel, tool_name, arguments)
+                if tool_name not in {"task.awareness", "runtime.health", "runtime.models", "runtime.modules"}:
+                    try:
+                        from .project_tasks import ProjectTaskService
+                        collaboration = ProjectTaskService(kernel.store).compact_awareness({
+                            "project_key": arguments.get("project_key") or "xavi.app-backend",
+                            "session_id": context["session_id"],
+                            "agent_id": context["agent_id"],
+                            "limit": 12,
+                        })
+                        if isinstance(result, dict):
+                            result = dict(result)
+                            result["_collaboration"] = collaboration
+                    except Exception:
+                        # Awareness is advisory context; never turn a successful primary
+                        # tool call into a failure because the awareness projection failed.
+                        pass
             except HTTPException as exc:
+                if capture and start_event is not None:
+                    error_event = kernel.autonomy.record_event(
+                        session_id=ledger_session_id,
+                        event_type="mcp_call_error",
+                        actor="xavi-runtime",
+                        content={
+                            "tool_name": tool_name,
+                            "request_id": req.id,
+                            "status_code": exc.status_code,
+                            "detail": sanitize_training_value(exc.detail),
+                            "duration_ms": int(time.time() * 1000) - started_ms,
+                            **conversation,
+                        },
+                        tags=["mcp", "tool-error", tool_name],
+                    )
+                    try:
+                        kernel.autonomy.build_trajectory(
+                            session_id=ledger_session_id,
+                            start_sequence=int(start_event["sequence"]),
+                            end_sequence=int(error_event["sequence"]),
+                            outcome={"success": False, "score": 0.0, "error": "HTTPException"},
+                            evaluator="native-mcp-boundary",
+                            learn=True,
+                        )
+                    except Exception:
+                        pass
                 return _jsonrpc_error(
                     req.id,
                     -32000,
@@ -143,6 +279,31 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
                     {"status_code": exc.status_code, "detail": exc.detail, "tool": tool_name},
                 )
             except Exception as exc:
+                if capture and start_event is not None:
+                    error_event = kernel.autonomy.record_event(
+                        session_id=ledger_session_id,
+                        event_type="mcp_call_error",
+                        actor="xavi-runtime",
+                        content={
+                            "tool_name": tool_name,
+                            "request_id": req.id,
+                            "error": exc.__class__.__name__,
+                            "message": sanitize_training_value(str(exc)),
+                            "duration_ms": int(time.time() * 1000) - started_ms,
+                        },
+                        tags=["mcp", "tool-error", tool_name],
+                    )
+                    try:
+                        kernel.autonomy.build_trajectory(
+                            session_id=ledger_session_id,
+                            start_sequence=int(start_event["sequence"]),
+                            end_sequence=int(error_event["sequence"]),
+                            outcome={"success": False, "score": 0.0, "error": exc.__class__.__name__},
+                            evaluator="native-mcp-boundary",
+                            learn=True,
+                        )
+                    except Exception:
+                        pass
                 return _jsonrpc_error(
                     req.id,
                     -32000,
@@ -150,7 +311,34 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
                     {"error": exc.__class__.__name__, "message": str(exc), "tool": tool_name},
                 )
 
-            text = json.dumps(result, indent=2, sort_keys=True, default=str)
+            if capture and start_event is not None:
+                result_event = kernel.autonomy.record_event(
+                    session_id=ledger_session_id,
+                    event_type="mcp_call_result",
+                    actor="xavi-runtime",
+                    content={
+                        "tool_name": tool_name,
+                        "request_id": req.id,
+                        "result": sanitize_training_value(result),
+                        "result_digest": shake256_ref(result),
+                        "duration_ms": int(time.time() * 1000) - started_ms,
+                        **conversation,
+                    },
+                    tags=["mcp", "tool-result", tool_name],
+                )
+                try:
+                    kernel.autonomy.build_trajectory(
+                        session_id=ledger_session_id,
+                        start_sequence=int(start_event["sequence"]),
+                        end_sequence=int(result_event["sequence"]),
+                        outcome={"success": True, "score": 1.0},
+                        evaluator="native-mcp-boundary",
+                        learn=True,
+                    )
+                except Exception:
+                    pass
+
+            text = json.dumps({"_conversation": conversation, "result": result}, indent=2, sort_keys=True, default=str)
             return _jsonrpc_result(
                 req.id,
                 {
@@ -186,6 +374,28 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
             return _jsonrpc_result(req.id, {"contents": [{"uri": uri, "mimeType": mime_type, "text": text}]})
 
         return _jsonrpc_error(req.id, -32601, f"Method not found: {method}")
+
+    async def handle_mcp(
+        req: McpJsonRpcRequest,
+        request: Request,
+        authorization: str | None = Header(default=None),
+        x_xavi_mcp_key: str | None = Header(default=None),
+        x_api_key: str | None = Header(default=None, alias="x-api-key"),
+    ) -> Response:
+        # Native MCP dispatch performs synchronous DB/WG-RNN/autonomy work in
+        # addition to async provider calls. Isolate the whole request from the
+        # Uvicorn event loop so /health remains responsive under MCP load.
+        return await asyncio.to_thread(
+            lambda: asyncio.run(
+                _handle_mcp_inner(
+                    req,
+                    request,
+                    authorization,
+                    x_xavi_mcp_key,
+                    x_api_key,
+                )
+            )
+        )
 
     async def mcp_get() -> PlainTextResponse:
         return PlainTextResponse(

@@ -1,0 +1,123 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_anchor_state_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchor_epoch": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "anchor_key_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "anchor_key_validity_evidence": {
+      "type": "object"
+    },
+    "anchor_namespace": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "anchor_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "anchor_signer_principal_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "audit_signing_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "previous_anchor_state_shake256_512": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "previous_sealed_segment_tail_shake256_512": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "cache_audit_anchor_state/v2"
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "segment_status": {
+      "enum": [
+        "open",
+        "sealed"
+      ]
+    },
+    "sequence": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "tail_record_shake256_512": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "transition_authorization_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "updated_at": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "anchor_namespace",
+    "anchor_epoch",
+    "segment_id",
+    "sequence",
+    "tail_record_shake256_512",
+    "segment_status",
+    "previous_sealed_segment_tail_shake256_512",
+    "transition_authorization_shake256_512",
+    "audit_signing_registry_shake256_512",
+    "anchor_registry_shake256_512",
+    "previous_anchor_state_shake256_512",
+    "updated_at",
+    "anchor_key_id",
+    "anchor_signer_principal_id",
+    "anchor_key_validity_evidence",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Strict Hash-Chained Cache Audit Anchor State v2",
+  "type": "object"
+}

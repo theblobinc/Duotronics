@@ -1,0 +1,123 @@
+{
+  "$defs": {
+    "decision": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "const": "active_time_valid_rotation_valid"
+        },
+        "evaluated_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "key_id": {
+          "$ref": "#/$defs/id"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/id"
+        },
+        "registry_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "rotation_predecessor_key_id": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "schema_version": {
+          "const": "cache_key_validity_evidence/v1"
+        },
+        "status": {
+          "const": "active"
+        },
+        "status_changed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "use": {
+          "enum": [
+            "signing",
+            "replay"
+          ]
+        },
+        "valid_from": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "valid_until": {
+          "oneOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "registry_shake256_512",
+        "key_id",
+        "principal_id",
+        "status",
+        "valid_from",
+        "valid_until",
+        "status_changed_at",
+        "rotation_predecessor_key_id",
+        "use",
+        "decision",
+        "evaluated_at"
+      ],
+      "type": "object"
+    },
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/cache_verification_evidence_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cache_envelope_id": {
+      "pattern": "^cache:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "cache_registry_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "compiler_witness_signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "replay_decision": {
+      "$ref": "#/$defs/decision"
+    },
+    "schema_version": {
+      "const": "cache_verification_evidence/v1"
+    },
+    "signing_decision": {
+      "$ref": "#/$defs/decision"
+    }
+  },
+  "required": [
+    "schema_version",
+    "cache_envelope_id",
+    "cache_registry_shake256_512",
+    "signing_decision",
+    "replay_decision",
+    "compiler_witness_signed_payload_shake256_512"
+  ],
+  "title": "Current Cache Replay Verification Evidence v1",
+  "type": "object"
+}

@@ -9,7 +9,7 @@ from .config import get_settings
 from .runtime_kernel import RuntimeKernel
 
 settings = get_settings()
-kernel = RuntimeKernel(settings)
+kernel = RuntimeKernel(settings, initialize_schema=True)
 
 
 def tool_schema(name: str, description: str, properties: dict[str, Any] | None = None, required: list[str] | None = None) -> dict[str, Any]:

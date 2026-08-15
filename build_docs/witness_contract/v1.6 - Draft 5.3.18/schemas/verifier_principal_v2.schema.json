@@ -1,0 +1,63 @@
+{
+  "$id": "https://duotronics.local/schemas/verifier_principal_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "public_key_fingerprint_shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "verifier_principal/v2"
+    },
+    "signature_algorithm": {
+      "enum": [
+        "ML-DSA-87",
+        "ECDSA-P256-SHAKE256_512",
+        "RSA-PSS-SHAKE256_512"
+      ]
+    },
+    "status": {
+      "enum": [
+        "active",
+        "revoked",
+        "retired"
+      ]
+    },
+    "valid_from": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verifier_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "verifier_principal_id",
+    "key_id",
+    "signature_algorithm",
+    "public_key_fingerprint_shake256_512",
+    "status",
+    "valid_from",
+    "created_at"
+  ],
+  "title": "VerifierPrincipalV2",
+  "type": "object"
+}

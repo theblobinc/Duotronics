@@ -1,0 +1,204 @@
+{
+  "$id": "https://duotronics.local/schemas/claim_status_transition.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "target_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "proof_witness_refs": {
+            "minItems": 1,
+            "type": "array"
+          },
+          "transition_kind": {
+            "const": "prove"
+          }
+        },
+        "required": [
+          "proof_witness_refs"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "target_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "lean_compiler_witness_refs": {
+            "minItems": 1,
+            "type": "array"
+          },
+          "theorem_promotion_gate_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "proof_witness_refs",
+          "lean_compiler_witness_refs",
+          "theorem_promotion_gate_id"
+        ]
+      }
+    }
+  ],
+  "description": " Draft 5.2.2 adds Lean compiler witness and theorem promotion gate requirements for theorem/proof_verified targets.",
+  "properties": {
+    "allowed": {
+      "type": "boolean"
+    },
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "claim_status_transition_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "lean_compiler_witness_refs": {
+      "default": [],
+      "description": "Required and non-empty when target_status is theorem/proof_verified in Draft 5.2.2.",
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "non_collapse_transition_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "proof_witness_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "reason": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "replay_verification_result_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "required_witness_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "claim_status_transition/v1"
+    },
+    "source_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "draft",
+        "observed",
+        "computed",
+        "proposed",
+        "asserted",
+        "deferred",
+        "vetoed",
+        "conjecture",
+        "theorem",
+        "replay_verified",
+        "proof_verified",
+        "policy_approved",
+        "released"
+      ]
+    },
+    "target_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "draft",
+        "observed",
+        "computed",
+        "proposed",
+        "asserted",
+        "deferred",
+        "vetoed",
+        "conjecture",
+        "theorem",
+        "replay_verified",
+        "proof_verified",
+        "policy_approved",
+        "released"
+      ]
+    },
+    "theorem_promotion_gate_id": {
+      "description": "Required for theorem/proof_verified target status in Draft 5.2.2.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "transition_kind": {
+      "enum": [
+        "observe",
+        "compute",
+        "propose",
+        "assert",
+        "defer",
+        "veto",
+        "prove",
+        "replay_verify",
+        "policy_approve",
+        "release",
+        "invalidate",
+        "mark_absent",
+        "mark_unknown"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "claim_status_transition_id",
+    "claim_id",
+    "source_status",
+    "target_status",
+    "transition_kind",
+    "allowed",
+    "policy_decision_id",
+    "required_witness_refs",
+    "non_collapse_transition_id",
+    "created_at"
+  ],
+  "title": "ClaimStatusTransition",
+  "type": "object"
+}

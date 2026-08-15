@@ -1,0 +1,85 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_segment_transition_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchor_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_signing_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "const": "authorize_successor_segment"
+    },
+    "predecessor_anchor_state_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "predecessor_sealed_checkpoint_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "predecessor_segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "predecessor_tail_record_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "predecessor_terminal_record_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "cache_audit_segment_transition/v1"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "successor_anchor_epoch": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "successor_segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "transition_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "transition_id",
+    "predecessor_segment_id",
+    "predecessor_sealed_checkpoint_shake256_512",
+    "predecessor_terminal_record_shake256_512",
+    "predecessor_tail_record_shake256_512",
+    "predecessor_anchor_state_shake256_512",
+    "successor_segment_id",
+    "successor_anchor_epoch",
+    "audit_signing_registry_shake256_512",
+    "anchor_registry_shake256_512",
+    "decision",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Governance-Signed Cache Audit Segment Transition v1",
+  "type": "object"
+}

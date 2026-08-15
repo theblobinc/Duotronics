@@ -1,0 +1,8 @@
+{
+  "payload": {
+    "domain": "trusted_inspection",
+    "domain_file_size_limit": -1,
+    "inspection_output_bytes_limit": -1
+  },
+  "schema_ref": "schemas/effective_sandbox_invocation_v4.schema.json"
+}

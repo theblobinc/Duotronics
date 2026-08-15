@@ -1,0 +1,123 @@
+{
+  "findings": [
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/cache_audit.py",
+        "executable/runtime/proof_check_service.py"
+      ],
+      "id": "H-01",
+      "severity": "high",
+      "title": "Audit key lifecycle and revocation are not enforced at record or receipt use"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/cache_audit_services.py",
+        "executable/validators/run_production_loader_integration.py"
+      ],
+      "id": "H-02",
+      "severity": "high",
+      "title": "Publisher and anchor Unix-socket services do not authenticate peers"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/cache_audit.py",
+        "executable/runtime/cache_audit_services.py"
+      ],
+      "id": "H-03",
+      "severity": "high",
+      "title": "Portable anchor transitions and file storage are not strictly monotonic"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/cache_audit.py"
+      ],
+      "id": "H-04",
+      "severity": "high",
+      "title": "Successor provisioning does not prove the supplied terminal record is the anchored tail"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/cache_audit.py"
+      ],
+      "id": "H-05",
+      "severity": "high",
+      "title": "Audit event idempotency is limited to the active segment"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/cache_audit.py"
+      ],
+      "id": "H-06",
+      "severity": "high",
+      "title": "Recovery authorization expiry and replay are not enforced"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/validators/run_production_loader_integration.py"
+      ],
+      "id": "M-01",
+      "severity": "medium",
+      "title": "Production loader evidence does not execute a real publisher-anchor round trip"
+    },
+    {
+      "activation_blocker": true,
+      "files": [
+        "executable/runtime/cache_audit.py",
+        "executable/runtime/cache_audit_services.py"
+      ],
+      "id": "M-02",
+      "severity": "medium",
+      "title": "Production publisher and anchor service launchers are absent"
+    },
+    {
+      "activation_blocker": false,
+      "files": [
+        "executable/runtime/cache_audit_services.py"
+      ],
+      "id": "M-03",
+      "severity": "medium",
+      "title": "File-backed anchor write and ledger lifecycle need hardening"
+    },
+    {
+      "activation_blocker": true,
+      "id": "P-01",
+      "severity": "pending_external_execution",
+      "title": "Eight external activation gates remain incomplete"
+    }
+  ],
+  "package": "v1.6-draft-5.3.15",
+  "verdict": "publishable_non_authoritative_not_activation_ready",
+  "verified": {
+    "adversarial_fixtures_rejected": 56,
+    "authority_enabled": false,
+    "duplicate_zip_entries": 0,
+    "embedded_zip_files": 0,
+    "external_activation_gates_complete": 0,
+    "freeze_state": "permanently_not_frozen",
+    "hash_or_size_mismatches": 0,
+    "independent_python_version": "3.13.5",
+    "independent_required_phases_passed": 101,
+    "independent_required_phases_total": 101,
+    "independent_surviving_descendants": 0,
+    "independent_tests_passed": 303,
+    "independent_tests_total": 303,
+    "independent_validator_duration_seconds": 211.601873,
+    "independent_warning_as_error_tests_passed": 303,
+    "inventory_files": 1915,
+    "packaged_runtime_cache_files": 0,
+    "recursive_exclusions": 4,
+    "schemas_compiled": 129,
+    "shake256_512_covered_files": 1911,
+    "strict_canonical_schemas": 54,
+    "valid_fixtures_passed": 54,
+    "zip_entries": 2101
+  },
+  "zip_shake256_512": "f33d2c682afe312668c9d6256da59784a43cd91b29b73881109690b2709ce800"
+}

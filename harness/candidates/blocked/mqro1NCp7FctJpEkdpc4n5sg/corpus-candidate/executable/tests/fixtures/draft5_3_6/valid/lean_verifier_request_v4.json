@@ -1,0 +1,42 @@
+{
+  "payload": {
+    "authorized_axioms": [
+      "Classical.choice"
+    ],
+    "claim_content_shake256_512": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+    "compiler_profile_id": "profile:1",
+    "effective_resource_limits": {
+      "combined_output_bytes": 2097152,
+      "compiler_artifact_file_bytes": 134217728,
+      "final_result_bytes": 1048576,
+      "handoff_total_bytes": 536870912,
+      "inspection_output_bytes": 4194304,
+      "source_total_bytes": 1000,
+      "stderr_bytes": 1048576,
+      "stdout_bytes": 1048576,
+      "timeout_seconds": 60
+    },
+    "effective_resource_limits_shake256_512": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "generated_binding_declaration": "WitnessAuthorityGenerated.BoundClaim",
+    "generated_binding_module_path": "WitnessAuthorityGenerated/Check_0123456789abcdef0123456789abcdef.lean",
+    "generated_binding_module_shake256_512": "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+    "immutable_snapshot_id": "shake256-512:55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555",
+    "immutable_snapshot_tree_shake256_512": "55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555",
+    "lake_manifest_shake256_512": "77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777",
+    "lakefile_shake256_512": "66666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666",
+    "lean_toolchain_shake256_512": "88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888",
+    "normalization_policy": "lean_isDefEq_reducibility_regular/v1",
+    "policy_decision_id": "policy:1",
+    "policy_decision_shake256_512": "22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222",
+    "proof_artifact_relative_path": "Proof.lean",
+    "proof_artifact_shake256_512": "44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444",
+    "proof_module": "Proof",
+    "request_id": "request:1111111111111111111111111111111111111111111111111111111111111111",
+    "sandbox_policy_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "sandbox_template_shake256_512": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "schema_version": "wc_lean_verifier_request/v4",
+    "theorem_name": "Proof.t",
+    "theorem_statement_shake256_512": "33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "schema_ref": "schemas/lean_verifier_request_v4.schema.json"
+}

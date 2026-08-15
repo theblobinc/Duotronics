@@ -1,0 +1,136 @@
+{
+  "$id": "https://duotronics.local/schemas/logicalObserverProfile.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Logical observer identity, scope, runtime modes, and policy-bound capabilities.",
+  "properties": {
+    "authority_scopes": {
+      "items": {
+        "enum": [
+          "none",
+          "diagnostic",
+          "local_session",
+          "tenant",
+          "repo",
+          "service",
+          "cluster",
+          "system",
+          "release",
+          "mathematical_claim",
+          "nla_training",
+          "policy",
+          "memory_write",
+          "model_promotion",
+          "truth_observer"
+        ]
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "capability_token_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "delegation_chain_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "non_collapse_checked": {
+      "const": true,
+      "type": "boolean"
+    },
+    "non_collapse_state_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "observer_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "observer_kind": {
+      "enum": [
+        "human",
+        "ai_runtime",
+        "policy_engine",
+        "verifier",
+        "replay_agent",
+        "kernel_test",
+        "service"
+      ]
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "resource_budget_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "runtime_modes": {
+      "items": {
+        "enum": [
+          "observe",
+          "test",
+          "simulation",
+          "shadow",
+          "audit",
+          "migration",
+          "release_candidate",
+          "production",
+          "rollback"
+        ]
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "schema_version": {
+      "const": "logical_observer_profile/v1"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "suspended",
+        "revoked",
+        "audit_only"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "observer_id",
+    "observer_kind",
+    "principal_id",
+    "authority_scopes",
+    "runtime_modes",
+    "capability_token_refs",
+    "policy_decision_id",
+    "non_collapse_state_id",
+    "status",
+    "non_collapse_checked",
+    "created_at"
+  ],
+  "title": "LogicalObserverProfile",
+  "type": "object"
+}

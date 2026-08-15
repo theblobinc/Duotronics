@@ -1,0 +1,6 @@
+{
+  "payload": {
+    "schema_version": "invalid/missing-required"
+  },
+  "schema_ref": "schemas/cache_audit_anchor_state_v2.schema.json"
+}

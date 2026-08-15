@@ -1,0 +1,103 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/cache_audit_record_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "audit_record_id": {
+      "pattern": "^audit:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_signer_key_id": {
+      "$ref": "#/$defs/id"
+    },
+    "audit_signer_principal_id": {
+      "$ref": "#/$defs/id"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "event_canonical_json": {
+      "maxLength": 1048576,
+      "minLength": 2,
+      "type": "string"
+    },
+    "event_schema_version": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$",
+      "type": "string"
+    },
+    "event_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "previous_audit_record_shake256_512": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/shake256_512"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "previous_sealed_segment_tail_shake256_512": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/shake256_512"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "rotation_policy": {
+      "const": "signed_sealed_segment_with_external_checkpoint"
+    },
+    "schema_version": {
+      "const": "cache_audit_record/v2"
+    },
+    "segment_id": {
+      "$ref": "#/$defs/id"
+    },
+    "sequence": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    }
+  },
+  "required": [
+    "schema_version",
+    "audit_record_id",
+    "segment_id",
+    "sequence",
+    "previous_audit_record_shake256_512",
+    "previous_sealed_segment_tail_shake256_512",
+    "event_schema_version",
+    "event_canonical_json",
+    "event_shake256_512",
+    "audit_signer_principal_id",
+    "audit_signer_key_id",
+    "rotation_policy",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Rollback-Checkpointed Cache Audit Record v2",
+  "type": "object"
+}

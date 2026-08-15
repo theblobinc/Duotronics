@@ -1,0 +1,18 @@
+Duotronic Witness Contract v1.6 Draft 5.3.5
+Status: portable validation passed
+Required phases: 32 passed; 0 failed; 0 skipped; 0 missing; 0 duplicate
+Corpus files: 1,427
+SHAKE256-512-covered files: 1,423
+Explicit recursive generated exclusions: 4
+Schemas: 81 lifecycle-classified; 79 JSON schemas compiled; 30 canonical strict
+Fixtures: 30 canonical valid accepted; 32 canonical invalid rejected
+Focused executable suites: 26 proof-authority, 4 service, 33 remediation,
+  1 SQL policy, 34 retained SQL lifecycle, and 8 positive-baseline tests passed
+Formal manifest: 9 TLA modules statically covered, including ProofAuthorityV6
+Activation blockers: strict Lean, strict TLC, governed-image integration,
+  signed OCI/inspector build attestations, reproducible inspector build,
+  committed clean-source provenance, and external governance signature
+Theorem authority: disabled
+Promotion authority: disabled
+Release authority: false
+Freeze state: permanently not frozen

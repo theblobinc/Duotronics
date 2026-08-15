@@ -1,0 +1,85 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/cache_audit_service_request_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "deadline_unix_ns": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "nonce": {
+      "pattern": "^[0-9a-f]{32}$",
+      "type": "string"
+    },
+    "operation": {
+      "enum": [
+        "publish",
+        "read",
+        "compare_and_swap"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "peer_principal_id": {
+      "$ref": "#/$defs/id"
+    },
+    "request_id": {
+      "pattern": "^request:[0-9a-f]{32}$",
+      "type": "string"
+    },
+    "request_signer_key_id": {
+      "$ref": "#/$defs/id"
+    },
+    "schema_version": {
+      "const": "cache_audit_service_request/v1"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "socket_identity_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "target_service": {
+      "enum": [
+        "cache_audit_publisher",
+        "cache_audit_anchor"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "operation",
+    "request_id",
+    "peer_principal_id",
+    "payload_shake256_512",
+    "deadline_unix_ns",
+    "nonce",
+    "target_service",
+    "socket_identity_shake256_512",
+    "payload",
+    "request_signer_key_id",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Authenticated Cache Audit Service Request v1",
+  "type": "object"
+}

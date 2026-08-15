@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import hashlib
 import json
+
+from runtime_ref.crypto import shake256_ref
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -45,7 +46,7 @@ class ArchitectureDeltaProposal:
             },
             sort_keys=True,
         )
-        return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()[:16]
+        return shake256_ref(payload)
 
     def to_dict(self) -> dict:
         return {

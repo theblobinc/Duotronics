@@ -1,0 +1,1 @@
+logs\nevidence\nartifacts\n*.backup-dev-rpc-*\n__pycache__\n*.pyc\n

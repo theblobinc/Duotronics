@@ -1,0 +1,242 @@
+{
+  "$defs": {
+    "control_evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "control": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "observation_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "source": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "measured_pass",
+            "measured_fail",
+            "unverified_missing_observation",
+            "derived_pass"
+          ]
+        }
+      },
+      "required": [
+        "control",
+        "status",
+        "source",
+        "observation_shake256_512"
+      ],
+      "type": "object"
+    },
+    "name_set": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/domain_execution_evidence_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "accepted_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "applied_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "combined_output_bytes_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "container_gid": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "container_uid": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "control_evidence": {
+      "items": {
+        "$ref": "#/$defs/control_evidence"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "domain": {
+      "enum": [
+        "untrusted_compilation",
+        "trusted_inspection"
+      ]
+    },
+    "domain_file_size_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "elapsed_ms": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "emitted_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "evidence_source": {
+      "enum": [
+        "trusted_host_launcher_and_runtime_inspection/v1",
+        "trusted_wrapper_and_host_launcher/v1"
+      ]
+    },
+    "handoff_state": {
+      "enum": [
+        "compiler_writable",
+        "host_sealed_read_only"
+      ]
+    },
+    "host_directory_gid": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "host_directory_uid": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "invocation_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "measured_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "mount_manifest": {
+      "items": {
+        "$ref": "effective_sandbox_invocation_v5.schema.json#/$defs/mount"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "normalized_executed_argv": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "normalized_executed_argv_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "output_limit_exceeded": {
+      "type": "boolean"
+    },
+    "remaining_at_finish_ms": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "remaining_at_start_ms": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "request_budget_seconds": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "requested_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "returncode": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "runtime_identity": {
+      "additionalProperties": false,
+      "properties": {
+        "oci_runtime_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "oci_runtime_version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "oci_runtime_version_output_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        }
+      },
+      "required": [
+        "oci_runtime_shake256_512",
+        "oci_runtime_version",
+        "oci_runtime_version_output_shake256_512"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "domain_execution_evidence/v1"
+    },
+    "stderr_bytes_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "stdout_bytes_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "timed_out": {
+      "type": "boolean"
+    },
+    "user_namespace_mode": {
+      "const": "keep-id"
+    },
+    "warning_as_error_cli_option": {
+      "const": "-DwarningAsError=true"
+    },
+    "warnings_as_errors": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "domain",
+    "evidence_source",
+    "invocation_shake256_512",
+    "normalized_executed_argv",
+    "normalized_executed_argv_shake256_512",
+    "mount_manifest",
+    "runtime_identity",
+    "requested_controls",
+    "emitted_controls",
+    "accepted_controls",
+    "applied_controls",
+    "measured_controls",
+    "control_evidence",
+    "container_uid",
+    "container_gid",
+    "host_directory_uid",
+    "host_directory_gid",
+    "user_namespace_mode",
+    "domain_file_size_limit",
+    "stdout_bytes_limit",
+    "stderr_bytes_limit",
+    "combined_output_bytes_limit",
+    "request_budget_seconds",
+    "remaining_at_start_ms",
+    "elapsed_ms",
+    "remaining_at_finish_ms",
+    "returncode",
+    "timed_out",
+    "output_limit_exceeded",
+    "warnings_as_errors",
+    "warning_as_error_cli_option",
+    "handoff_state"
+  ],
+  "title": "Trusted OCI Domain Execution Evidence v1",
+  "type": "object"
+}

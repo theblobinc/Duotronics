@@ -1,0 +1,89 @@
+{
+  "$id": "https://duotronics.local/schemas/authority_snapshot_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "as_of_effective_time": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "authority_policy_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "authorization_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "created_by_principal": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "event_set_root_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "ledger_high_water_sequence": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "authority_snapshot/v2"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "signer_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "snapshot_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "snapshot_query_version": {
+      "const": "authority_as_of_cutoff/v1"
+    },
+    "snapshot_signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "supersedes_snapshot_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "supersession_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "snapshot_id",
+    "as_of_effective_time",
+    "ledger_high_water_sequence",
+    "event_set_root_shake256_512",
+    "authority_policy_version",
+    "snapshot_query_version",
+    "created_at",
+    "created_by_principal",
+    "authorization_witness_id",
+    "signer_key_id",
+    "supersedes_snapshot_id",
+    "supersession_reason",
+    "signed_payload_shake256_512",
+    "snapshot_signature"
+  ],
+  "title": "Ledger-Bound Authority Snapshot v2",
+  "type": "object"
+}

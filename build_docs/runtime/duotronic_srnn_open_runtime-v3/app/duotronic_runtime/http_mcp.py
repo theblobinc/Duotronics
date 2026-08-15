@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+import json
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Query
@@ -13,6 +15,9 @@ from .tool_services import ToolRuntime
 from .repo_mcp import XaviRepoTools, repo_resources, repo_tool_manifest
 from .ops_mcp import XaviOpsTools, ops_tool_manifest
 from .dev_bundle_mcp import XaviDevBundleTools, dev_tool_manifest
+from .coordination import CoordinationService, coordination_tool_manifest
+from .session_delegation import SessionDelegationService, session_delegation_tool_manifest
+from .project_tasks import ProjectTaskService, project_task_tool_manifest
 
 
 class McpCallRequest(BaseModel):
@@ -47,13 +52,93 @@ def _safe_limit(args: dict[str, Any], default: int = 20) -> int:
     return max(1, min(value, 100))
 
 
+def _autonomy_tool_manifest() -> list[dict[str, Any]]:
+    return [
+        {"name": "runtime.autonomy_status", "description": "Return the witnessed WG-RNN autonomous learning/self-development stack status and provenance.", "read_only": True, "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_continuation", "description": "Return durable cross-session continuation context from the hash-chained ledger and evaluated trajectories.", "read_only": True, "input_schema": {"type": "object", "required": ["session_id"], "properties": {"session_id": {"type": "string", "minLength": 1}, "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 80}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_build_trajectory", "description": "Convert a witnessed session event range into an evaluated experience trajectory and candidate WG-RNN learning update.", "read_only": False, "input_schema": {"type": "object", "required": ["session_id"], "properties": {"session_id": {"type": "string", "minLength": 1}, "start_sequence": {"type": ["integer", "null"], "minimum": 1}, "end_sequence": {"type": ["integer", "null"], "minimum": 1}, "outcome": {"type": "object", "default": {}}, "evaluator": {"type": "string", "default": "xavi-autonomy"}, "learn": {"type": "boolean", "default": True}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_ingest_artifact", "description": "Register a file/media artifact with SHAKE256-512 provenance and optionally index derived transcript/text/records for retrieval and training.", "read_only": False, "input_schema": {"type": "object", "required": ["path", "source_kind"], "properties": {"path": {"type": "string", "minLength": 1}, "source_kind": {"type": "string", "minLength": 1}, "derived_text": {"type": ["string", "null"]}, "derived_records": {"type": "array", "items": {"type": "object"}, "default": []}, "metadata": {"type": "object", "default": {}}, "training_eligible": {"type": "boolean", "default": True}, "session_id": {"type": "string", "default": "media-ingest"}}, "additionalProperties": False}},
+        {"name": "runtime.datalake_observe", "description": "Record one witnessed observation derived from a file/media artifact in the WG-RNN data lake, optionally contributing a correlated claim observation to consensus.", "read_only": False, "input_schema": {"type": "object", "required": ["artifact_id","source_path","source_digest","observation_kind","statement"], "properties": {"artifact_id":{"type":"string"},"source_path":{"type":"string"},"source_digest":{"type":"string"},"observation_kind":{"type":"string"},"statement":{"type":"string"},"confidence":{"type":"number","minimum":0,"maximum":1,"default":0.7},"observer_id":{"type":"string","default":"wgrnn-datalake"},"observer_kind":{"type":"string","default":"derived_observer"},"independence_group":{"type":["string","null"]},"epistemic_class":{"type":"string","default":"machine_derived"},"metadata":{"type":"object","default":{}},"claim":{"type":["object","null"]},"session_id":{"type":"string","default":"datalake-ingest"}}, "additionalProperties": False}},
+        {"name": "runtime.datalake_pattern", "description": "Record a witnessed cross-artifact recurrence, chronology, duplicate, semantic, or multimodal pattern found in the WG-RNN data lake.", "read_only": False, "input_schema": {"type": "object", "required": ["pattern_kind","statement","members"], "properties": {"pattern_kind":{"type":"string"},"statement":{"type":"string"},"members":{"type":"array","items":{"type":"object"}},"confidence":{"type":"number","minimum":0,"maximum":1,"default":0.7},"observer_id":{"type":"string","default":"wgrnn-pattern-engine"},"metadata":{"type":"object","default":{}},"session_id":{"type":"string","default":"datalake-patterns"}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_record_evaluation", "description": "Record witnessed candidate evaluation checks and deterministic Duotronic score projection.", "read_only": False, "input_schema": {"type": "object", "required": ["candidate_id", "checks", "evaluator"], "properties": {"candidate_id": {"type": "string", "minLength": 1}, "checks": {"type": "array", "minItems": 1, "items": {"type": "object"}}, "evaluator": {"type": "string", "minLength": 1}, "environment": {"type": "object", "default": {}}, "session_id": {"type": "string", "default": "autonomous-evaluation"}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_register_candidate", "description": "Register a self-development code candidate with diff, rollback and provenance witnesses.", "read_only": False, "input_schema": {"type": "object", "required": ["objective", "repo_ref", "parent_ref", "diff_digest", "changed_paths"], "properties": {"objective": {"type": "string"}, "repo_ref": {"type": "string"}, "parent_ref": {"type": "string"}, "diff_digest": {"type": "string"}, "changed_paths": {"type": "array", "items": {"type": "string"}}, "rollback_ref": {"type": ["string", "null"]}, "metadata": {"type": "object", "default": {}}, "session_id": {"type": "string", "default": "self-development"}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_promotion_gate", "description": "Evaluate a witnessed recursive-improvement candidate for autonomous operational promotion while keeping theorem/release authority separate.", "read_only": False, "input_schema": {"type": "object", "required": ["candidate", "evaluation", "rollback_ready", "witness_chain_verified"], "properties": {"candidate": {"type": "object"}, "evaluation": {"type": "object"}, "rollback_ready": {"type": "boolean"}, "witness_chain_verified": {"type": "boolean"}, "independent_validation": {"type": "boolean", "default": False}, "authority_witness": {"type": ["string", "null"]}, "session_id": {"type": "string", "default": "self-development"}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_resource_snapshot", "description": "Record a witnessed compute/resource snapshot for any Xavi-connected node.", "read_only": False, "input_schema": {"type": "object", "required": ["node_id", "resources"], "properties": {"node_id": {"type": "string"}, "resources": {"type": "object"}, "services": {"type": "object", "default": {}}, "transport": {"type": "object", "default": {}}, "session_id": {"type": "string", "default": "resource-pool"}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_research", "description": "Execute bounded self-directed external research through Xavi's witnessed web/news/image search channels. Results are observations/candidate evidence, never automatic truth promotion.", "read_only": False, "input_schema": {"type": "object", "required": ["query"], "properties": {"query": {"type": "string", "minLength": 1}, "objective": {"type": "string"}, "channels": {"type": "array", "items": {"type": "string", "enum": ["web", "news", "images"]}, "default": ["web"]}, "limit": {"type": "integer", "minimum": 1, "maximum": 10, "default": 6}, "learn": {"type": "boolean", "default": True}, "reason": {"type": "string", "default": "autonomous-research"}, "session_id": {"type": "string", "default": "wgrnn:worker:main"}, "metadata": {"type": "object", "default": {}}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_schedule", "description": "Select available Xavi node resources for a task using witnessed capability snapshots and positive bijective ranking.", "read_only": True, "input_schema": {"type": "object", "properties": {"requirements": {"type": "object", "default": {}}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_build_training_corpus", "description": "Build a reproducible JSONL training corpus from training-eligible witnessed session events with secret capability references rather than credential plaintext.", "read_only": False, "input_schema": {"type": "object", "properties": {"session_ids": {"type": ["array", "null"], "items": {"type": "string"}}, "include_failures": {"type": "boolean", "default": True}, "session_id": {"type": "string", "default": "training-pipeline"}}, "additionalProperties": False}},
+        {"name": "runtime.experiment_next", "description": "Select or create WG-RNN's next self-directed falsifiable experiment from unresolved evidence/consensus. This may create an experiment plan but never promotes truth.", "read_only": False, "input_schema": {"type": "object", "properties": {"session_id": {"type": "string", "default": "wg-rnn:self-experimentation"}}, "additionalProperties": False}},
+        {"name": "runtime.experiment_propose", "description": "Propose a witnessed WG-RNN self-experiment over a structured candidate claim. Chats, models, search, documents, sensors and benchmarks are peer observer sources.", "read_only": False, "input_schema": {"type": "object", "required": ["subject", "predicate", "object"], "properties": {"subject": {"type": "string", "minLength": 1}, "predicate": {"type": "string", "minLength": 1}, "object": {}, "question": {"type": ["string", "null"]}, "hypothesis": {"type": ["string", "null"]}, "experiment_kind": {"type": "string", "default": "observer_consensus"}, "falsification": {"type": ["string", "null"]}, "observer_plan": {"type": "array", "items": {"type": "string"}}, "minimum_independent_groups": {"type": "integer", "minimum": 1, "maximum": 32, "default": 3}, "min_support_ratio": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.75}, "max_contradiction_ratio": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.20}, "priority": {"type": "integer", "minimum": 0, "maximum": 100, "default": 50}, "origin": {"type": "string", "default": "wg-rnn:self"}, "metadata": {"type": "object", "default": {}}, "session_id": {"type": "string", "default": "wg-rnn:self-experimentation"}}, "additionalProperties": False}},
+        {"name": "runtime.experiment_observe", "description": "Record one experiment observation/measurement from an independent truth observer and update claim consensus. Repeated correlated observers must share an independence_group.", "read_only": False, "input_schema": {"type": "object", "required": ["experiment_id", "observer_id", "observer_kind", "independence_group", "stance", "confidence"], "properties": {"experiment_id": {"type": "string", "minLength": 1}, "observer_id": {"type": "string", "minLength": 1}, "observer_kind": {"type": "string", "minLength": 1}, "independence_group": {"type": "string", "minLength": 1}, "stance": {"type": "string", "enum": ["support", "contradict", "uncertain"]}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}, "observation": {"type": ["string", "null"]}, "source_ref": {"type": ["string", "null"]}, "evidence_refs": {"type": "array", "items": {"type": "string"}, "default": []}, "measurement": {"type": "object", "default": {}}, "session_id": {"type": "string", "default": "wg-rnn:self-experimentation"}}, "additionalProperties": False}},
+        {"name": "runtime.experiment_complete", "description": "Evaluate a WG-RNN self-experiment against its falsification/quorum rules. Produces supported/disputed/inconclusive/needs-more-evidence status but performs no truth promotion.", "read_only": False, "input_schema": {"type": "object", "required": ["experiment_id"], "properties": {"experiment_id": {"type": "string", "minLength": 1}, "session_id": {"type": "string", "default": "wg-rnn:self-experimentation"}}, "additionalProperties": False}},
+        {"name": "runtime.experiments", "description": "List recent WG-RNN self-experiments and their latest result states.", "read_only": True, "input_schema": {"type": "object", "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50}, "status": {"type": ["string", "null"]}}, "additionalProperties": False}},
+        {"name": "runtime.autonomy_secret_capabilities", "description": "List rotatable private capability references known to WG-RNN. This never returns secret plaintext.", "read_only": True, "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
+        {"name": "runtime.self_development_policy", "description": "Return the witness-gated autonomous self-development execution policy.", "read_only": True, "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    ]
+
+
 def _tool_manifest() -> list[dict[str, Any]]:
     return [
+        *coordination_tool_manifest(),
+        *session_delegation_tool_manifest(),
+        *project_task_tool_manifest(),
+        *_autonomy_tool_manifest(),
         {
             "name": "runtime.health",
             "description": "Return runtime health, corpus identity, profile status, model registry, module registry, and formal observer availability.",
             "read_only": True,
             "input_schema": {"type": "object", "properties": {}},
+        },
+        {
+            "name": "runtime.sandbox_vm",
+            "description": "Control isolated rootless Podman workloads inside xavi-sandbox-1 through the KMAC-authenticated management plane. WG-RNN remains adjudication authority.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["action"],
+                "properties": {
+                    "action": {"type": "string", "enum": ["health", "containers", "images", "logs", "file_list", "file_put", "image_pull", "image_build", "container_run", "container_action", "container_exec"]},
+                    "request": {"type": "object", "default": {}}
+                },
+                "additionalProperties": False
+            },
+        },
+        {
+            "name": "runtime.model_observer",
+            "description": "Ask one or more configured model endpoints for independent candidate evidence. WG-RNN remains the adjudication authority; model outputs are witnessed observations, not truth.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["question"],
+                "properties": {
+                    "question": {"type": "string", "minLength": 1},
+                    "model_name": {"type": "string"},
+                    "model_names": {"type": "array", "items": {"type": "string"}, "maxItems": 8},
+                    "parallel": {"type": "boolean", "default": False},
+                    "max_observers": {"type": "integer", "minimum": 1, "maximum": 8, "default": 4},
+                    "claim": {"type": "object"},
+                    "context": {"type": "object"}
+                },
+                "additionalProperties": False
+            },
+        },
+        {
+            "name": "runtime.content_rating",
+            "description": "Classify text/URL/image/media content through optional local content-rating observers and return a witnessed normalized rating plus policy decision. Observations are not truth claims.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "text": {"type": "string"},
+                    "url": {"type": "string"},
+                    "image_url": {"type": "string"},
+                    "media_ref": {"type": "string"},
+                    "policy": {"type": "string", "enum": ["public_u18", "registered_default", "restricted", "observe_only"], "default": "public_u18"},
+                    "context": {"type": "object", "default": {}},
+                    "timeout_seconds": {"type": "number", "minimum": 1, "maximum": 20, "default": 8}
+                },
+                "additionalProperties": False
+            },
         },
         {
             "name": "runtime.models",
@@ -169,6 +254,135 @@ def _tool_manifest() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "runtime.transcript_ingest",
+            "description": "Ingest a complete sanitized chat/message turn into the hash-chained JSONL and PostgreSQL transcript stores.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["role", "content"],
+                "properties": {
+                    "session_id": {"type": "string", "minLength": 1},
+                    "role": {"type": "string", "enum": ["system", "user", "assistant", "tool", "developer", "unknown"]},
+                    "content": {},
+                    "actor": {"type": "string", "default": "mcp-client"},
+                    "message_id": {"type": ["string", "null"]},
+                    "parent_message_id": {"type": ["string", "null"]},
+                    "created_at_ms": {"type": ["integer", "null"]},
+                    "metadata": {"type": "object", "default": {}},
+                    "attachments": {"type": "array", "default": []},
+                    "tags": {"type": "array", "items": {"type": "string"}, "default": []},
+                    "training_eligible": {"type": "boolean", "default": True},
+                    "redaction": {"type": "object", "default": {}},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.transcript_search",
+            "description": "Search authoritative PostgreSQL transcript events.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": ["string", "null"]},
+                    "session_id": {"type": ["string", "null"]},
+                    "event_type": {"type": ["string", "null"]},
+                    "actor": {"type": ["string", "null"]},
+                    "tag": {"type": ["string", "null"]},
+                    "training_eligible": {"type": ["boolean", "null"]},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 20},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.source_begin",
+            "description": "Begin an atomic source-code index generation for a repository.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["generation_id", "repository_id"],
+                "properties": {
+                    "generation_id": {"type": "string", "minLength": 1},
+                    "repository_id": {"type": "string", "minLength": 1},
+                    "root_path": {"type": ["string", "null"]},
+                    "commit_id": {"type": ["string", "null"]},
+                    "metadata": {"type": "object", "default": {}},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.source_upsert",
+            "description": "Upsert source-code chunks into a staging source generation.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["documents"],
+                "properties": {
+                    "documents": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"type": "object"}},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.source_finalize",
+            "description": "Atomically promote or fail a staged source-code index generation.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["generation_id"],
+                "properties": {
+                    "generation_id": {"type": "string", "minLength": 1},
+                    "status": {"type": "string", "enum": ["completed", "failed"], "default": "completed"},
+                    "keep_generations": {"type": "integer", "minimum": 1, "maximum": 10, "default": 2},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.source_search",
+            "description": "Search the latest completed source-code indexes.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                    "query": {"type": "string", "minLength": 1},
+                    "repository_id": {"type": ["string", "null"]},
+                    "path_prefix": {"type": ["string", "null"]},
+                    "training_eligible": {"type": ["boolean", "null"]},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20},
+                    "preview_chars": {"type": "integer", "minimum": 120, "maximum": 2000, "default": 500},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.source_get",
+            "description": "Retrieve one indexed source chunk in bounded character slices.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["repository_id", "path"],
+                "properties": {
+                    "repository_id": {"type": "string", "minLength": 1},
+                    "path": {"type": "string", "minLength": 1},
+                    "chunk_index": {"type": "integer", "minimum": 0, "default": 0},
+                    "generation_id": {"type": ["string", "null"]},
+                    "offset": {"type": "integer", "minimum": 0, "default": 0},
+                    "max_chars": {"type": "integer", "minimum": 256, "maximum": 10000, "default": 8000}
+                },
+                "additionalProperties": False
+            }
+        },
+        {
+            "name": "runtime.source_status",
+            "description": "List current source-code index generations by repository.",
+            "read_only": True,
+            "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
+        {
             "name": "runtime.session_search",
             "description": "Search compact runtime session ledger records by session, tag, event type, actor, tool, or text.",
             "read_only": True,
@@ -280,6 +494,56 @@ def _tool_manifest() -> list[dict[str, Any]]:
             "input_schema": {
                 "type": "object",
                 "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 100}},
+            },
+        },
+        {
+            "name": "runtime.consensus_observe",
+            "description": "Submit one independent observer report for a candidate claim. Observer output is evidence, not truth; correlated sources should share an independence_group.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["subject", "predicate", "object", "observer_id"],
+                "properties": {
+                    "subject": {"type": "string", "minLength": 1},
+                    "predicate": {"type": "string", "minLength": 1},
+                    "object": {},
+                    "observer_id": {"type": "string", "minLength": 1},
+                    "observer_kind": {"type": "string", "default": "unknown"},
+                    "independence_group": {"type": ["string", "null"]},
+                    "stance": {"type": "string", "enum": ["support", "contradict", "uncertain"], "default": "support"},
+                    "confidence": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.5},
+                    "source_ref": {"type": ["string", "null"]},
+                    "evidence_refs": {"type": "array", "items": {"type": "string"}, "default": []},
+                    "payload": {"type": "object", "default": {}},
+                },
+            },
+        },
+        {
+            "name": "runtime.consensus_evaluate",
+            "description": "Re-evaluate a candidate claim using the latest report per observer and independence-group quorum rules. This can recommend promotion but never promotes automatically.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["claim_key"],
+                "properties": {
+                    "claim_key": {"type": "string", "minLength": 1},
+                    "min_independent_groups": {"type": "integer", "minimum": 1, "maximum": 32, "default": 3},
+                    "min_support_ratio": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.75},
+                    "min_support_weight": {"type": "number", "minimum": 0, "maximum": 32, "default": 1.8},
+                    "max_contradiction_ratio": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.20},
+                },
+            },
+        },
+        {
+            "name": "runtime.consensus_claims",
+            "description": "Read recent observer-consensus states and promotion recommendations.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50},
+                    "promotion_recommended": {"type": ["boolean", "null"]},
+                },
             },
         },
         {
@@ -431,6 +695,7 @@ def _tool_manifest() -> list[dict[str, Any]]:
 
 def _resources(kernel: RuntimeKernel | None = None) -> list[dict[str, str]]:
     return [
+        {"uri": "xavi-runtime://coordination", "name": "Shared MCP coordination board"},
         {"uri": "xavi-runtime://health", "name": "Runtime health"},
         {"uri": "xavi-runtime://models", "name": "Model registry"},
         {"uri": "xavi-runtime://modules", "name": "Module registry"},
@@ -449,9 +714,65 @@ def _resources(kernel: RuntimeKernel | None = None) -> list[dict[str, str]]:
 
 
 async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> dict[str, Any]:
+    if tool.startswith(("session.", "delegation.", "worker.")):
+        return await SessionDelegationService(kernel).call(tool, args)
+
+    if tool.startswith("task."):
+        task_result = ProjectTaskService(kernel.store).dispatch(tool, args)
+        task_event = task_result.get("event") if isinstance(task_result, dict) else None
+        if isinstance(task_event, dict):
+            event_args = dict(task_event)
+            event_args["session_id"] = args.get("session_id")
+            event_args["agent_id"] = args.get("agent_id")
+            task_result = dict(task_result)
+            task_result["coordination_event"] = CoordinationService(kernel.store, kernel=kernel).dispatch(
+                "coordination.event", event_args
+            )
+        return task_result
+
+    if tool.startswith("coordination."):
+        return CoordinationService(kernel.store, kernel=kernel).dispatch(tool, args)
+
     if tool == "runtime.health":
-        kernel.migrate()
         return kernel.health()
+
+    if tool == "runtime.sandbox_vm":
+        from .sandbox_vm import SandboxVMRuntime
+        action = str(args.get("action") or "").strip()
+        if not action:
+            raise HTTPException(status_code=422, detail="runtime.sandbox_vm requires action")
+        request_payload = args.get("request") if isinstance(args.get("request"), dict) else {}
+        return await SandboxVMRuntime(kernel).execute(action=action, request=request_payload)
+
+    if tool == "runtime.model_observer":
+        from .model_observer import ModelObservationRuntime
+        runtime = ModelObservationRuntime(kernel)
+        question = str(args.get("question") or "").strip()
+        if not question:
+            raise HTTPException(status_code=422, detail="runtime.model_observer requires question")
+        names = args.get("model_names") if isinstance(args.get("model_names"), list) else None
+        if bool(args.get("parallel")) or names:
+            return await runtime.observe_parallel(
+                question=question, model_names=[str(x) for x in names] if names else None,
+                claim=args.get("claim") if isinstance(args.get("claim"), dict) else {},
+                context=args.get("context") if isinstance(args.get("context"), dict) else {},
+                max_observers=max(1, min(int(args.get("max_observers", 4)), 8)),
+            )
+        return await runtime.observe_one(
+            question=question, model_name=args.get("model_name"),
+            claim=args.get("claim") if isinstance(args.get("claim"), dict) else {},
+            context=args.get("context") if isinstance(args.get("context"), dict) else {},
+        )
+
+    if tool == "runtime.content_rating":
+        from .content_rating import ContentRatingRuntime
+        import asyncio
+        return asyncio.run(ContentRatingRuntime(kernel).observe(
+            text=args.get("text"), url=args.get("url"), image_url=args.get("image_url"), media_ref=args.get("media_ref"),
+            policy=str(args.get("policy") or "public_u18"),
+            context=args.get("context") if isinstance(args.get("context"), dict) else {},
+            timeout_seconds=max(1.0, min(float(args.get("timeout_seconds", 8.0)), 20.0)),
+        ))
 
     if tool == "runtime.models":
         return {"items": kernel.model_provider.registry.list_models()}
@@ -513,6 +834,335 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
     if tool == "runtime.modules":
         return kernel.modules.capability_report()
+
+    if tool == "runtime.autonomy_status":
+        return kernel.autonomy.status()
+
+    if tool == "runtime.autonomy_continuation":
+        return kernel.autonomy.continuation_context(
+            session_id=str(args.get("session_id") or "default"),
+            limit=max(1, min(int(args.get("limit", 80)), 200)),
+        )
+
+    if tool == "runtime.autonomy_build_trajectory":
+        return kernel.autonomy.build_trajectory(
+            session_id=str(args.get("session_id") or "default"),
+            start_sequence=args.get("start_sequence"),
+            end_sequence=args.get("end_sequence"),
+            outcome=args.get("outcome") if isinstance(args.get("outcome"), dict) else {},
+            evaluator=str(args.get("evaluator") or "xavi-autonomy"),
+            learn=bool(args.get("learn", True)),
+        )
+
+    if tool == "runtime.experiment_next":
+        return kernel.autonomy.next_experiment(
+            session_id=str(args.get("session_id") or "wg-rnn:self-experimentation"),
+        )
+
+    if tool == "runtime.experiment_propose":
+        return kernel.autonomy.propose_experiment(
+            subject=str(args.get("subject") or ""),
+            predicate=str(args.get("predicate") or ""),
+            object_value=args.get("object"),
+            question=args.get("question"),
+            hypothesis=args.get("hypothesis"),
+            experiment_kind=str(args.get("experiment_kind") or "observer_consensus"),
+            falsification=args.get("falsification"),
+            observer_plan=[str(x) for x in (args.get("observer_plan") or [])] if isinstance(args.get("observer_plan"), list) else None,
+            minimum_independent_groups=max(1, min(int(args.get("minimum_independent_groups", 3)), 32)),
+            min_support_ratio=max(0.0, min(float(args.get("min_support_ratio", 0.75)), 1.0)),
+            max_contradiction_ratio=max(0.0, min(float(args.get("max_contradiction_ratio", 0.20)), 1.0)),
+            priority=max(0, min(int(args.get("priority", 50)), 100)),
+            origin=str(args.get("origin") or "wg-rnn:self"),
+            metadata=args.get("metadata") if isinstance(args.get("metadata"), dict) else {},
+            session_id=str(args.get("session_id") or "wg-rnn:self-experimentation"),
+        )
+
+    if tool == "runtime.experiment_observe":
+        return kernel.autonomy.experiment_observe(
+            experiment_id=str(args.get("experiment_id") or ""),
+            observer_id=str(args.get("observer_id") or ""),
+            observer_kind=str(args.get("observer_kind") or "unknown"),
+            independence_group=str(args.get("independence_group") or args.get("observer_id") or "unknown"),
+            stance=str(args.get("stance") or "uncertain"),
+            confidence=float(args.get("confidence", 0.5)),
+            observation=args.get("observation"),
+            source_ref=args.get("source_ref"),
+            evidence_refs=[str(x) for x in (args.get("evidence_refs") or [])],
+            measurement=args.get("measurement") if isinstance(args.get("measurement"), dict) else {},
+            session_id=str(args.get("session_id") or "wg-rnn:self-experimentation"),
+        )
+
+    if tool == "runtime.experiment_complete":
+        return kernel.autonomy.complete_experiment(
+            experiment_id=str(args.get("experiment_id") or ""),
+            session_id=str(args.get("session_id") or "wg-rnn:self-experimentation"),
+        )
+
+    if tool == "runtime.experiments":
+        return kernel.autonomy.list_experiments(
+            limit=max(1, min(int(args.get("limit", 50)), 200)),
+            status=str(args.get("status")) if args.get("status") else None,
+        )
+
+    if tool == "runtime.autonomy_ingest_artifact":
+        return kernel.autonomy.ingest_artifact(
+            path=str(args.get("path") or ""),
+            source_kind=str(args.get("source_kind") or "artifact"),
+            derived_text=args.get("derived_text"),
+            derived_records=args.get("derived_records") if isinstance(args.get("derived_records"), list) else [],
+            metadata=args.get("metadata") if isinstance(args.get("metadata"), dict) else {},
+            training_eligible=bool(args.get("training_eligible", True)),
+            session_id=str(args.get("session_id") or "media-ingest"),
+        )
+
+    if tool == "runtime.datalake_observe":
+        return kernel.autonomy.record_datalake_observation(
+            artifact_id=str(args.get("artifact_id") or ""), source_path=str(args.get("source_path") or ""),
+            source_digest=str(args.get("source_digest") or ""), observation_kind=str(args.get("observation_kind") or "observation"),
+            statement=str(args.get("statement") or ""), confidence=float(args.get("confidence",0.7)),
+            observer_id=str(args.get("observer_id") or "wgrnn-datalake"), observer_kind=str(args.get("observer_kind") or "derived_observer"),
+            independence_group=args.get("independence_group"), epistemic_class=str(args.get("epistemic_class") or "machine_derived"),
+            metadata=args.get("metadata") if isinstance(args.get("metadata"),dict) else {},
+            claim=args.get("claim") if isinstance(args.get("claim"),dict) else None, session_id=str(args.get("session_id") or "datalake-ingest"),
+        )
+
+    if tool == "runtime.datalake_pattern":
+        return kernel.autonomy.record_datalake_pattern(
+            pattern_kind=str(args.get("pattern_kind") or "pattern"), statement=str(args.get("statement") or ""),
+            members=args.get("members") if isinstance(args.get("members"),list) else [], confidence=float(args.get("confidence",0.7)),
+            observer_id=str(args.get("observer_id") or "wgrnn-pattern-engine"),
+            metadata=args.get("metadata") if isinstance(args.get("metadata"),dict) else {}, session_id=str(args.get("session_id") or "datalake-patterns"),
+        )
+
+    if tool == "runtime.autonomy_record_evaluation":
+        checks = args.get("checks")
+        if not isinstance(checks, list) or not checks:
+            raise HTTPException(status_code=422, detail="runtime.autonomy_record_evaluation requires nonempty checks")
+        return kernel.autonomy.record_evaluation(
+            candidate_id=str(args.get("candidate_id") or ""),
+            checks=checks,
+            evaluator=str(args.get("evaluator") or "xavi-autonomy"),
+            environment=args.get("environment") if isinstance(args.get("environment"), dict) else {},
+            session_id=str(args.get("session_id") or "autonomous-evaluation"),
+        )
+
+    if tool == "runtime.autonomy_register_candidate":
+        return kernel.autonomy.register_candidate(
+            objective=str(args.get("objective") or ""),
+            repo_ref=str(args.get("repo_ref") or ""),
+            parent_ref=str(args.get("parent_ref") or ""),
+            diff_digest=str(args.get("diff_digest") or ""),
+            changed_paths=[str(x) for x in (args.get("changed_paths") or [])],
+            rollback_ref=args.get("rollback_ref"),
+            session_id=str(args.get("session_id") or "self-development"),
+            metadata=args.get("metadata") if isinstance(args.get("metadata"), dict) else {},
+        )
+
+    if tool == "runtime.autonomy_promotion_gate":
+        return kernel.autonomy.promotion_gate(
+            candidate=args.get("candidate") if isinstance(args.get("candidate"), dict) else {},
+            evaluation=args.get("evaluation") if isinstance(args.get("evaluation"), dict) else {},
+            rollback_ready=bool(args.get("rollback_ready", False)),
+            witness_chain_verified=bool(args.get("witness_chain_verified", False)),
+            independent_validation=bool(args.get("independent_validation", False)),
+            authority_witness=args.get("authority_witness"),
+            session_id=str(args.get("session_id") or "self-development"),
+        )
+
+    if tool == "runtime.autonomy_resource_snapshot":
+        return kernel.autonomy.record_resource_snapshot(
+            node_id=str(args.get("node_id") or "unknown"),
+            resources=args.get("resources") if isinstance(args.get("resources"), dict) else {},
+            services=args.get("services") if isinstance(args.get("services"), dict) else {},
+            transport=args.get("transport") if isinstance(args.get("transport"), dict) else {},
+            session_id=str(args.get("session_id") or "resource-pool"),
+        )
+
+    if tool == "runtime.autonomy_research":
+        from .tool_services import ToolRuntime
+        import asyncio
+
+        query = str(args.get("query") or "").strip()
+        if not query:
+            raise HTTPException(status_code=422, detail="runtime.autonomy_research requires query")
+        requested = args.get("channels") if isinstance(args.get("channels"), list) else ["web"]
+        channels: list[str] = []
+        for item in requested:
+            name = str(item or "web").strip().lower()
+            name = {"general": "web", "image": "images", "pictures": "images"}.get(name, name)
+            if name in {"web", "news", "images"} and name not in channels:
+                channels.append(name)
+        if not channels:
+            channels = ["web"]
+        limit = max(1, min(int(args.get("limit", 6)), 10))
+        runtime_tools = ToolRuntime(settings=kernel.settings, kernel=kernel)
+        searched = await asyncio.gather(*[
+            runtime_tools.search_xavi(query=query, top_k=limit, engine="xavi-autonomy", channel=channel)
+            for channel in channels
+        ], return_exceptions=True)
+        normalized: list[dict[str, Any]] = []
+        for channel, result in zip(channels, searched):
+            if isinstance(result, Exception):
+                normalized.append({"ok": False, "channel": channel, "result_count": 0, "results": [], "errors": [result.__class__.__name__]})
+            else:
+                normalized.append(result)
+        return kernel.autonomy.record_external_research(
+            query=query,
+            objective=str(args.get("objective") or query),
+            channel_results=normalized,
+            initiated_by=str(args.get("agent_id") or "agent:wgrnn"),
+            reason=str(args.get("reason") or "autonomous-research"),
+            session_id=str(args.get("session_id") or "wgrnn:worker:main"),
+            training_eligible=bool(args.get("learn", True)),
+            metadata=args.get("metadata") if isinstance(args.get("metadata"), dict) else {},
+        )
+
+    if tool == "runtime.autonomy_schedule":
+        return kernel.autonomy.schedule_task(
+            requirements=args.get("requirements") if isinstance(args.get("requirements"), dict) else {},
+        )
+
+    if tool == "runtime.autonomy_build_training_corpus":
+        session_ids = args.get("session_ids")
+        return kernel.autonomy.build_training_corpus(
+            session_ids=[str(x) for x in session_ids] if isinstance(session_ids, list) else None,
+            include_failures=bool(args.get("include_failures", True)),
+            session_id=str(args.get("session_id") or "training-pipeline"),
+        )
+
+    if tool == "runtime.autonomy_secret_capabilities":
+        return kernel.autonomy.secrets.list()
+
+    if tool == "runtime.self_development_policy":
+        return kernel.self_development.execution_policy()
+
+    if tool == "runtime.transcript_ingest":
+        from .session_ledger import SessionLedger
+
+        role = str(args.get("role") or "unknown")
+        session_id = str(args.get("session_id") or "default")
+        actor = str(args.get("actor") or role or "mcp-client")
+        metadata = args.get("metadata") if isinstance(args.get("metadata"), dict) else {}
+        attachments = args.get("attachments") if isinstance(args.get("attachments"), list) else []
+        redaction = args.get("redaction") if isinstance(args.get("redaction"), dict) else {}
+        training_eligible = bool(args.get("training_eligible", True))
+        event = SessionLedger(store=kernel.store).append(
+            session_id=session_id,
+            event_type="chat_message",
+            actor=actor,
+            content={
+                "role": role,
+                "message_id": args.get("message_id"),
+                "parent_message_id": args.get("parent_message_id"),
+                "content": args.get("content"),
+                "metadata": metadata,
+                "attachments": attachments,
+            },
+            tags=sorted(set(["chat", "transcript", role] + (args.get("tags") if isinstance(args.get("tags"), list) else []))),
+            created_at_ms=args.get("created_at_ms"),
+            training_eligible=training_eligible,
+            redaction=redaction,
+        )
+        recurrent_learning = None
+        if training_eligible:
+            try:
+                conversation_id = str(metadata.get("conversation_id") or session_id)[:256]
+                conversation_source = str(metadata.get("conversation_source") or "mcp")[:80]
+                if redaction:
+                    observation = {
+                        "conversation_id": conversation_id,
+                        "conversation_source": conversation_source,
+                        "role": role,
+                        "actor": actor,
+                        "message_id": args.get("message_id"),
+                        "event_digest": event.get("event_digest"),
+                        "redaction_present": True,
+                    }
+                else:
+                    observation = {
+                        "conversation_id": conversation_id,
+                        "conversation_source": conversation_source,
+                        "role": role,
+                        "actor": actor,
+                        "message_id": args.get("message_id"),
+                        "parent_message_id": args.get("parent_message_id"),
+                        "content": args.get("content"),
+                        "attachments": attachments,
+                        "event_digest": event.get("event_digest"),
+                    }
+                observed_text = json.dumps(observation, sort_keys=True, default=str)
+                if len(observed_text) > 16000:
+                    observed_text = observed_text[:16000] + "...[bounded]"
+                recurrent_learning = kernel.wgrnn.step(
+                    prompt="Observed durable conversation transcript turn: " + observed_text,
+                    response_text="",
+                    requested_action="observe",
+                    evidence_quality=0.82,
+                    user_id=f"conversation-source:{conversation_source}",
+                    agent_id=actor[:256],
+                    thread_id=f"conversation:{conversation_id}",
+                    tags=["conversation-transcript", "candidate-training", f"role:{role}", f"conversation-source:{conversation_source}"],
+                ).get("memory_update")
+            except Exception as exc:
+                recurrent_learning = {"status": "error", "error": exc.__class__.__name__}
+        return {**event, "recurrent_learning": recurrent_learning}
+
+    if tool == "runtime.transcript_search":
+        return kernel.store.search_session_events(
+            query=args.get("query"),
+            session_id=args.get("session_id"),
+            event_type=args.get("event_type"),
+            actor=args.get("actor"),
+            tag=args.get("tag"),
+            training_eligible=args.get("training_eligible"),
+            limit=min(max(int(args.get("limit", 20)), 1), 200),
+        )
+
+    if tool == "runtime.source_begin":
+        return kernel.store.begin_source_generation(
+            generation_id=str(args["generation_id"]),
+            repository_id=str(args["repository_id"]),
+            root_path=args.get("root_path"),
+            commit_id=args.get("commit_id"),
+            metadata=args.get("metadata") if isinstance(args.get("metadata"), dict) else {},
+        )
+
+    if tool == "runtime.source_upsert":
+        docs = args.get("documents")
+        if not isinstance(docs, list) or not docs:
+            raise HTTPException(status_code=422, detail="runtime.source_upsert requires documents")
+        return kernel.store.upsert_source_documents(docs)
+
+    if tool == "runtime.source_finalize":
+        return kernel.store.finalize_source_generation(
+            generation_id=str(args["generation_id"]),
+            status=str(args.get("status", "completed")),
+            keep_generations=min(max(int(args.get("keep_generations", 2)), 1), 10),
+        )
+
+    if tool == "runtime.source_search":
+        return kernel.store.search_source_documents(
+            query=str(args.get("query") or ""),
+            repository_id=args.get("repository_id"),
+            path_prefix=args.get("path_prefix"),
+            training_eligible=args.get("training_eligible"),
+            limit=_safe_limit(args),
+            preview_chars=min(max(int(args.get("preview_chars", 500)), 120), 2000),
+        )
+
+    if tool == "runtime.source_get":
+        return kernel.store.get_source_document(
+            repository_id=str(args.get("repository_id") or ""),
+            path=str(args.get("path") or ""),
+            chunk_index=max(int(args.get("chunk_index", 0)), 0),
+            generation_id=args.get("generation_id"),
+            offset=max(int(args.get("offset", 0)), 0),
+            max_chars=min(max(int(args.get("max_chars", 8000)), 256), 10000),
+        )
+
+    if tool == "runtime.source_status":
+        return kernel.store.source_index_status()
 
     if tool == "runtime.session_index":
         from .session_ledger import SessionLedger
@@ -582,6 +1232,43 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
     if tool == "runtime.claims":
         return {"items": kernel.store.fetch_recent("evidence_claims", _safe_limit(args))}
+
+    if tool == "runtime.consensus_observe":
+        return kernel.consensus.observe(
+            subject=str(args.get("subject") or ""),
+            predicate=str(args.get("predicate") or ""),
+            object_value=args.get("object"),
+            observer_id=str(args.get("observer_id") or ""),
+            observer_kind=str(args.get("observer_kind") or "unknown"),
+            independence_group=args.get("independence_group"),
+            stance=str(args.get("stance") or "support"),
+            confidence=float(args.get("confidence", 0.5)),
+            source_ref=args.get("source_ref"),
+            evidence_refs=list(args.get("evidence_refs") or []),
+            payload=args.get("payload") if isinstance(args.get("payload"), dict) else {},
+        )
+
+    if tool == "runtime.consensus_evaluate":
+        claim_key = str(args.get("claim_key") or "").strip()
+        if not claim_key:
+            raise HTTPException(status_code=422, detail="runtime.consensus_evaluate requires args.claim_key")
+        return kernel.consensus.evaluate(
+            claim_key=claim_key,
+            min_independent_groups=max(1, min(int(args.get("min_independent_groups", 3)), 32)),
+            min_support_ratio=max(0.0, min(float(args.get("min_support_ratio", 0.75)), 1.0)),
+            min_support_weight=max(0.0, min(float(args.get("min_support_weight", 1.8)), 32.0)),
+            max_contradiction_ratio=max(0.0, min(float(args.get("max_contradiction_ratio", 0.20)), 1.0)),
+        )
+
+    if tool == "runtime.consensus_claims":
+        promotion_recommended = args.get("promotion_recommended")
+        return {
+            "schema_version": "observer-consensus-v1",
+            "items": kernel.consensus.recent(
+                limit=max(1, min(int(args.get("limit", 50)), 200)),
+                promotion_recommended=promotion_recommended if isinstance(promotion_recommended, bool) else None,
+            ),
+        }
 
     if tool == "runtime.audit":
         return {"items": kernel.store.fetch_recent("audit_events", _safe_limit(args))}
@@ -705,8 +1392,14 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
     raise HTTPException(status_code=404, detail=f"unknown xavi-runtime MCP tool: {tool}")
 
 
+async def _call_tool_offloop(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> dict[str, Any]:
+    """Run mixed sync/async MCP tool work outside Uvicorn's main event loop."""
+    return await asyncio.to_thread(lambda: asyncio.run(_call_tool(kernel, tool, args)))
+
+
 async def _read_resource(kernel: RuntimeKernel, uri: str) -> dict[str, Any]:
     mapping: dict[str, tuple[str, dict[str, Any]]] = {
+        "xavi-runtime://coordination": ("coordination.status", {"project_key": "xavi.app-backend", "limit": 30}),
         "xavi-runtime://health": ("runtime.health", {}),
         "xavi-runtime://models": ("runtime.models", {}),
         "xavi-runtime://modules": ("runtime.modules", {}),
@@ -738,7 +1431,7 @@ async def _read_resource(kernel: RuntimeKernel, uri: str) -> dict[str, Any]:
         raise HTTPException(status_code=404, detail=f"unknown xavi-runtime MCP resource: {uri}")
 
     tool, args = mapping[uri]
-    return {"uri": uri, "contents": await _call_tool(kernel, tool, args)}
+    return {"uri": uri, "contents": await _call_tool_offloop(kernel, tool, args)}
 
 
 def register_xavi_runtime_mcp(app: FastAPI, kernel: RuntimeKernel, settings: Settings) -> None:
@@ -784,7 +1477,7 @@ def register_xavi_runtime_mcp(app: FastAPI, kernel: RuntimeKernel, settings: Set
         x_xavi_mcp_key: str | None = Header(default=None),
     ) -> dict[str, Any]:
         _require_mcp_key(settings, authorization, x_xavi_mcp_key)
-        result = await _call_tool(kernel, req.tool, req.args)
+        result = await _call_tool_offloop(kernel, req.tool, req.args)
         return {
             "app": "xavi-runtime",
             "request_id": req.request_id,

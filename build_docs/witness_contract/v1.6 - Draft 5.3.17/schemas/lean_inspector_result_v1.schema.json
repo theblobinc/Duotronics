@@ -1,0 +1,72 @@
+{
+  "$defs": {
+    "name_set": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "$id": "https://duotronics.local/schemas/lean_inspector_result_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "actual_type_expression_fingerprint": {
+      "maxLength": 1048576,
+      "type": "string"
+    },
+    "axiom_set": {
+      "$ref": "#/$defs/name_set"
+    },
+    "declaration_found": {
+      "type": "boolean"
+    },
+    "declaration_type_matches": {
+      "type": "boolean"
+    },
+    "dependency_closure": {
+      "$ref": "#/$defs/name_set"
+    },
+    "direct_dependencies": {
+      "$ref": "#/$defs/name_set"
+    },
+    "expected_type_expression_fingerprint": {
+      "maxLength": 1048576,
+      "minLength": 1,
+      "type": "string"
+    },
+    "forbidden_axiom_set": {
+      "$ref": "#/$defs/name_set"
+    },
+    "opaque_dependency_policy_result": {
+      "enum": [
+        "passed",
+        "failed",
+        "not_evaluated"
+      ]
+    },
+    "sorry_ax_present": {
+      "type": "boolean"
+    },
+    "unsafe_dependency_present": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "declaration_found",
+    "declaration_type_matches",
+    "expected_type_expression_fingerprint",
+    "actual_type_expression_fingerprint",
+    "direct_dependencies",
+    "dependency_closure",
+    "axiom_set",
+    "forbidden_axiom_set",
+    "sorry_ax_present",
+    "unsafe_dependency_present",
+    "opaque_dependency_policy_result"
+  ],
+  "title": "Lean Environment Inspector Result v1",
+  "type": "object"
+}

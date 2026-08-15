@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://duotronic.example/schemas/paired_candidate_v1.json",
+  "title": "Duotronic paired corpus/runtime candidate",
+  "type": "object",
+  "required": ["schema", "pair_id", "parent", "candidate", "authority", "checks", "lineage"],
+  "properties": {
+    "schema": {"const": "duotronic-paired-candidate/v1"},
+    "pair_id": {"type": "string", "pattern": "^duoid:shake256-512:"},
+    "parent": {"$ref": "#/$defs/pair"},
+    "candidate": {"$ref": "#/$defs/pair"},
+    "authority": {
+      "type": "object",
+      "required": ["profile", "namespace", "production_eligible"],
+      "properties": {
+        "profile": {"const": "sandbox-test-only"},
+        "namespace": {"type": "string", "pattern": "/sandbox/"},
+        "production_eligible": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "checks": {"type": "object"},
+    "lineage": {"type": "object"}
+  },
+  "$defs": {
+    "identity": {"type": "string", "pattern": "^duoid:shake256-512:"},
+    "pair": {
+      "type": "object",
+      "required": ["corpus_id", "runtime_id"],
+      "properties": {
+        "corpus_id": {"$ref": "#/$defs/identity"},
+        "runtime_id": {"$ref": "#/$defs/identity"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

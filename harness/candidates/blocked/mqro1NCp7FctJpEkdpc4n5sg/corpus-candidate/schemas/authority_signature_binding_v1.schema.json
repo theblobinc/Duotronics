@@ -1,0 +1,56 @@
+{
+  "$id": "https://duotronics.local/schemas/authority_signature_binding_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Database record proving that a signed canonical payload exactly matches an authority record and verifies under its effective ML-DSA-87 key.",
+  "properties": {
+    "key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "record_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "record_type": {
+      "enum": [
+        "lean_compiler_witness",
+        "proof_witness"
+      ]
+    },
+    "schema_version": {
+      "const": "authority_signature_binding/v1"
+    },
+    "signature_binding_id": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signature_verified_at": {
+      "format": "date-time",
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_canonical_json": {
+      "minLength": 2,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "signature_binding_id",
+    "record_type",
+    "record_id",
+    "key_id",
+    "signed_payload_canonical_json",
+    "signed_payload_shake256_512",
+    "signature_verified_at"
+  ],
+  "title": "AuthoritySignatureBindingV1",
+  "type": "object"
+}

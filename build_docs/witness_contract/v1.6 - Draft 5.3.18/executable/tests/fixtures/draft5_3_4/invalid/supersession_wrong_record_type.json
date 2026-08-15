@@ -1,0 +1,13 @@
+{
+  "payload": {
+    "effective_at": "2026-07-31T12:00:00Z",
+    "governance_event_id": "event:bad",
+    "reason": "invalid type",
+    "record_type": "free_form",
+    "replacement_record_id": "new",
+    "schema_version": "authority_supersession/v3",
+    "superseded_record_id": "old",
+    "supersession_id": "sup:bad"
+  },
+  "schema_ref": "schemas/authority_supersession_v3.schema.json"
+}

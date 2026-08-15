@@ -1,0 +1,11 @@
+Duotronic Witness Contract v1.6 Draft 5.3.7 — Generated Validation Summary
+Status: non-authoritative portable conformance corpus; permanently not frozen
+Draft 5.3.6 baseline correction: 128 tests discovered (stale narrative value was 127)
+Tests discovered: 154
+Tests passed: 154
+Tests skipped: 0
+Warning output lines: 0
+Theorem authority: disabled
+Promotion authority: disabled
+Release authority: disabled
+External activation gates complete: 0 of 8

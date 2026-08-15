@@ -1,0 +1,21 @@
+{
+  "case_id": "valid_execution_trace",
+  "expected_status": "pass",
+  "payload": {
+    "created_at": "2026-05-11T00:00:00Z",
+    "deterministic": true,
+    "error_witness_refs": [],
+    "execution_trace_id": "trace:fixture:kernel",
+    "observer_id": "observer:fixture:kernel",
+    "replay_sign_id": null,
+    "schema_version": "execution_trace/v1",
+    "step_witness_refs": [
+      "step:fixture:kernel:1"
+    ],
+    "task_id": "task:fixture:kernel",
+    "transaction_refs": [
+      "tx:fixture:kernel"
+    ]
+  },
+  "schema_ref": "schemas/execution_trace.schema.json"
+}

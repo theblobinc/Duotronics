@@ -1,0 +1,13 @@
+{
+  "registry_version": "meta_object_relation_registry/v1",
+  "relations": [
+    {"inverse": "supported_by", "relation_type": "supports", "symmetric": false, "transitive": false},
+    {"inverse": "supports", "relation_type": "supported_by", "symmetric": false, "transitive": false},
+    {"inverse": "contradicts", "relation_type": "contradicts", "symmetric": true, "transitive": false},
+    {"inverse": "superseded_by", "relation_type": "supersedes", "symmetric": false, "transitive": true},
+    {"inverse": "supersedes", "relation_type": "superseded_by", "symmetric": false, "transitive": true},
+    {"inverse": "derived_from", "relation_type": "derives", "symmetric": false, "transitive": false},
+    {"inverse": "derives", "relation_type": "derived_from", "symmetric": false, "transitive": false},
+    {"inverse": "co_occurs_with", "relation_type": "co_occurs_with", "symmetric": true, "transitive": false}
+  ]
+}

@@ -1,0 +1,387 @@
+{
+  "$id": "https://duotronics.local/schemas/governance_event_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "is_backdated": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "backdate_authorization_witness_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "correction_mode": {
+            "enum": [
+              "prospective_only",
+              "requires_snapshot_supersession"
+            ]
+          },
+          "correction_reason": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "prior_affected_snapshot_ids": {
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "verifier_key_activate"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "verifier_key_activate"
+          },
+          "target_type": {
+            "const": "verifier_key"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "verifier_key_retire"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "verifier_key_retire"
+          },
+          "target_type": {
+            "const": "verifier_key"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "verifier_key_revoke"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "verifier_key_revoke"
+          },
+          "target_type": {
+            "const": "verifier_key"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "compiler_profile_activate"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "compiler_profile_activate"
+          },
+          "target_type": {
+            "const": "compiler_profile"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "compiler_profile_revoke"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "compiler_profile_revoke"
+          },
+          "target_type": {
+            "const": "compiler_profile"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "promotion_gate_approve"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "promotion_gate_approve"
+          },
+          "target_type": {
+            "const": "promotion_gate"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "promotion_gate_withdraw"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "promotion_gate_withdraw"
+          },
+          "target_type": {
+            "const": "promotion_gate"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "authority_snapshot_create"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "authority_snapshot_create"
+          },
+          "target_type": {
+            "const": "authority_snapshot"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "authority_snapshot_supersede"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "authority_snapshot_supersede"
+          },
+          "target_type": {
+            "const": "authority_snapshot"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "backdated_event_authorize"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "backdated_event_authorize"
+          },
+          "target_type": {
+            "const": "authority_event"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "authority_record_supersede"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "action_scope": {
+            "const": "authority_record_supersede"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "action_scope": {
+      "enum": [
+        "verifier_key_activate",
+        "verifier_key_retire",
+        "verifier_key_revoke",
+        "compiler_profile_activate",
+        "compiler_profile_revoke",
+        "promotion_gate_approve",
+        "promotion_gate_withdraw",
+        "authority_record_supersede",
+        "authority_snapshot_create",
+        "authority_snapshot_supersede",
+        "backdated_event_authorize"
+      ]
+    },
+    "authority_event_sequence": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "authorization_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "backdate_authorization_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "canonical_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "correction_mode": {
+      "enum": [
+        "not_applicable",
+        "prospective_only",
+        "requires_snapshot_supersession"
+      ]
+    },
+    "correction_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "effective_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "event_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "verifier_key_activate",
+        "verifier_key_retire",
+        "verifier_key_revoke",
+        "compiler_profile_activate",
+        "compiler_profile_revoke",
+        "promotion_gate_approve",
+        "promotion_gate_withdraw",
+        "authority_record_supersede",
+        "authority_snapshot_create",
+        "authority_snapshot_supersede",
+        "backdated_event_authorize"
+      ]
+    },
+    "governance_policy_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "is_backdated": {
+      "type": "boolean"
+    },
+    "prior_affected_snapshot_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "rationale": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "reason_code": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "recorded_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "governance_event/v1"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signer_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "target_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "target_type": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authority_event_sequence",
+    "event_id",
+    "event_type",
+    "action_scope",
+    "target_type",
+    "target_id",
+    "effective_at",
+    "recorded_at",
+    "reason_code",
+    "rationale",
+    "governance_policy_version",
+    "canonical_payload_shake256_512",
+    "authorization_witness_id",
+    "signer_key_id",
+    "signature",
+    "is_backdated",
+    "correction_reason",
+    "prior_affected_snapshot_ids",
+    "correction_mode",
+    "backdate_authorization_witness_id"
+  ],
+  "title": "Signed Authority Governance Event v1",
+  "type": "object"
+}

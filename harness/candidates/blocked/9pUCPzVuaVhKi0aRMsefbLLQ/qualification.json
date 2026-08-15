@@ -1,0 +1,9 @@
+{
+  "authority_activated": false,
+  "production_eligible": false,
+  "run_id": "20260813T185319Z-vm-paired-cycle-4870ca4ccc",
+  "schema": "duotronic-paired-candidate-qualification/v1",
+  "source_evidence": "/var/www/xavi/Duotronics/harness/logs/20260813T185319Z-vm-paired-cycle-4870ca4ccc",
+  "state": "blocked",
+  "verified_gate_count": 0
+}

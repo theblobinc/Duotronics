@@ -1,0 +1,10 @@
+{
+  "payload": {
+    "claim_id": "claim:bad",
+    "hermetic_environment": false,
+    "lean_compiler_witness_id": "lean:bad",
+    "result": "passed",
+    "schema_version": "lean_compiler_witness/v2"
+  },
+  "schema_ref": "schemas/lean_compiler_witness_v2.schema.json"
+}

@@ -1,0 +1,80 @@
+{
+  "$id": "duotronic://schemas/meta_object_edge/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assumption_manifest_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "context_content_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "edge_content_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "policy_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "relation_type": {
+      "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "meta_object_edge/v1"
+    },
+    "source_content_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "supersedes_edge_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "target_content_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "valid_until": {
+      "format": "date-time",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "source_content_id",
+    "relation_type",
+    "target_content_id",
+    "context_content_id",
+    "assumption_manifest_id",
+    "policy_id",
+    "valid_from",
+    "valid_until",
+    "supersedes_edge_id",
+    "edge_content_id"
+  ],
+  "title": "MetaObjectEdge/v1",
+  "type": "object"
+}

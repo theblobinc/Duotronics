@@ -1,0 +1,38 @@
+{
+  "case_id": "valid_observer_capability_token",
+  "expected_status": "pass",
+  "payload": {
+    "authority_scopes": [
+      "diagnostic",
+      "truth_observer"
+    ],
+    "capabilities": [
+      "observe",
+      "compute",
+      "verify",
+      "resolve_rule"
+    ],
+    "capability_token_id": "capability:fixture:kernel",
+    "created_at": "2026-05-11T00:00:00Z",
+    "delegation_chain_id": null,
+    "force_limits": [
+      "observe",
+      "propose",
+      "replay_verify"
+    ],
+    "non_collapse_checked": true,
+    "observer_id": "observer:fixture:kernel",
+    "policy_decision_id": "policy:fixture:kernel",
+    "resource_budget_id": "budget:fixture:kernel",
+    "revocation_reason": null,
+    "revoked": false,
+    "runtime_modes": [
+      "test",
+      "audit"
+    ],
+    "schema_version": "observer_capability_token/v1",
+    "valid_from": "2026-05-11T00:00:00Z",
+    "valid_until": "2026-12-31T00:00:00Z"
+  },
+  "schema_ref": "schemas/observer_capability_token.schema.json"
+}

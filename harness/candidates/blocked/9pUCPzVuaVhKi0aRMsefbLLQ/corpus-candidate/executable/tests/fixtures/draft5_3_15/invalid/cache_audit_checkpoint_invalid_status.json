@@ -1,0 +1,15 @@
+{
+  "payload": {
+    "audit_signer_key_id": "cache:audit:key",
+    "checkpoint_created_at": "2026-08-01T12:00:00Z",
+    "previous_sealed_segment_tail_shake256_512": null,
+    "schema_version": "cache_audit_checkpoint/v1",
+    "segment_id": "cache:audit:segment:0001",
+    "segment_status": "reset",
+    "sequence": 1,
+    "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "signed_payload_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tail_record_shake256_512": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  },
+  "schema_ref": "schemas/cache_audit_checkpoint_v1.schema.json"
+}

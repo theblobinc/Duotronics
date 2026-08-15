@@ -1,0 +1,73 @@
+{
+  "$id": "https://duotronics.local/schemas/executionTrace.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Replayable trace of a logical observer task.",
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "deterministic": {
+      "const": true,
+      "type": "boolean"
+    },
+    "error_witness_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "execution_trace_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "observer_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "replay_sign_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "execution_trace/v1"
+    },
+    "step_witness_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "task_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "transaction_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "execution_trace_id",
+    "task_id",
+    "observer_id",
+    "step_witness_refs",
+    "transaction_refs",
+    "deterministic",
+    "created_at"
+  ],
+  "title": "ExecutionTrace",
+  "type": "object"
+}

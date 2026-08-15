@@ -1,0 +1,102 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_signing_registry_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "governance_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "keys": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "authorization_scope": {
+            "const": "idempotency_cache_envelope_signing"
+          },
+          "key_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "principal_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "public_key_base64url": {
+            "maxLength": 3456,
+            "minLength": 3456,
+            "pattern": "^[A-Za-z0-9_-]{3456}$",
+            "type": "string"
+          },
+          "rotation_predecessor_key_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "enum": [
+              "active",
+              "retired",
+              "revoked"
+            ]
+          },
+          "valid_from": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "valid_until": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "key_id",
+          "principal_id",
+          "public_key_base64url",
+          "authorization_scope",
+          "status",
+          "valid_from",
+          "valid_until",
+          "rotation_predecessor_key_id"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "registry_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "cache_signing_registry/v1"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "registry_id",
+    "governance_key_id",
+    "created_at",
+    "keys",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Cache Signing Registry v1",
+  "type": "object"
+}

@@ -1,0 +1,9 @@
+{
+  "authority_activated": false,
+  "production_eligible": false,
+  "run_id": "20260813T184343Z-vm-paired-cycle-075fa1c34f",
+  "schema": "duotronic-paired-candidate-qualification/v1",
+  "source_evidence": "/var/www/xavi/Duotronics/harness/logs/20260813T184343Z-vm-paired-cycle-075fa1c34f",
+  "state": "blocked",
+  "verified_gate_count": 0
+}

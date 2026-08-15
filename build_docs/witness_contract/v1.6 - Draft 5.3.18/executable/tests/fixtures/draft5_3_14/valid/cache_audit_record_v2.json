@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "audit_record_id": "audit:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "audit_signer_key_id": "cache:audit:key",
+    "audit_signer_principal_id": "cache:audit:principal",
+    "created_at": "2026-08-01T12:00:00Z",
+    "event_canonical_json": "{\"cache_envelope_id\":\"cache:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"cache_registry_shake256_512\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"compiler_witness_signed_payload_shake256_512\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"replay_decision\":{\"decision\":\"active_time_valid_rotation_valid\",\"evaluated_at\":\"2026-08-01T12:00:00Z\",\"key_id\":\"cache:key:test\",\"principal_id\":\"cache:principal:test\",\"registry_shake256_512\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"rotation_predecessor_key_id\":null,\"schema_version\":\"cache_key_validity_evidence/v1\",\"status\":\"active\",\"status_changed_at\":\"2026-01-01T00:00:00Z\",\"use\":\"replay\",\"valid_from\":\"2026-01-01T00:00:00Z\",\"valid_until\":null},\"schema_version\":\"cache_verification_evidence/v1\",\"signing_decision\":{\"decision\":\"active_time_valid_rotation_valid\",\"evaluated_at\":\"2026-08-01T12:00:00Z\",\"key_id\":\"cache:key:test\",\"principal_id\":\"cache:principal:test\",\"registry_shake256_512\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"rotation_predecessor_key_id\":null,\"schema_version\":\"cache_key_validity_evidence/v1\",\"status\":\"active\",\"status_changed_at\":\"2026-01-01T00:00:00Z\",\"use\":\"signing\",\"valid_from\":\"2026-01-01T00:00:00Z\",\"valid_until\":null}}",
+    "event_schema_version": "cache_verification_evidence/v1",
+    "event_shake256_512": "58f2ade31c1fa4be66469a99cd55374ad9f1256380c386dd6476d5d7d8c78a3158f2ade31c1fa4be66469a99cd55374ad9f1256380c386dd6476d5d7d8c78a31",
+    "previous_audit_record_shake256_512": null,
+    "previous_sealed_segment_tail_shake256_512": null,
+    "rotation_policy": "signed_sealed_segment_with_external_checkpoint",
+    "schema_version": "cache_audit_record/v2",
+    "segment_id": "cache:audit:segment:0001",
+    "sequence": 1,
+    "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "signed_payload_shake256_512": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+  },
+  "schema_ref": "schemas/cache_audit_record_v2.schema.json"
+}

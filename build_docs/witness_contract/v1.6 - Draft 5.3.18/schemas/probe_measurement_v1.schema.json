@@ -1,0 +1,120 @@
+{
+  "$id": "duotronic://schemas/attested_probe_measurement/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AttestedProbeMeasurement/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "attested_probe_measurement/v1"
+    },
+    "measurement_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "challenge_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "subject_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "gate_id": {
+      "type": "string",
+      "pattern": "^gate-(0[1-9]|1[0-2])$"
+    },
+    "authority_namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_profile": {
+      "enum": [
+        "sandbox-test-only",
+        "production"
+      ]
+    },
+    "production_eligible": {
+      "type": "boolean"
+    },
+    "trust_registry_snapshot_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "stability_class": {
+      "enum": [
+        "semantic-deterministic",
+        "artifact-reproducible",
+        "execution-volatile"
+      ]
+    },
+    "comparison_policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "invocation": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "exact_result_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "stable_projection_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "volatile_fields": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "toolchain_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "environment_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "finished_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "successful": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "measurement_id",
+    "challenge_id",
+    "subject_content_id",
+    "gate_id",
+    "authority_namespace",
+    "authority_profile",
+    "production_eligible",
+    "trust_registry_snapshot_id",
+    "stability_class",
+    "comparison_policy_id",
+    "invocation",
+    "exact_result_content_id",
+    "stable_projection_content_id",
+    "volatile_fields",
+    "toolchain_content_id",
+    "environment_content_id",
+    "started_at",
+    "finished_at",
+    "successful"
+  ]
+}

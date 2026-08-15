@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/lean_verifier_result_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "axiom_dependencies": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "build_from_source": {
+      "type": "boolean"
+    },
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "compiler_profile_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "declaration_found": {
+      "type": "boolean"
+    },
+    "declaration_type_matches": {
+      "type": "boolean"
+    },
+    "dependency_closure_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "execution_image_digest": {
+      "pattern": "^shake256-512:[a-f0-9]{128}$",
+      "type": "string"
+    },
+    "generated_witness_module_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "immutable_snapshot_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lake_executable_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lean_executable_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lean_stdlib_tree_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "prebuilt_artifacts_used": {
+      "type": "boolean"
+    },
+    "proof_artifact_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "request_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "schema_version": {
+      "const": "wc_lean_verifier_result/v1"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "error"
+      ]
+    },
+    "theorem_statement_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "verifier_binary_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "warnings_as_errors": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "request_shake256_512",
+    "compiler_profile_id",
+    "claim_content_shake256_512",
+    "theorem_statement_shake256_512",
+    "proof_artifact_shake256_512",
+    "immutable_snapshot_shake256_512",
+    "generated_witness_module_shake256_512",
+    "lake_executable_shake256_512",
+    "lean_executable_shake256_512",
+    "lean_stdlib_tree_shake256_512",
+    "dependency_closure_shake256_512",
+    "execution_image_digest",
+    "verifier_binary_shake256_512",
+    "declaration_found",
+    "declaration_type_matches",
+    "axiom_dependencies",
+    "build_from_source",
+    "prebuilt_artifacts_used",
+    "warnings_as_errors"
+  ],
+  "title": "LeanVerifierStructuredResultV1",
+  "type": "object"
+}

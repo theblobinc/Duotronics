@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "registry_version": "v1.6-draft-5.3.2",
+  "canonical_write_generation": "v2_with_v3_verifier_keys",
+  "legacy_read_generation": "v1",
+  "canonical_schemas": [
+    "schemas/evidence_claim_v2.schema.json",
+    "schemas/verifier_principal_v2.schema.json",
+    "schemas/verifier_key_v3.schema.json",
+    "schemas/verifier_key_status_event_v1.schema.json",
+    "schemas/authority_signature_binding_v1.schema.json",
+    "schemas/lean_compiler_witness_v2.schema.json",
+    "schemas/proof_witness_v2.schema.json",
+    "schemas/non_collapse_transition_v2.schema.json",
+    "schemas/claim_status_event_v2.schema.json",
+    "schemas/theorem_promotion_gate_v2.schema.json",
+    "schemas/replay_assumption_manifest_v2.schema.json",
+    "schemas/verification_grammar_v2.schema.json",
+    "schemas/verification_result_v2.schema.json",
+    "schemas/authority_supersession_v1.schema.json",
+    "schemas/positive_baseline_cell_v1.schema.json"
+  ],
+  "legacy_read_schemas": [
+    "schemas/evidence_claim.schema.json",
+    "schemas/lean_compiler_witness.schema.json",
+    "schemas/proof_witness.schema.json",
+    "schemas/non_collapse_transition.schema.json",
+    "schemas/theorem_promotion_gate.schema.json",
+    "schemas/replay_assumption_manifest.schema.json",
+    "schemas/verification_grammar.schema.json",
+    "schemas/verification_result.schema.json"
+  ],
+  "rules": {
+    "unknown_required_schema": "reject",
+    "v1_new_write": "reject",
+    "v1_replay": "allow_with_legacy_marker",
+    "integer_claim_object": "integer_branch_only",
+    "authority_output_creation": "server_only_exact_generated_target",
+    "compiler_resolution": "absolute_path_plus_independent_shake256_512_pin_only",
+    "proof_safety": "compiled_axiom_inspection_not_source_text",
+    "verifier_key_authority": "effective_window_latest_status_and_verified_signature",
+    "deep_time_pass": "non_vacuous_all_required_satisfied"
+  }
+}

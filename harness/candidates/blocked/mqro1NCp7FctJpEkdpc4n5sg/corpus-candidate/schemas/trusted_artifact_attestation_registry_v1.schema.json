@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/trusted_artifact_attestation_registry_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "attestation_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "relative_path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "role": {
+            "enum": [
+              "database_migrations",
+              "trusted_inspector",
+              "oci_image_metadata",
+              "dependency_manifest"
+            ]
+          },
+          "shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          },
+          "verification_mode": {
+            "enum": [
+              "direct_trusted_root_file",
+              "governance_signed_build_attestation"
+            ]
+          }
+        },
+        "required": [
+          "artifact_id",
+          "role",
+          "verification_mode",
+          "relative_path",
+          "shake256_512",
+          "attestation_id"
+        ],
+        "type": "object"
+      },
+      "minItems": 4,
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "governance_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "registry_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "trusted_artifact_attestation_registry/v1"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    }
+  },
+  "required": [
+    "schema_version",
+    "registry_id",
+    "governance_key_id",
+    "artifacts",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Trusted Artifact and Attestation Registry v1",
+  "type": "object"
+}

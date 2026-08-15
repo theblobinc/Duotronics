@@ -1,0 +1,13 @@
+{
+  "payload": {
+    "network": "none",
+    "profile": "lean-4.29.1-hermetic-3",
+    "read_only_rootfs": true,
+    "runtime_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "schema_version": "sandbox_template/v1",
+    "trusted_final_result_mount": false,
+    "trusted_inspection_mount": true,
+    "untrusted_final_result_mount": false
+  },
+  "schema_ref": "schemas/sandbox_template_v1.schema.json"
+}

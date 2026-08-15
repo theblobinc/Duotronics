@@ -1,0 +1,67 @@
+{
+  "computational_assumptions": [
+    {
+      "assumption_id": "assumption:hash-shake256_512",
+      "assumption_type": "computational",
+      "description": "SHAKE256-512 remains the hash identity algorithm for this fixture.",
+      "evidence_ref": "artifact:fixture:hash-policy",
+      "failure_mode": "block",
+      "required_for_deep_time": true,
+      "scope": "artifact",
+      "status": "satisfied",
+      "validation_method": "hash_check"
+    }
+  ],
+  "cultural_assumptions": [],
+  "deep_time_intent": "deep_time_replay",
+  "failure_mode": "block",
+  "manifest_id": "manifest:fixture:deep-time",
+  "manifest_shake256_512": null,
+  "metrological_assumptions": [
+    {
+      "assumption_id": "assumption:unit-celsius",
+      "assumption_type": "metrological",
+      "description": "Temperature values are Celsius.",
+      "evidence_ref": "artifact:fixture:sensor-calibration",
+      "failure_mode": "escalate",
+      "required_for_deep_time": true,
+      "scope": "claim",
+      "status": "satisfied",
+      "validation_method": "human_attestation"
+    }
+  ],
+  "policy_assumptions": [],
+  "required_assumptions": [
+    "assumption:meaning-stable",
+    "assumption:unit-celsius",
+    "assumption:hash-shake256_512",
+    "assumption:schema-v1"
+  ],
+  "schema_assumptions": [
+    {
+      "assumption_id": "assumption:schema-v1",
+      "assumption_type": "schema",
+      "description": "Draft 5.2 schema versions remain resolvable by local registry.",
+      "evidence_ref": "refs/schema_registry_v1_6_draft_5_2_completed.md",
+      "failure_mode": "block",
+      "required_for_deep_time": true,
+      "scope": "schema",
+      "status": "satisfied",
+      "validation_method": "schema_validation"
+    }
+  ],
+  "schema_version": "replay_assumption_manifest/v1",
+  "semantic_assumptions": [
+    {
+      "assumption_id": "assumption:meaning-stable",
+      "assumption_type": "semantic",
+      "description": "Claim predicates are interpreted under the Draft 5.2 schema registry.",
+      "evidence_ref": "schemas/evidence_claim.schema.json",
+      "failure_mode": "block",
+      "required_for_deep_time": true,
+      "scope": "corpus",
+      "status": "satisfied",
+      "validation_method": "schema_validation"
+    }
+  ]
+}

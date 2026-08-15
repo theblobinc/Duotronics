@@ -1,0 +1,889 @@
+{
+  "active_schema_count": 13,
+  "registry_version": "schema_registry/v11",
+  "retained_migrated_schema_count": 134,
+  "schemas": [
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:nrFGyY2z8Bv5tXTJA3AEwuVpD6kyRnz-hA0yXP1JoDvCocdMRopD0MjQSCWVWK4C-8_27p1oFBaFhSUGTR2PpA",
+      "path": "schemas/activation_state_vector_v1.schema.json",
+      "schema_id": "duotronic://schemas/activation_state_vector/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:b4TE0Fxn9Tv0JsbcUuqaKUGT8u39snQzIaQotiyPyk5nzgsNrLjxu1436kpOPHhEwV5u6cDcwi5jUuB5PvQxSQ",
+      "path": "schemas/authority_delegation_chain.schema.json",
+      "schema_id": "https://duotronics.local/schemas/authority_delegation_chain.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:Zg8RmmAfe1FzN0OW4O4PLM7tVk5g2UTzRfMAKXYpZ7cF-CqT55n16pJPorretKvUQFe1A_n2JEyfGUu23EFjdA",
+      "path": "schemas/authority_domain_v1.schema.json",
+      "schema_id": "duotronic://schemas/authority_domain/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:4SLST7C97dEmSlz1jX8iwzQ_xAx3fRGeMjLdpxbg96kzqFd6WxnXXQWVsWxfxwhLvnBky9VXs4gafqNMaNUgoA",
+      "path": "schemas/authority_signature_binding_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/authority_signature_binding_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Ymv-FwAd07hijqqN78fT13eH-vFEja-lvcxAaCc3Pwx3OVzJibMPHGpjegjyBQk0Uevj5m9mXBb7bJTx0M7UzQ",
+      "path": "schemas/authority_snapshot_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/authority_snapshot_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:3ycWWYMQekTJh69U9xwPUP0T3SuEnv-6Bx84WBf8vKnlIJDWku5dcxyaGwzUr7XI2JtmQbf3Qiw1Rp76ukSJ5A",
+      "path": "schemas/authority_snapshot_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/authority_snapshot_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:lSZZPikHk0_c8qD4iFlRvcrvxHvBHTT_-6NF1JPDSOskjR53hc9amvKSnvIpG7DXbu2FbrNxcDZ3Mb8xh8rfdw",
+      "path": "schemas/authority_supersession_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/authority_supersession_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:BH6vmimIh7FyTZROqvcA_H4MSP2Dm1ZKH5D48wtrO_dRzkzQ9cHnwCIpPCn7Nlo76oxIbkw7XRMulkreVmxz4Q",
+      "path": "schemas/authority_supersession_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/authority_supersession_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:AsB5PtqyBhEcuD9Ab8Wt0tHOQJsMyCAMOSCwRP3Q2GH68N4fppjfHvgJeJtEsx83zsWOX6w26bIqcCsESk7XuQ",
+      "path": "schemas/authority_supersession_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/authority_supersession_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:NO4qlNYmPk95aTXYU57lauk9x9h769TJOvuORomIAmtC_-kk96O1dPb4m4kZD_b7zA0yANpWuci1tFcTRsXYww",
+      "path": "schemas/build_attestation_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/build_attestation_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Anwtvb6qQcFCoa1eKsIg4HM9Gl8pbLdm3AjBIQ67jhCpkuyzoZBJsDLvrBS6LuwUWrxjWzVIimn2bsGxWA_SEA",
+      "path": "schemas/build_attestation_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/build_attestation_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:0wn-vKH1ZJHIjNiRVWSMDgoz_V50jwYuLoHi7dg5msISJ_TnKVDkosNUopp-OrRThqOnNSVgs63BOYbZy7RO5g",
+      "path": "schemas/cache_audit_anchor_registry_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_anchor_registry_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:fKMDYjLbuOrfWNGIOeW1SdLE_1ktTyLpREKbtEsxV0Vdbx0fI4RLSG-dVw79CkMyXxKojaQlzFapuJ7PPOzgZw",
+      "path": "schemas/cache_audit_anchor_state_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_anchor_state_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:FilO5DUm3brs9TKBAYkJe0S0fzwKIrusfnA3M66xY_YZU5iWpApbOlyGm3Q09TyZb5QezeQkw1YTbVxB9IypXQ",
+      "path": "schemas/cache_audit_anchor_state_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_anchor_state_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:AKuwIhVjOvtd2V_t8Cd5BeHx5S11KkvVGQPHfchSy63M7qf4s1CKFX9wFezmzGX3PTolyiHc92rgcRn_nGkqWg",
+      "path": "schemas/cache_audit_checkpoint_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_checkpoint_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:xsS6Q-nCtRSk7jpgtvO0rCW7quwMjvd_CfJN5l8RX9TvaEkXieDN0XA3uZpYqdzAn_EqFGdKSsrPbKT1E9DL-g",
+      "path": "schemas/cache_audit_checkpoint_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_checkpoint_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:gTCsjH60RXrg3DLVinfp5CubAjgbh--xvKQyG9jZx7jrrFsxu1vClo7ipGmHEFO2ORnqg333dKeOrb_aStuzqA",
+      "path": "schemas/cache_audit_genesis_authorization_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_genesis_authorization_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:AZzCyhIJlIwV0VgmKM90hB8SKX-w2HBuN27PdIwzTYEdRNulVYGFBfF4whb3P5cDkZ41b2bX-YIuOBDQRJJw1g",
+      "path": "schemas/cache_audit_key_validity_evidence_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_key_validity_evidence_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:qSi82wdTNhS4X3qegJ3_9Xussub8R4rtcY9XNhEtxSr1p3BWpHJm0CTmdWlknP6EuEXLd-3bZMRxyIr5s3PgJw",
+      "path": "schemas/cache_audit_publication_receipt_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_publication_receipt_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:6XwrwIBIL3MqEE6wZq0a0XDgzEVfExDegG5OTS1yx-PDwT_vP_KcdXrTQCTNn9Ze9dkFLNQdv499VindCg_9Bw",
+      "path": "schemas/cache_audit_publication_receipt_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_publication_receipt_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:UX6NBO0DerqBvakTvl7DYvZ8DF8lTZjL3I2oYxDKJdXpbDVC6tS8Yx7Iso45Rp4HcHgjvomSTsP0226wvTOxZQ",
+      "path": "schemas/cache_audit_record_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_record_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:9gcwPSwEwQLe3YFvGPmafDNC9EIoJ-PWMdgxNOV_iVRdV0S63hoUGRdE86FOjnnURCFBnTHs7-Mjd_pH_-GLvg",
+      "path": "schemas/cache_audit_record_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_record_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:LsanHX2nz5OHRfZtNtUNrY9mes57V5JL5924fSoRXgXarU3nREvAlpIgE9v_1A4K7jcjySMSSO2tx7yz4jB73g",
+      "path": "schemas/cache_audit_record_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_record_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:qJRNIWKnapZdT4vnt6pm2KPRn_BP_M7jQYPuP16j8yR_6mpuwcjitFwQtocZCeqpMTxIV9qSyEvjIWA9WxtRhQ",
+      "path": "schemas/cache_audit_recovery_authorization_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_recovery_authorization_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:eXhN9oGUlvZlO84Tevv-X81zH5NfLNe2AVzf8tS-CAg-0LhowHSlOu_Ec223gL57SzgM8P9wwYXPfkjq4xtExw",
+      "path": "schemas/cache_audit_recovery_authorization_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_recovery_authorization_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:NrEQCtuXhh1jikNKNEjOOkOhhWM7QU4NpU_20NYFYnY8M_HCi_HPaTptLGTVYkQOD3OhZaXQySMmlv9geapjZA",
+      "path": "schemas/cache_audit_recovery_evidence_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_recovery_evidence_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:1CZu02xQmYlxPwBwmiCTSmjGoPI7MdxVuMbK18VnlFFE0IEkgpdqXvDpapumvCIPbB143V0ot29rbOCRRk3HCw",
+      "path": "schemas/cache_audit_recovery_evidence_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_recovery_evidence_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:1hqXpjQ6rpWhIxHq2leIgyjSk21wEy3jfvYN2xSrcnnj-dqkZkNCM9GK9BZmbN0bcYCxxZ81hFUZZOpe4UJvaA",
+      "path": "schemas/cache_audit_segment_seal_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_segment_seal_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Xsc3S-TgneCF-ApH5wKrW5UYrIpxrpbOJ06YFmMrrr9dAnkkxGOtAl_zlrYe9EtY2dqEckKBL-3WUgGd3CgD0Q",
+      "path": "schemas/cache_audit_segment_seal_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_segment_seal_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:fd7ARydg24SMIupOR7jhtUowiRmYtM3RbuWsnMnhUb4THu9Tkl7Gond0IuP-yV8OOTcj_yt8iEANY4ciLM14hg",
+      "path": "schemas/cache_audit_segment_transition_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_segment_transition_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:iCCK_A5oFOlwhYFeuNaoKb7QT8kANQT-AvllZnBda-M5z2-SgGEK0O9z5fkFrqIc7tzu3RJkuuGCaxP4pigfXA",
+      "path": "schemas/cache_audit_service_request_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_service_request_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:PJ964GHZ0aetdZWakWLcyVOO8fpYIVZy3gktEC2EKxyxs1Ndo7G8UAXp9C-2QMC3xpCACJDZi56p_OwPo5bt1g",
+      "path": "schemas/cache_audit_signing_registry_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_audit_signing_registry_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:GGOSRF9DJdm_vJneGsrGsirzQGkpO2xq3bYHQjNmIkmHoqMI-qR5SOQvLt8X3Cwx8LXkoTneXtFeftOs4yrJUA",
+      "path": "schemas/cache_registry_lineage_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_registry_lineage_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:sc1xKtIrZB5GiUBGWVzZaRp4oPJwvFOVS5spJHPR30xA9RQFdJJp1e39PPr81P-U0pAK5_Z9HSqNrKE1HtoLaQ",
+      "path": "schemas/cache_signing_registry_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_signing_registry_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:wcMNKiYuol2YhvD3dfQ2uUn7t0GBEruMaLBJyMiJw-2apJBS0Isd2fIXGgR7n1_8ZHfcityf5An6OL8nDRvmPA",
+      "path": "schemas/cache_signing_registry_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_signing_registry_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:xRjbydcG0gxL-3lxXiW8NJsE0RKHzDgYAZqeX_Y-7Y4_HGaer5j_AT7UQNjO9C-yPWSk4GbLSJC7WVzuJadwDw",
+      "path": "schemas/cache_stale_row_evidence_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_stale_row_evidence_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:UNTOl2eIFxJT3AlhC29Prxk7GTq9uItO48z6SyKdanluJedKg2WLX8fntMZa9-idbv2BdmvHsd4LF_cDmLI0bg",
+      "path": "schemas/cache_stale_row_evidence_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_stale_row_evidence_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:dtDR0omjr9wZDsUAI5WxggTP4gLWE0qGX3Dssb2z2bv8rTIh7QkBw7OxMTHs9JOd5Lv5Bn5McIREwXYs10H2GQ",
+      "path": "schemas/cache_stale_row_evidence_v4.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_stale_row_evidence_v4.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:n3eXxRcT6B0W3DWI4Xh3pQ6JM1Oz75EPZazVkJQHqxPCzR1ZeQqfTEkjO6qf5qioue-Vyf0wayNA83BFfL9Q-w",
+      "path": "schemas/cache_verification_evidence_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/cache_verification_evidence_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:ry-W_MKWMMyIXQyxYPsGEXh-nZAyGp63M8hDDfXlV4LXV0sDXTjR_FCg12q5RR7cLWX5fpaK2mdew7OFCLnu3A",
+      "path": "schemas/claim_status_event_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/claim_status_event_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:izDJ69Hq_NH4-J4dFxLJQVYs42HJ81ifE9pc5g6wqLNuIHTiDYe93wfvKzSN60mX7Nao__WMLaSQuyvJe5ba7A",
+      "path": "schemas/claim_status_transition.schema.json",
+      "schema_id": "https://duotronics.local/schemas/claim_status_transition.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:tXF3-Zgyu6Rsght2W5N7Uw65j1gGKxrZ6nLSKWGfUoFTrZy8G_ALc6vx97ubiwVQcef8KMo5k28LiqCSbWCR2g",
+      "path": "schemas/composition_policy.schema.json",
+      "schema_id": "https://duotronics.local/schemas/composition_policy.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:kn6yMdsRxVWgEThu0Orbhudg88Jdfzd-9AB-Z3gTKJDC8qZCXRNn7yMjc1sVuAC2AcfMqNEHFa9hnrLVyrtPEg",
+      "path": "schemas/compound_claim_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/compound_claim_witness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:P7hIFbK3g7yBoU-9ipuX1oc3LdXugVZeE3mBqfSFJpOxa0IOFB8ZTDNATqJBTpcPnF2hcrWsaUNIZPpkQpchGA",
+      "path": "schemas/conflict_adjudication_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/conflictAdjudicationWitness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:3-LRYzeli5jCh7Mwcmzo6158elItyxjtMw2wP3ARuI0cs_uxcD5oUyo0Y5y2pR4AVNRulJTE63acA8270rqAPA",
+      "path": "schemas/corpus_rule_resolution_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/corpusRuleResolutionWitness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:ABXrNTeGyye0LVViBsEQBs2Lq6cDkCxgw0svdEs0_Wbg8Lf3XQ69GY1e6hNR_cE6rJ_VDLkZETFXXg0NWgB7gw",
+      "path": "schemas/domain_execution_evidence_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/domain_execution_evidence_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:bilmh5A6RpkPfWBkcqtuyRjmC-yh-GfLtQMt5wCCe-6MEquybO7sfDnJuNoIRlBxIiGLEsXFsvOXVfQu2KF-QA",
+      "path": "schemas/effective_sandbox_invocation_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:eHu1oFHMzDNdfekpPvnn5vkNJuTkIDf1ediXL8CT45_W7_L0GMqb-Nk8zDKaUJ2zuE4n8U95VxH65bm4zM7Bxw",
+      "path": "schemas/effective_sandbox_invocation_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:1OcaXO4R0vWkwdhR4jNz_Mn421KAAz83GmqyT-hOjMNvGRS5T_-aR27xBu50v2ED2eAMT1jxZnUPecgtSs2dJw",
+      "path": "schemas/effective_sandbox_invocation_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:L4IC7_Ax89gNyUh8W75bAq5Zq8B-Nb5L-W3AZ2lgVimw8FqN24O0dpsRmEKr4wFEs77B9-A4WL6emdlTHgyVUw",
+      "path": "schemas/effective_sandbox_invocation_v4.schema.json",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v4.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:OVSpRJsQyoTNuD1AobJLhZcN9ZRPTmrjGHozl-UzD4OGn85uwu5AeX6faQQ0hv7Z8U5-mPJxHbpcf6Sb1CYozQ",
+      "path": "schemas/effective_sandbox_invocation_v5.schema.json",
+      "schema_id": "https://duotronics.local/schemas/effective_sandbox_invocation_v5.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:RU9QBEV2FEJI9whfPW0JehDJtaMpH4c-UINm8aOzZ0mJsjAQmxXXcUcc9SKUSUWEaqLlE8GY0DS12C762Bm_bw",
+      "path": "schemas/encrypted_payload_v1.schema.json",
+      "schema_id": "duotronic://schemas/encrypted_payload/v1"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:LA9MtD32f9oXMxhAxs4D7c-ffSX4Ja6jiJhUlu1I9OZKPCjgBDoWEzFJlH1jOxw6SqRkHRRqPByE0ZVEnrYFsg",
+      "path": "schemas/evidence_checkpoint_v1.schema.json",
+      "schema_id": "duotronic://schemas/evidence_checkpoint/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:M9Jhtg7jN7yvrnjgqbjlf7-Ol0i8aU8vBCnGwP9rtYGCdUvw_pAz3dUuJuM5sSdv9ajudUizLDOxAV41vwClbA",
+      "path": "schemas/evidence_claim.schema.json",
+      "schema_id": "https://duotronics.local/schemas/evidence_claim.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:uCYxfzpdiXMkbnxMXDSZtKO7RN_znIGgtoWz33m25BZaMaRyCf3l4kc4aBA4nzTrgNcGNxtf3Cn0gfrm_72JBA",
+      "path": "schemas/evidence_claim_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/evidence_claim_v2.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:B7UmEYPXxQlo6Be0-GaLKKXEzYejDMd5CxxiluSAOLUnx0Ge522FP4kiD_N7cbvVjnr5y1o1Gf4nSOH-WVfLeg",
+      "path": "schemas/evidence_graph_edge_v1.schema.json",
+      "schema_id": "duotronic://schemas/evidence_graph_edge/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:P4L4cPtMtrd9ZEcwVVCJIR-V7dgk4Sd6BVIatTZt4CFcozlJT5DS3FKzW5a54Pz0vUYYk8To6MubyAAYm_LeJg",
+      "path": "schemas/execution_trace.schema.json",
+      "schema_id": "https://duotronics.local/schemas/executionTrace.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:PoGqllicAgedbg40-zIHJd9aQ--Gq9Vx1wVK6U3IlkTQSk5OLOpngZLl4PxTflXBhljzuHiSqgyAxJwmhGQ3yg",
+      "path": "schemas/governance_authority_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/governance_authority_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:CHIHpe86mTB9fPnWUHDXq_MzOdBaj6MVQ3iM06vRLXrt6wmgcqyphMts-hiw1N_ITHSwbc0w3CFmNpcyY06G0A",
+      "path": "schemas/governance_authorization_witness_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/governance_authorization_witness_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:FUtPBQ9zB1cudpmFqYrLhwpY1NazIguqiutPDErBMwahQH9pI_BCZBO77i0231FAHJI0ogQ2Z4q2EhwIc68nCA",
+      "path": "schemas/governance_authorization_witness_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/governance_authorization_witness_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Eu4c0VazbM1QIEheTGGT71q7mHDe7oJDKGHR_zVz5vsQpOJsYvOwI6zWuid_9DrA23TvyzlFt1OtecQDFEBTDw",
+      "path": "schemas/governance_event_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/governance_event_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:qJJDP1tfINlcv2IXU7lBqB5QKwJdah8VFxsBS5e5BwxeIRyZ15T3cLBU7xd2Qlhc-rPLp66P6lF5GDkK3C6cUQ",
+      "path": "schemas/governed_compiler_registry_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/governed_compiler_registry_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:lLYHq2zA-vlT_3NAnENMbPp2Tvh2kWrK5X7PTQRVPBXnZcBCmre0xtqYcYhJubXxsAWvp9FLaQ2jnX3UGua-bw",
+      "path": "schemas/governed_compiler_registry_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/governed_compiler_registry_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:TL84y5h11rzHB4XrL4avFi1oOHPeqpocDsZlSIgS3wEfaU00VDQnd106p25sT44SFHkwpoDobpsb5IzGfil-jQ",
+      "path": "schemas/idempotency_cache_envelope_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/idempotency_cache_envelope_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:IG37-Qo4z1sXJQudpXqjPhy0vH-S3GDCQWwgMqqTfRD9-Q8Avwsv3QRu7B7xg-b6jJ1yoSiGuCidLJedg_Dozg",
+      "path": "schemas/idempotency_cache_envelope_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/idempotency_cache_envelope_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:S1BU_3WhLiqVPUGyVmwVSLOHZyupMH1Bm-4vHsB6b82EtnZ2m_-MTh31dTiR_V8RkiGJCl9IdSarafRnVyrTZw",
+      "path": "schemas/idempotency_cache_envelope_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/idempotency_cache_envelope_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Rzp5fH63NJB-C_FL5sVAseMEDOk20VBfRfpDaqLSJRE7OLnI6nItWKn8SmhxVz3V3vabYMI6JgXO7BPptuDDXQ",
+      "path": "schemas/inference_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/inference_witness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:88xDN0sAwnb9wcvOVfdR2nhy7RxDOHh9GRjt2FvbRbG4v62MfsNXHoA52JjkO0z4u0N__a2wt-7oeN-HRc1XDw",
+      "path": "schemas/kernel_error_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/kernelErrorWitness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:8gskBT7a3KGtnwi7iePlqlB8ticQpfSBuxpR4vrM5BQejhZE_32swvkzrFFxMLhMrRJz701xLwYNdcO6CYxptg",
+      "path": "schemas/kernel_state.schema.json",
+      "schema_id": "https://duotronics.local/schemas/kernelState.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:mabr22b6aa5xj5nPKbda7GktRtFWOmFNHJyunbI9bEqce7Pzl9ilkJMcg73Konq63Lyg44oF4M9UdEXV8mMyvw",
+      "path": "schemas/kernel_transaction.schema.json",
+      "schema_id": "https://duotronics.local/schemas/kernelTransaction.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:8xGu99X9IA4uOIEP3tAu19jQuN3qqcyVQDl7JwzeHfyBt-96hm7QlBYyZKbVC0H2K8XAXFD5H3ZmdOJUj4ifbA",
+      "path": "schemas/lean_compile_handoff_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compile_handoff_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:p7mmUeZKONVVmz7Ct9Y9kvs0SxRT0Im1js3NG2qma_pYu-1OVlhWFlUmAn1xOmeiGCWqw8zB216RuK96orgOYg",
+      "path": "schemas/lean_compile_handoff_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compile_handoff_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:KdSMw63f6RyovcuUCLXobZ9VvpS6V55XHe8RdFOYi10sfqKl5zCxMCH1W58FJ2cv1zmNJ0zhWefgtnFH8zOuNQ",
+      "path": "schemas/lean_compiler_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:zPxMeKcsB-PIi7yFBmHMKuZYOxykjI7h5xEoJJb4nfa-xRgvoCnYxPogIMiWGoRHucEngrnqQPvOw74NfJ43EA",
+      "path": "schemas/lean_compiler_witness_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:J_AnBnOV2UWRMh80MgE1ODUHFTYVeMNbRIl-qqeqtkdsIZ8qwl7pwxa7jvZ03w3mnfHpnuyfyxfytZy4GVJHOw",
+      "path": "schemas/lean_compiler_witness_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:pux3yrA17JlN6jAfiB-Z9F2CjUgQTCP8nrJLzsIJ5C_pD6hM5khdufJ8k46GFYZYur-JCpd8z7645_wpgi5gxw",
+      "path": "schemas/lean_compiler_witness_v4.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v4.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:5Ck2OkYks-q_vhZGGu_jSKxJk0p6sEWIYP8U2Po-jtFulNLO7H-jKSoZP_A-A6Al0F_k-SdATWn3k_QET_vy3Q",
+      "path": "schemas/lean_compiler_witness_v5.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v5.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:fMR_dINmBChLJzoxCkkS4kYyr0AAOMifP9LlgF_LxmQcspjJgjcTU7y7xLsVY2YKj3YEe3IOHfEV0z_xvl2SLw",
+      "path": "schemas/lean_compiler_witness_v6.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v6.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:PsuqsxMEnfBrecSXoGy_A4oB42xhbf9CO2WqvMGSTcL3GQ-0ZAa0URTbZ9cAyKE0pDezJ1DOUs2wpZIGQKo8vA",
+      "path": "schemas/lean_compiler_witness_v7.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v7.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:8X88HaZV-HN4ImF7P5TylklcKC-BRHEC79JUNHgNdbMl0tdyiyisOVKaTZZHVYjIAKIvbJLsbZOA--TzK0E3bQ",
+      "path": "schemas/lean_compiler_witness_v8.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_compiler_witness_v8.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:y3xwptvHOxSGu-QAQxcMFaQdVCcuDU311mCs-qSpg1V5tXtEX-RnWuz7lqOen8JrCLpMeqUoH8w-xtJdqjcrew",
+      "path": "schemas/lean_inspector_result_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_inspector_result_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:2Q8LwKy5_QJOEVyWO7wJ5bsDxVxl5HaYfvyDhEFU7gEShFUQ01rdzFFp8H-B9afOUgsCqWBX6w_PaE2bDy4ryA",
+      "path": "schemas/lean_verifier_request_v4.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_request_v4.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:SseH21Hrl9Ps0ooQzROB2wE6JOOWWqDXswOQzN2vxiP9E2HH42EMKMdDHhiwuI6mKMNRD8HyK0ED6J4NeYzLsA",
+      "path": "schemas/lean_verifier_request_v5.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_request_v5.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:V1Wv7iKswyRZLM3S6eijijNeqvRvdXrn2rtEGQgQFM7UsQCyOJuuYq7Q4SUwaULz5C5kIQblWqZ67Xp5qsG4HQ",
+      "path": "schemas/lean_verifier_result_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:d7C0VGQh9fNfuBdeEgQKJRzuxMf7BTws2JvlFIbV29K9YdxQd3b8NlG-aV0NOSIEeIEgwB0CvmLKgJPeRU7ONA",
+      "path": "schemas/lean_verifier_result_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:bnXxe3IKs-aZcU8sj9Kr-v2SKflhFo2T5zkcE_09iT54e9LylWffRgcJMFZczslccoNY2D-gachx05pjxpd1cg",
+      "path": "schemas/lean_verifier_result_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:j-dNK6KUQ-w7Yfb1cOILDQeDlf3e4I8ho5lNndNbtXgyi5kM1l9siaymFj730LBvFdzcd9Hu6S_p9OTV8D3e8w",
+      "path": "schemas/lean_verifier_result_v4.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v4.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:J-az90UdRYIdpFUmZ1yk-6Tpo9F7Q_rmT59OynZLHa5r6RdBv6AGzcDzWDWfz6VkuIpGy7i-s8Fti3eKA6o6EA",
+      "path": "schemas/lean_verifier_result_v5.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v5.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:q9PAhGVKc60QilD1aXAfIlPMTB9IU9qigYOclu4LDZmtvsFmmg2YOEuY1xOtax8qf1Wq-3BES31P117lPThi1A",
+      "path": "schemas/lean_verifier_result_v6.schema.json",
+      "schema_id": "https://duotronics.local/schemas/lean_verifier_result_v6.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:GqBmtzsSQjF8WxFzZQCRg-hZEfzaZ7RMc030EiBwpPKH2w-FRciTYoPw7yviCaOpiUz-jU18nX3q4HI4PoEnEA",
+      "path": "schemas/legacy_mapping_witness_v1.schema.json",
+      "schema_id": "duotronic://schemas/legacy_mapping_witness/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:_8c9mFWGCZ1wGKkIFZNkI8a9V23mSdFDASemYLaviQXeEIiqs-qQOOLj5NuVV6zQqkP-UIXmKVnnvK8WGAdK4Q",
+      "path": "schemas/logical_memory_cell.schema.json",
+      "schema_id": "https://duotronics.local/schemas/logicalMemoryCell.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:l04JqNxjkCImP_s0cO0GldOdhL1GtjptwMpV2ZG9yG1q57rRUseBimQKCTTPjYBdK1N8jENMLN8qQwdA16FBog",
+      "path": "schemas/logical_observer_profile.schema.json",
+      "schema_id": "https://duotronics.local/schemas/logicalObserverProfile.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:gwB30OW_6x90i1MNSjvQJe34JrEDVQZge-aCXTYNlcPzPfIZhCK0Dn6nx2UAHJWCCO5i3Lh7B4-yPWiuHPvbzA",
+      "path": "schemas/meta_object_edge_v1.schema.json",
+      "schema_id": "duotronic://schemas/meta_object_edge/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:tM4DmtBZFaY6LjFYVWnNK80aW4MibnI_WShXiCA6cRHAq_nyvj5coNXiBWH2J1QopC9HEPdJHymAdRpPnGgXhQ",
+      "path": "schemas/nla_activation_witness.schema.json",
+      "schema_id": "https://duotronic.local/schemas/nla_activation_witness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:mgJhknF4Si9u39HvYWfeF87-UKy7unk642Na_5_ZVX91R-NMJ5bHAVb5c-uRx-TviI-ect3kzyGEdwRHoQsQSA",
+      "path": "schemas/nla_self_training_witness.schema.json",
+      "schema_id": "https://duotronic.local/schemas/nla_self_training_witness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:DQlZbLQN4bMZxoeXGpBGi4D1i0iR14TT9IWilplS5PSG8KnW1_N2j9eb94QzK6d61hHEVdx1j9ji7yq1uNbu8Q",
+      "path": "schemas/non_collapse_state.schema.json",
+      "schema_id": "https://duotronics.local/schemas/non_collapse_state.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:3FiVi_wWWO2eldfOAywmbP_vJodJISqFj7JrYQtec-kFH5GdVB6L9DbXs-7ZKyJpA819P3bJq1T4NBiKQ7XTBQ",
+      "path": "schemas/non_collapse_transition.schema.json",
+      "schema_id": "https://duotronics.local/schemas/non_collapse_transition.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:jLyREdG95xXG5_4TKnUxCuWpdI4GGsRRwEp1QqRYoe8vuvd1zsjq1g8UutT_3K5jPVbEj9krRNIsQ3knta8gnQ",
+      "path": "schemas/non_collapse_transition_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/non_collapse_transition_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:aoRmNJoo-5v8gLtqm7odfLkPTmzpliXhhKdmxuapOTURQ_KfLn4yeRc8qSyku3j0oVRT38E3dkuSxWulH-SUPw",
+      "path": "schemas/observer_capability_token.schema.json",
+      "schema_id": "https://duotronics.local/schemas/observerCapabilityToken.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:ZYbTrQepu84BDzEAWW_d4ETWSAyo1k703xfHz6OwnLTjhLJLWrWr-w3uATtAhzFH4_GCTaAdIXUwYtxHYSkUYQ",
+      "path": "schemas/observer_task.schema.json",
+      "schema_id": "https://duotronics.local/schemas/observerTask.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:gkyVXpHl9u0ccgjtiFlzZu22JAioHdcLTRo1kHiGIV4nyTOexRk36AsRg97jQQtejmHENHjRu1iPlxlHuV3Pbg",
+      "path": "schemas/package_provenance_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/package_provenance_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Uk8j2bBIm16qJvpvHitJr50bMUFjVcUy9XB46ZZfol8GAwdNArGmG6pK0CDpNA7tB1GZ5pM65L5bQ7TOrSVjpg",
+      "path": "schemas/platform_capability_probe_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/platform_capability_probe_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:I7ryaO0rEmtKLhkflWozCX0GEfq_6a_Ed_f0vpzP0lBqOxb9TlFnP_X6xsJo-9-A2nA8Rcm96MBWggKZkrjrjw",
+      "path": "schemas/policy_decision_evidence_extension.schema.json",
+      "schema_id": "https://duotronics.local/schemas/policy_decision_evidence_extension.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:tTtFyeNog6qkZFvDv6vGqqcZv_isLnf5JHcquBxpv4kY_zPJuvA9bj5GK0c6BikS95vXvnmRF36Xsp_LCEYEnA",
+      "path": "schemas/positive_baseline_cell_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/positive_baseline_cell_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:8j3UxH7D_eP54GDuRGXV6kbYHf2E6c4NKaEpcyfeL8pDXH5mCS6bzrYqOoFngZ5SWUQtd1Hb_w6viHKP0nj-oQ",
+      "path": "schemas/pragmatic_context.schema.json",
+      "schema_id": "https://duotronics.local/schemas/pragmatic_context.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:FBvQ_Yy2hrovgHUuYQdMOiPQUQfqJ3XVuwUKDzxMzwy83SblPeB7hHQ2aZAXJJq6e-BBQtbL-20Nh4s4pxFHNw",
+      "path": "schemas/probe_measurement_v1.schema.json",
+      "schema_id": "duotronic://schemas/attested_probe_measurement/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:lfOGOC6ArzLSqeAVONvR6JZHk_A8d4A2_QRuUNF3oXvmmntl5XwvJtBClV53U4Q8g6ws4-n0ImHnM78x8ZjR1Q",
+      "path": "schemas/proof_check_request_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_check_request_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:ulB-9KfMX-bLcuKkxtATbGuoZlvp5f9mGro5bCgJeav7zU013h4PsYuw9S5KKErzCtSe2awehl2BPYIpUanuBg",
+      "path": "schemas/proof_check_request_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_check_request_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:y4Qfi4JIeHYE-CHAJz6LKsgt4qU1dnlmjf2oBBnItFFYvlr5IbB8GAsnkaaf7Y1lmqFfcb0cm3S_Pju-UsEeQg",
+      "path": "schemas/proof_check_result_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_check_result_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:euCyQ2nj067NwXhv7sJm65VBsOAkHvZ0vZ1VnRACdt3xi8cVZajO6plppin-MB9tIH5VNZzkWZES6NUlgEUUZA",
+      "path": "schemas/proof_check_result_v4.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_check_result_v4.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:MC0AAs18qlc9kIceEJ-WQJUbxGvrXOTAhU7fezqxgOUFs387MJHm7oF6zNPC2L9yTgsfJmjm690tNlgArb9IWQ",
+      "path": "schemas/proof_check_result_v5.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_check_result_v5.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Bd1TGeI3qk2Icy4VbDfjHItPqbzl_Xa0PDHzmyYgw3GTD1-SsWdjOpZevW07JUfwmT5Cq3xyG_JymSwc8eJDwQ",
+      "path": "schemas/proof_check_result_v6.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_check_result_v6.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:KEECnOxPwnCnVKAm33XZlx8idOtce7ixWU1tw_uEdwX9nK2ZuZSvbd28kTn1tEotmF5nxJOImCVxBp4dSd9oww",
+      "path": "schemas/proof_check_result_v7.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_check_result_v7.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:ymJ7tkhIIOc2_23K92oyWzQP8eRma3PbTMXI8n0zOYd6kCWtftAVhhEruKIJwcxb920pU6Z5QH0WG6sIHOTaOQ",
+      "path": "schemas/proof_policy_decision_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_policy_decision_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:d1T4KzqR4R1T6w2NJeKLgqPfqNnhyPIsfbFJDMjpvwzLcdX_k7tlVTlRNYOT2gmZqC7wQOHmcNwqAIO4ybbWJg",
+      "path": "schemas/proof_policy_registry_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_policy_registry_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:0_HCcIurS3JI_7tOivD0YFwQcU7_DexkSA4T02iek6DDI48cLL6XS-vOYFdPdBup8stkcmfBnBU3lZM_AjQQ-w",
+      "path": "schemas/proof_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_witness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:YPDBUWzU1nwNNSvTgAVqG_0SMhogH3TZenOdFsaTdzyWLG1gqZwdeuEp7034KI1tkk7CffwVb0-j6S0fSzHpoQ",
+      "path": "schemas/proof_witness_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/proof_witness_v2.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:I17L4y8ykEzx4CyjMyweskRLEwzp5xDgtB8Z1HLNwZR9o9SQDZIWGC_au-kFEojFDel2X0PzVeKaPIalSJuu1g",
+      "path": "schemas/recurrent_witness_state_v1.schema.json",
+      "schema_id": "duotronic://schemas/recurrent_witness_state/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:2B_K5maNApBBHfgFJChf_iKLBcp8NJsok5sIgFLOWxBOZkTG6WHUicylE0T5ierjMsTWl2-J8flW192D0XmOOQ",
+      "path": "schemas/release_activation_evidence_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/release_activation_evidence_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:ifnu1mN-Zj5hiJxjnngEjrAoFBsrCxVfgfRGsEjxUW_bbj2dvt4CYWwIVb_mOcpfCHypA2CDAS2w7glbJne61g",
+      "path": "schemas/replay_assumption_manifest.schema.json",
+      "schema_id": "https://duotronics.local/schemas/replay_assumption_manifest.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:vDvL7gwlemJNVs4bEnK0yH-NQIrtvRLcBD4lR4DRHgwGr2hrBobFMl_9I7aGByNhapdTf0MPfMKdIjYE073Qgg",
+      "path": "schemas/replay_assumption_manifest_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/replay_assumption_manifest_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:XOYGVYtz7vTitErwTZ5fzXvv8lWPvSS93xIDOIxnSrNtWwhWf8WEzjURNwCujQsPSgleIBtS1z2Y41xvz04a-A",
+      "path": "schemas/replay_sign.schema.json",
+      "schema_id": "https://duotronics.local/schemas/replay_sign.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:H_1ItjH3rUP9uYRB8naa9IehFG4wYaUwiewKFL6eq7tNrOUY8qsVDaxmIfVngILY6CgdFo7n7MjAYqrsHFHGVQ",
+      "path": "schemas/resource_budget_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/resourceBudgetWitness.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:rcwgjFrohg4NxIwJSJxeK7LscQ9itkImx9JNcZqYQCn0oAhvmE1CpXkqnwFKpvYbhoQVqFjGPQNdpTkCgmdNTA",
+      "path": "schemas/revalidation_measurement_v1.schema.json",
+      "schema_id": "duotronic://schemas/revalidation_measurement/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:nGaAe7IE6s8V6UAPHs5VpUH7CE20uDFHZp9cXhnhUrRvimx3prb7FxmUCTBYPSwK_UHSbnUvkwghqD3I-tD7hg",
+      "path": "schemas/sandbox_template_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/sandbox_template_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Hh0yUyaV1AomDEbwuaX6ZuafTjLY2Y3gYMmJQ5TcM5EE2Yid0ffrY7tB5HNla-ph9HfOsUFQPucjReSE1Bg4ow",
+      "path": "schemas/schema_registry_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/schema_registry_v1.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:ahhwdadvI3ieLr0nUqblvRk4WLQlH7bMK8EHqVNqKgdY9Zf6HuAPzWU5cwQHxoa9as_DRTj4oa0hpgepoNVBaw",
+      "path": "schemas/semantic_content_v1.schema.json",
+      "schema_id": "duotronic://schemas/semantic_content/v1"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:RZKYM-Rc6QE-BHKlEssV9t-tPLg9O_P3cwkSSfb_Gp4J8-9vpyPGsIm0ED4a6c5khZFs0VMzoMB_VrPwjVX2hQ",
+      "path": "schemas/signature_envelope_v1.schema.json",
+      "schema_id": "duotronic://schemas/signature_envelope/v1"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:o2qPfAl59zuusLmY-C8_vTcBwnl5TO4IRhhQ1J1iAt-sEaTR_DMZIgAMDpcBhPBhU-7ZI0qyY6MthHMeEIWwPQ",
+      "path": "schemas/source_snapshot_limits_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/source_snapshot_limits_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:wtxgzOLpTKox2wlNIeRCpk5yly89M3gmKiwheEdlctJSUhF7TfLUS7W_0FUtEwa4jabCrA9cmOPMJvGKzG62lg",
+      "path": "schemas/task_frame.schema.json",
+      "schema_id": "https://duotronics.local/schemas/taskFrame.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:_7VsROlyj7w4SfTELh4ZY7xOf9Et-aDvckCMaMQHlEXY3Djpwy7HhChhMo6lwhIY8hgATJokiT98SWktQIWLRA",
+      "path": "schemas/task_result_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/taskResultWitness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:GQPQ_hE33lanxTH3rCSnZBeh47WKRyPyTFhxPhhTGSX33ovHZKAJJXUSzl22iSS1jS6QbQ4hZSin-tLvNAz8vg",
+      "path": "schemas/task_step_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/taskStepWitness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:i9WDE38hruYZp0sFE0Afc5Mjl1tI2kUc75uwUQRoSRdPTOFQAY1HgX1JSIlUEbn8Lv-k3lHImWiBAAqFGuYtsw",
+      "path": "schemas/temporal_scope_witness.schema.json",
+      "schema_id": "https://duotronics.local/schemas/temporal_scope_witness.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:lT-AFCCzwDZ9aK2enxMYfcjuFNi6hbSLThvKg36WIFytJtAo9yGu2_xYnDoCUTrUDVRo68FopeS1HRNQ9aKA7w",
+      "path": "schemas/theorem_promotion_gate.schema.json",
+      "schema_id": "https://duotronics.local/schemas/theorem_promotion_gate.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:g2Q5p28joBJEA8k9p7Wz3grzPqLH7a_lPHPU3znfB8nhpFbAhA3_9nqWVw20LAhV_N0BI3Sd2uB-CeeqRKLLlw",
+      "path": "schemas/theorem_promotion_gate_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/theorem_promotion_gate_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:1S3_9WYC-T8AhQaRIV-Mc82GgmgSOJtiNgmGt5LD-wvpBDId4Skg-qmHLo0qZue8-q_E9mIfSzgs8KoTBxPcDA",
+      "path": "schemas/theorem_promotion_gate_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/theorem_promotion_gate_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:uP-gX-VUiNWOtJBS2KkLvD717hE2swmDO4M3Kf9TIneamkhHgVon8dvH4H2JiDGeFsbIh7uGdrUZM0nH-mty-w",
+      "path": "schemas/trusted_artifact_attestation_registry_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/trusted_artifact_attestation_registry_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:jzMspIadKeGSyCWY7-i_5SgG_DIOaGQ17meSqv_eHdl-A5r8jAv8xnKbhfUuQBDQAdcC9s8CswIId3j89IAS4A",
+      "path": "schemas/trusted_time_witness_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/trusted_time_witness_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:V8QxgJTBTuG4GJf8k9xphOsBJnTny_XgvQpAMVJBzIfjKkTu24UF_OU47b07wj7Nfv-cl_o8J-NbpF-6tXcjfg",
+      "path": "schemas/verification_grammar.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verification_grammar.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:Apf1IcVD9eJoD1ZloFBlbSAC2QjE0ROWe_0lJYDQDDQWAGmWPpTsZ4T9cWufQAnEVuwF4PXBHYsjU1oe7060SA",
+      "path": "schemas/verification_grammar_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verification_grammar_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:gPQpmBlYwF0DcnH34XBVr_SoRjXtY9oQVX2fWFYlG2oonYFJ0bHYQGYaW90JIwLcVdFjPGrjwLUpx2HP-GAroQ",
+      "path": "schemas/verification_result.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verification_result.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:FYvI3TmOjZQtzMveYghaBZ1-6nHp2cpztF93_352kCzK21uzpxEjm-VjaawTm_O2y5wwZRNDerE9ub6AhYQf4w",
+      "path": "schemas/verification_result_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verification_result_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:vVwIlOw0kFh6OwKDN6RGhbY7vDNZwue5DYuHanYCRGyhdNt74aYmZI5jeLcenZBMNBV9TUx9-35By8aD9WRaow",
+      "path": "schemas/verifier_key_status_event_v1.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verifier_key_status_event_v1.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:PUQyeXFNzP_7MElCgX-pIkMNbxCzlddANVvx0dbCxBeCvA_ck5cbZ5zZFDbTHOj6wdUDf-fg_0zFJYj092KPug",
+      "path": "schemas/verifier_key_status_event_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verifier_key_status_event_v2.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:b5lI8QBvp1yZwfxTfPf1uEIUZaRVfTmvLjOqgNuziYrIm0qh7LXuq5kqFt3anhB6YIY_EQbEgdPxMgFim074_A",
+      "path": "schemas/verifier_key_v3.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verifier_key_v3.schema.json"
+    },
+    {
+      "activation": "retained_migrated_compatibility",
+      "file_id": "duoid:shake256-512:xnDLt55Rt5bOmXYRkgCDrwZW-b59rYS7QacwSaZfjvqb9WhtHdqXW4627d_3svbKqTcISjIo2TMvBaEogrVvww",
+      "path": "schemas/verifier_principal_v2.schema.json",
+      "schema_id": "https://duotronics.local/schemas/verifier_principal_v2.schema.json"
+    },
+    {
+      "activation": "active_5_3_18",
+      "file_id": "duoid:shake256-512:JU9Q55T7a6KfFVQe6OjOSo1MO5Y2A1gIWM0zW54JB0pZ9bbBF_sOrLtS6y2IC06yC-hpmSK9P6tvzuYklzezow",
+      "path": "schemas/witness_envelope_v1.schema.json",
+      "schema_id": "duotronic://schemas/witness_envelope/v1"
+    }
+  ]
+}

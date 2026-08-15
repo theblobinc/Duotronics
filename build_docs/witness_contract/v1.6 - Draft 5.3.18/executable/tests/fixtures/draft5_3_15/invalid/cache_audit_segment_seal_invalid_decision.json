@@ -1,0 +1,12 @@
+{
+  "payload": {
+    "decision": "silent_reset",
+    "previous_sealed_segment_tail_shake256_512": null,
+    "schema_version": "cache_audit_segment_seal/v1",
+    "sealed_at": "2026-08-01T12:00:00Z",
+    "sealed_predecessor_tail_shake256_512": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "sealed_through_sequence": 2,
+    "segment_id": "cache:audit:segment:0001"
+  },
+  "schema_ref": "schemas/cache_audit_segment_seal_v1.schema.json"
+}

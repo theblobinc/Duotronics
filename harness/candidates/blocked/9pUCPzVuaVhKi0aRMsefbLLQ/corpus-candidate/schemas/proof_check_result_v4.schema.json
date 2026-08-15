@@ -1,0 +1,57 @@
+{
+  "$id": "https://duotronics.local/schemas/proof_check_result_v4.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "compiler_witness": {
+      "$ref": "lean_compiler_witness_v5.schema.json"
+    },
+    "idempotency_key": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "request_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "proof_check_service_result/v4"
+    },
+    "source_bundle_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "toolchain_unavailable"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "idempotency_key",
+    "status",
+    "claim_id",
+    "policy_decision_id",
+    "policy_decision_shake256_512",
+    "source_bundle_id",
+    "compiler_witness"
+  ],
+  "title": "Synchronous Proof Check Result v4",
+  "type": "object"
+}

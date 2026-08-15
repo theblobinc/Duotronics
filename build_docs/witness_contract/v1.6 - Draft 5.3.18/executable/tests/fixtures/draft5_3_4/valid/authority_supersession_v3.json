@@ -1,0 +1,13 @@
+{
+  "payload": {
+    "effective_at": "2026-07-31T12:00:00Z",
+    "governance_event_id": "event:sup:1",
+    "reason": "governed replacement",
+    "record_type": "compiler_profile",
+    "replacement_record_id": "profile:new",
+    "schema_version": "authority_supersession/v3",
+    "superseded_record_id": "profile:old",
+    "supersession_id": "sup:1"
+  },
+  "schema_ref": "schemas/authority_supersession_v3.schema.json"
+}

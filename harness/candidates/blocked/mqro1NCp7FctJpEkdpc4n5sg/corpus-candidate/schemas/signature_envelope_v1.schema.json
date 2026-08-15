@@ -1,0 +1,136 @@
+{
+  "$id": "duotronic://schemas/signature_envelope/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "algorithm": {
+      "const": "ML-DSA-87"
+    },
+    "attestation_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "critical_extensions": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "key_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "payload": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "const": "v1.6-draft-5.3.17"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "crypto_profile": {
+          "const": "duotronic-pq1-shake256-512-mldsa87-mlkem1024-kmac256-aes256gcmsiv"
+        },
+        "dependency_root_id": {
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+          "type": "string"
+        },
+        "envelope_id": {
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+          "type": "string"
+        },
+        "external_gate_snapshot_id": {
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+          "type": "string"
+        },
+        "key_id": {
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+          "type": "string"
+        },
+        "nonce": {
+          "pattern": "^[A-Za-z0-9_-]{22,}$",
+          "type": "string"
+        },
+        "policy_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "purpose": {
+          "enum": [
+            "observation",
+            "verification",
+            "audit",
+            "governance",
+            "promotion",
+            "release",
+            "recovery"
+          ]
+        },
+        "schema_version": {
+          "const": "signature_payload/v1"
+        },
+        "semantic_content_id": {
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+          "type": "string"
+        },
+        "signer_principal_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "signer_registry_id": {
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+          "type": "string"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "contract_version",
+        "crypto_profile",
+        "envelope_id",
+        "semantic_content_id",
+        "signer_principal_id",
+        "key_id",
+        "signer_registry_id",
+        "policy_id",
+        "purpose",
+        "created_at",
+        "valid_until",
+        "nonce",
+        "dependency_root_id",
+        "external_gate_snapshot_id"
+      ],
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "signature_envelope/v1"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "pattern": "^[A-Za-z0-9_-]{6170}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "algorithm",
+    "key_id",
+    "payload",
+    "critical_extensions",
+    "signature",
+    "attestation_id"
+  ],
+  "title": "SignatureEnvelope/v1",
+  "type": "object"
+}

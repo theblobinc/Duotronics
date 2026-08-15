@@ -1,0 +1,9 @@
+version: 1.0.0
+cache: true
+endpoints:
+  custom:
+    - name: SRNN Runtime Host
+      apiKey: "${RUNTIME_API_KEY}"
+      baseURL: "http://runtime:8080"
+      models:
+        default: ["srnn-runtime"]

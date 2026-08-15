@@ -1,0 +1,51 @@
+{
+  "arbitrary_successor_predecessor": {
+    "predecessor_segment_present": false,
+    "provided_previous_tail": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "successor_provisioning_accepted": true
+  },
+  "checkpoint_failure": {
+    "checkpoint_fsync_failed": true,
+    "checkpoint_sequence": 0,
+    "log_sequence": 1,
+    "temporary_checkpoint_left": true
+  },
+  "coordinated_audit_rollback": {
+    "records_before_restore": 2,
+    "restart_accepted": true,
+    "restored_log_and_checkpoint_sequence": 1
+  },
+  "deadline_overrun": {
+    "deadline_seconds": 0.01,
+    "elapsed_seconds": 0.812,
+    "injected_fsync_delay_each_seconds": 0.2,
+    "result": "TimeoutError: cache audit persistence exceeded the request deadline"
+  },
+  "oversized_log_read": {
+    "actual_file_bytes": 5242880,
+    "bytes_read_before_rejection": 5242880,
+    "configured_maximum_bytes": 2048
+  },
+  "registry_regeneration": {
+    "current_registry_removed": true,
+    "generator": "executable/validators/build_schema_registry_v5314.py",
+    "packaged_shake256_512": "816135a85f7cf51da4450bfe068fd5ad2b6e7d68dd3bab1e4567b91101c82eb5",
+    "regenerated_shake256_512": "816135a85f7cf51da4450bfe068fd5ad2b6e7d68dd3bab1e4567b91101c82eb5"
+  },
+  "seal_capacity": {
+    "maximum_records": 1,
+    "normal_records_appended": 1,
+    "seal_result": "RuntimeError: cache audit segment is full and requires governed rotation"
+  },
+  "validator_external_termination": {
+    "descendants_alive_after_parent_exit": 2,
+    "descendants_before": 2,
+    "parent_exit": "SIGTERM"
+  },
+  "validator_reproduction": {
+    "complete_clean_run_outer_limit_seconds": 900,
+    "complete_clean_run_returned": false,
+    "direct_exact_test_phase_seconds": 11.1,
+    "direct_tests_passed": 290
+  }
+}

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import hashlib
 from pathlib import Path
 from typing import Any
+
+from .crypto_primitives import shake256_hex
 
 
 def scan_corpus(corpus_dir: Path) -> list[dict[str, Any]]:
@@ -13,7 +14,7 @@ def scan_corpus(corpus_dir: Path) -> list[dict[str, Any]]:
         if path.is_file():
             text = path.read_text(errors="ignore")
             rel = str(path.relative_to(corpus_dir))
-            digest = hashlib.sha256(text.encode("utf-8", errors="ignore")).hexdigest()
+            digest = shake256_hex(text.encode("utf-8", errors="ignore"))
             headings = [line.strip("# ").strip() for line in text.splitlines() if line.startswith("#")][:32]
             title = headings[0] if headings else path.stem
             excerpt = "\n".join(line for line in text.splitlines() if line.strip())[:1200]
@@ -21,7 +22,7 @@ def scan_corpus(corpus_dir: Path) -> list[dict[str, Any]]:
                 "doc_id": "corpus_" + digest[:24],
                 "path": rel,
                 "title": title,
-                "digest": "sha256:" + digest,
+                "digest": "shake256-512:" + digest,
                 "headings": headings,
                 "excerpt": excerpt,
             })

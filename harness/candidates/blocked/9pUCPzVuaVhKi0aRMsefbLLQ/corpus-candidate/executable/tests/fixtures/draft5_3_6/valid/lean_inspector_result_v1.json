@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "actual_type_expression_fingerprint": "c(Init.True;)",
+    "axiom_set": [],
+    "declaration_found": true,
+    "declaration_type_matches": true,
+    "dependency_closure": [
+      "Init.True"
+    ],
+    "direct_dependencies": [
+      "Init.True"
+    ],
+    "expected_type_expression_fingerprint": "c(Init.True;)",
+    "forbidden_axiom_set": [],
+    "opaque_dependency_policy_result": "passed",
+    "sorry_ax_present": false,
+    "unsafe_dependency_present": false
+  },
+  "schema_ref": "schemas/lean_inspector_result_v1.schema.json"
+}

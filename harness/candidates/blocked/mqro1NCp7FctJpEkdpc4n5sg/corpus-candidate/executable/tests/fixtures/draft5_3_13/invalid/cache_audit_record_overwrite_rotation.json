@@ -1,0 +1,18 @@
+{
+  "payload": {
+    "audit_record_id": "audit:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "audit_signer_key_id": "cache:audit:key",
+    "audit_signer_principal_id": "cache:audit:principal",
+    "created_at": "2026-08-01T12:00:00Z",
+    "event_canonical_json": "{\"schema_version\":\"cache_stale_row_evidence/v3\"}",
+    "event_schema_version": "cache_stale_row_evidence/v3",
+    "event_shake256_512": "b79ab9f119020f700d0544e38aaf6396aa2f9bcc4d64d8276e8b9012323a1c1bb79ab9f119020f700d0544e38aaf6396aa2f9bcc4d64d8276e8b9012323a1c1b",
+    "previous_audit_record_shake256_512": null,
+    "rotation_policy": "overwrite_when_full",
+    "schema_version": "cache_audit_record/v1",
+    "sequence": 1,
+    "signature": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "signed_payload_shake256_512": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "schema_ref": "schemas/cache_audit_record_v1.schema.json"
+}

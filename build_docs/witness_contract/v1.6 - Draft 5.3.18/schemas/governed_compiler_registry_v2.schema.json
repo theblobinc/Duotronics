@@ -1,0 +1,158 @@
+{
+  "$defs": {
+    "profile": {
+      "additionalProperties": false,
+      "properties": {
+        "authorized_axioms": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "compiler_profile_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "dependency_closure_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "image_reference": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "lake_executable_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "lean_executable_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "lean_stdlib_tree_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "oci_image_digest": {
+          "pattern": "^shake256-512:[0-9a-f]{128}$",
+          "type": "string"
+        },
+        "oci_runtime_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "oci_runtime_version": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "sandbox_policy_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "toolchain": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "valid_from": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "verifier_build_attestation_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "verifier_executable_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "verifier_result_public_key_base64url": {
+          "maxLength": 3456,
+          "minLength": 3456,
+          "pattern": "^[A-Za-z0-9_-]{3456}$",
+          "type": "string"
+        },
+        "verifier_result_signer_key_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "verifier_source_revision": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "compiler_profile_id",
+        "toolchain",
+        "image_reference",
+        "oci_image_digest",
+        "oci_runtime_shake256_512",
+        "oci_runtime_version",
+        "lake_executable_shake256_512",
+        "lean_executable_shake256_512",
+        "lean_stdlib_tree_shake256_512",
+        "dependency_closure_shake256_512",
+        "verifier_executable_shake256_512",
+        "verifier_source_revision",
+        "verifier_build_attestation_id",
+        "sandbox_policy_shake256_512",
+        "verifier_result_signer_key_id",
+        "verifier_result_public_key_base64url",
+        "authorized_axioms",
+        "valid_from"
+      ],
+      "type": "object"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/governed_compiler_registry_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "governance_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/profile"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "registry_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "governed_compiler_registry/v2"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    }
+  },
+  "required": [
+    "schema_version",
+    "registry_id",
+    "governance_key_id",
+    "profiles",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Governed Compiler Registry v2",
+  "type": "object"
+}

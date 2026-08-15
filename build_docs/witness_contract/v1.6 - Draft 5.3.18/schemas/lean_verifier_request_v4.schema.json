@@ -1,0 +1,186 @@
+{
+  "$defs": {
+    "name_set": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "resource_limits": {
+      "additionalProperties": false,
+      "properties": {
+        "combined_output_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "compiler_artifact_file_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "final_result_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "handoff_total_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "inspection_output_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "source_total_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "stderr_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "stdout_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "timeout_seconds",
+        "source_total_bytes",
+        "compiler_artifact_file_bytes",
+        "handoff_total_bytes",
+        "inspection_output_bytes",
+        "final_result_bytes",
+        "stdout_bytes",
+        "stderr_bytes",
+        "combined_output_bytes"
+      ],
+      "type": "object"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/lean_verifier_request_v4.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authorized_axioms": {
+      "$ref": "#/$defs/name_set"
+    },
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "compiler_profile_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "effective_resource_limits": {
+      "$ref": "#/$defs/resource_limits"
+    },
+    "effective_resource_limits_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "generated_binding_declaration": {
+      "const": "WitnessAuthorityGenerated.BoundClaim"
+    },
+    "generated_binding_module_path": {
+      "pattern": "^WitnessAuthorityGenerated/Check_[0-9a-f]{32}[.]lean$",
+      "type": "string"
+    },
+    "generated_binding_module_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "immutable_snapshot_id": {
+      "pattern": "^shake256-512:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "immutable_snapshot_tree_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lake_manifest_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lakefile_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lean_toolchain_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "normalization_policy": {
+      "const": "lean_isDefEq_reducibility_regular/v1"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "proof_artifact_relative_path": {
+      "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\).+[.]lean$",
+      "type": "string"
+    },
+    "proof_artifact_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "proof_module": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "request_id": {
+      "pattern": "^request:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "sandbox_policy_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "sandbox_template_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "schema_version": {
+      "const": "wc_lean_verifier_request/v4"
+    },
+    "theorem_name": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "theorem_statement_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "compiler_profile_id",
+    "claim_content_shake256_512",
+    "policy_decision_id",
+    "policy_decision_shake256_512",
+    "theorem_statement_shake256_512",
+    "proof_artifact_relative_path",
+    "proof_artifact_shake256_512",
+    "proof_module",
+    "theorem_name",
+    "immutable_snapshot_id",
+    "immutable_snapshot_tree_shake256_512",
+    "lakefile_shake256_512",
+    "lake_manifest_shake256_512",
+    "lean_toolchain_shake256_512",
+    "generated_binding_module_shake256_512",
+    "generated_binding_module_path",
+    "generated_binding_declaration",
+    "authorized_axioms",
+    "normalization_policy",
+    "sandbox_policy_shake256_512",
+    "sandbox_template_shake256_512",
+    "effective_resource_limits",
+    "effective_resource_limits_shake256_512"
+  ],
+  "title": "Trusted Lean Verifier Request v4",
+  "type": "object"
+}

@@ -1,0 +1,84 @@
+{
+  "$id": "duotronic://schemas/witness_envelope/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assumption_manifest_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "chronology": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "event_sequence": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "previous_envelope_id": {
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "created_at",
+        "event_sequence",
+        "previous_envelope_id"
+      ],
+      "type": "object"
+    },
+    "corpus_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "dependency_ids": {
+      "items": {
+        "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "envelope_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "observer_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "witness_envelope/v1"
+    },
+    "semantic_content_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "semantic_content_id",
+    "corpus_id",
+    "observer_principal_id",
+    "policy_id",
+    "dependency_ids",
+    "assumption_manifest_id",
+    "chronology",
+    "envelope_id"
+  ],
+  "title": "WitnessEnvelope/v1",
+  "type": "object"
+}

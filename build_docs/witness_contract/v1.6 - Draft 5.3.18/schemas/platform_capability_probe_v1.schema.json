@@ -1,0 +1,65 @@
+{
+  "$id": "https://duotronics.local/schemas/platform_capability_probe_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "evidence_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "lsm": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "apparmor",
+            "selinux"
+          ]
+        },
+        "profile": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "profile"
+      ],
+      "type": "object"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "platform_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "probe_status": {
+      "const": "measured"
+    },
+    "schema_version": {
+      "const": "platform_capability_probe/v1"
+    },
+    "supported_controls": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schema_version",
+    "probe_status",
+    "platform_id",
+    "supported_controls",
+    "lsm",
+    "observed_at",
+    "evidence_shake256_512"
+  ],
+  "title": "Measured Platform Capability Probe v1",
+  "type": "object"
+}

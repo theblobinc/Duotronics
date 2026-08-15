@@ -1,0 +1,15 @@
+{
+  "complete_validator": "executable/validators/validate_draft5_3_16_corpus.py",
+  "completed_repetitions": 0,
+  "generated_at": "2026-08-02T10:34:00+00:00",
+  "optional_activation_phase_count": 8,
+  "package_version": "v1.6-draft-5.3.16",
+  "python_version": null,
+  "reason": "Exact Python 3.12 interpreter unavailable in this packaging environment; no current-revision validator reliability execution claim is made.",
+  "requested_repetitions": 0,
+  "required_phase_count": 108,
+  "runs": [],
+  "schema_version": "validator_reliability_evidence/v1",
+  "status": "interpreter_unavailable",
+  "target_python_version": "3.12"
+}

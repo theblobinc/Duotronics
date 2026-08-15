@@ -1,0 +1,21 @@
+{
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled",
+  "base_version": "v1.6-draft-5.3.15",
+  "change_id": "scr:v1.6-draft-5.3.16",
+  "changes": [
+    "authenticate publisher and anchor callers with SO_PEERCRED and signed socket-bound requests",
+    "recompute governed audit-key lifecycle at every signed artifact timestamp and reject cycles expiry revocation and scope confusion",
+    "enforce strict hash-chained anchor transitions and mark the file backend development-only",
+    "verify successor terminal record digest and segment identity against checkpoint and anchor tails",
+    "maintain global event idempotency across segment rotation and restart",
+    "enforce recovery authorization expiry exact-state binding one-time consumption and replay rejection",
+    "add production publisher and anchor launchers and execute a real cross-UID publication round trip",
+    "retain all eight external activation gates as incomplete"
+  ],
+  "classification": "corrective_authenticated_audit_service_boundary_revision",
+  "freeze_policy": "permanently_not_frozen",
+  "schema_version": "spec_change_request/v1",
+  "source_review": "refs/review/v1.6_draft_5.3.16_update_checklist.md",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "target_version": "v1.6-draft-5.3.16"
+}

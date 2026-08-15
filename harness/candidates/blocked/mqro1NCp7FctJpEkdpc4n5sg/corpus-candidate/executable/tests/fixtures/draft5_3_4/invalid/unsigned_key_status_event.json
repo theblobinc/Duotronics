@@ -1,0 +1,17 @@
+{
+  "payload": {
+    "authorization_witness_id": "authorization:1",
+    "effective_at": "2026-07-31T00:00:00Z",
+    "governance_key_id": "governance:1",
+    "key_id": "key:1",
+    "key_status_event_id": "event:unsigned",
+    "policy_decision_id": "policy:1",
+    "reason": "compromise",
+    "recorded_at": "2026-07-31T00:00:01Z",
+    "replacement_key_id": null,
+    "schema_version": "verifier_key_status_event/v2",
+    "signed_payload_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "status": "revoked"
+  },
+  "schema_ref": "schemas/verifier_key_status_event_v2.schema.json"
+}

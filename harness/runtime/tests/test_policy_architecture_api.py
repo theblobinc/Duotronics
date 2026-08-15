@@ -86,7 +86,7 @@ def test_state_migration_public_api_exposes_dry_run() -> None:
 def test_review_bundle_and_approval_record_round_trip() -> None:
     bundle = ArchitectureReviewBundle(
         proposal_id="delta-1",
-        proposal_hash="sha256:abc",
+        proposal_hash="shake256-512:" + "a" * 128,
         parent_generation=1,
         candidate_generation=2,
         structured_diff=[{"type": "enable_family", "family_id": "cross_source"}],
@@ -95,7 +95,7 @@ def test_review_bundle_and_approval_record_round_trip() -> None:
     )
     approval = ApprovalRecord(
         bundle_id=bundle.bundle_id,
-        proposal_hash="sha256:abc",
+        proposal_hash="shake256-512:" + "a" * 128,
         risk_tier="medium",
         objective_bundle_hash="bundle-1",
         approver_id="operator-1",

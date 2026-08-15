@@ -1,0 +1,30 @@
+{
+  "default": "xavi-continue-agent",
+  "fallback": "xavi-continue-background",
+  "rules": [
+    {
+      "when": "autocomplete",
+      "model": "xavi-continue-autocomplete"
+    },
+    {
+      "when": "readme_or_documentation",
+      "model": "xavi-continue-background"
+    },
+    {
+      "when": "selection_or_small_edit",
+      "model": "xavi-continue-background"
+    },
+    {
+      "when": "single_file_edit",
+      "model": "xavi-continue-agent"
+    },
+    {
+      "when": "multi_file_or_refactor",
+      "model": "xavi-continue-agent"
+    },
+    {
+      "when": "repo_wide_or_architecture",
+      "model": "xavi-continue-plan"
+    }
+  ]
+}

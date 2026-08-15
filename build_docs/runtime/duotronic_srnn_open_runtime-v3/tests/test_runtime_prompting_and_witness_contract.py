@@ -17,14 +17,14 @@ def test_nla_contract_projection_has_required_v1_fields():
             "loop_id": "loop-main",
             "created_at_ms": 1778541085829,
             "activation": {
-                "activation_digest": "sha256:" + "a" * 64,
+                "activation_digest": "shake256-512:" + "a" * 64,
                 "activation_vector_ref": "inline:test",
                 "norm": 0.5,
             },
             "verbalizer": {
                 "av_model": "deterministic-av-shim-v1",
-                "prompt_integrity": "sha256:" + "b" * 64,
-                "response_integrity": "sha256:" + "c" * 64,
+                "prompt_integrity": "shake256-512:" + "b" * 64,
+                "response_integrity": "shake256-512:" + "c" * 64,
                 "explanation_text": "diagnostic explanation",
                 "parser_status": "parsed",
             },

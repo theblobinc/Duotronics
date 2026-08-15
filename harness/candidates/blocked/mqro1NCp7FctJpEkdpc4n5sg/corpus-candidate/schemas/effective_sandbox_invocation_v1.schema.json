@@ -1,0 +1,178 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/effective_sandbox_invocation_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "apparmor_profile": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "arguments": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "capability_drop_set": {
+      "contains": {
+        "const": "ALL"
+      },
+      "type": "array"
+    },
+    "container_gid": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "container_uid": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "cpu_limit": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "domain": {
+      "enum": [
+        "untrusted_compilation",
+        "trusted_verifier"
+      ]
+    },
+    "entrypoint": {
+      "pattern": "^/opt/witness-authority/bin/(compile|verify)-lean$",
+      "type": "string"
+    },
+    "environment_allowlist": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "file_size_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "image_digest": {
+      "pattern": "^shake256-512:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "image_reference": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "memory_limit": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "mount_manifest": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "container": {
+            "pattern": "^/",
+            "type": "string"
+          },
+          "host": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "ro",
+              "rw"
+            ]
+          }
+        },
+        "required": [
+          "host",
+          "container",
+          "mode"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "network_mode": {
+      "const": "none"
+    },
+    "oci_runtime_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "oci_runtime_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "open_file_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "pid_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "read_only_rootfs": {
+      "const": true
+    },
+    "seccomp_profile_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "security_options": {
+      "contains": {
+        "const": "no-new-privileges"
+      },
+      "type": "array"
+    },
+    "selinux_label": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "timeout": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "user_namespace_mode": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "working_directory": {
+      "pattern": "^/",
+      "type": "string"
+    }
+  },
+  "required": [
+    "domain",
+    "oci_runtime_shake256_512",
+    "oci_runtime_version",
+    "image_reference",
+    "image_digest",
+    "entrypoint",
+    "arguments",
+    "container_uid",
+    "container_gid",
+    "network_mode",
+    "read_only_rootfs",
+    "capability_drop_set",
+    "security_options",
+    "seccomp_profile_shake256_512",
+    "apparmor_profile",
+    "selinux_label",
+    "user_namespace_mode",
+    "pid_limit",
+    "memory_limit",
+    "cpu_limit",
+    "file_size_limit",
+    "open_file_limit",
+    "timeout",
+    "environment_allowlist",
+    "mount_manifest",
+    "working_directory"
+  ],
+  "title": "Effective Sandbox Invocation v1",
+  "type": "object"
+}

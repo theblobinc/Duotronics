@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Duotronic Witness Contract Proof Authority API
+  version: v1.6-draft-5.3.7
+  description: >-
+    Canonical synchronous Draft 5.3.7 proof-check API. A request blocks until
+    the bounded verification completes or the deployment timeout closes the
+    request. Reusing an idempotency key with identical bytes returns the same
+    result; reuse with different content is rejected. Concurrent identical
+    submissions share one in-flight execution. Cancellation is not exposed by
+    this API; the governed server timeout terminates the process group.
+    Authority outputs are server-produced only.
+servers:
+  - url: https://authority.example.invalid
+security:
+  - OAuth2: [proof:check]
+    MutualTLS: []
+paths:
+  /v2/proof-checks:
+    post:
+      operationId: createSynchronousProofCheck
+      summary: Resolve policy and perform one bounded proof check synchronously
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: {type: string, pattern: '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'}
+          description: Must equal the request body idempotency_key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProofCheckRequest'}
+            examples:
+              canonical:
+                value:
+                  request_id: request-001
+                  idempotency_key: proof-check-001
+                  subject_id: principal-reviewer-001
+                  compiler_profile_id: lean-4.29.1-hermetic-3
+                  claim_id: claim-001
+                  canonical_claim: {statement: True}
+                  theorem_statement: True
+                  theorem_name: t
+                  source_bundle_id: bundle-001
+                  proof_artifact_relative_path: Proof.lean
+                  policy_decision_id: policy-proof-001
+      responses:
+        '200':
+          description: Canonical server-produced proof-check result.
+          content:
+            application/json:
+              schema: {$ref: '../../schemas/proof_check_result_v4.schema.json'}
+        '400': {$ref: '#/components/responses/InvalidRequest'}
+        '403': {$ref: '#/components/responses/PolicyDenied'}
+        '415': {$ref: '#/components/responses/UnsupportedMediaType'}
+        '422': {$ref: '#/components/responses/VerificationRejected'}
+        '504': {$ref: '#/components/responses/IdempotencyTimeout'}
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://authority.example.invalid/oauth/token
+          scopes:
+            proof:check: Submit synchronous proof checks.
+    MutualTLS:
+      type: mutualTLS
+      description: Deployment identity is authenticated by the governed mutual-TLS gateway.
+  schemas:
+    ProofCheckRequest:
+      $ref: '../../schemas/proof_check_request_v1.schema.json'
+    Error:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error: {type: string}
+        message: {type: string}
+  responses:
+    InvalidRequest:
+      description: Request or idempotency contract invalid.
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
+    PolicyDenied:
+      description: Policy unresolved, inactive, expired, revoked, or out of scope.
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
+    UnsupportedMediaType:
+      description: JSON is required.
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
+    VerificationRejected:
+      description: Verification failed closed before an authoritative pass.
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}
+    IdempotencyTimeout:
+      description: Durable in-flight request did not complete before the bounded wait expired.
+      content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}

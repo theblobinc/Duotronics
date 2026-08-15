@@ -1,0 +1,9 @@
+[project]
+name = "duotronic-srnn-open-runtime"
+version = "0.1.0"
+description = "Podman-first reference runtime for Duotronic/SRNN WG-RNN and NLA witnesses."
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["app"]
+testpaths = ["tests"]

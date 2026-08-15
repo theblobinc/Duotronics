@@ -1,0 +1,187 @@
+{
+  "$id": "https://duotronics.local/schemas/observerTask.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "committed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "task_result_witness_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "task_result_witness_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "denied",
+              "escalated",
+              "failed"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "kernel_error_witness_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "kernel_error_witness_id"
+        ]
+      }
+    }
+  ],
+  "description": "First-class logical observer task.",
+  "properties": {
+    "capability_token_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "input_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "kernel_error_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "observer_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "pragmatic_context_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "requested_syscall": {
+      "enum": [
+        "observe",
+        "compose",
+        "infer",
+        "verify",
+        "replay",
+        "delegate",
+        "promote",
+        "compute",
+        "adjudicate",
+        "rollback",
+        "export",
+        "resolve_rule",
+        "read_memory",
+        "write_observation",
+        "promote_memory",
+        "raise_error"
+      ]
+    },
+    "resource_budget_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "observer_task/v1"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "typechecked",
+        "running",
+        "committed",
+        "denied",
+        "deferred",
+        "escalated",
+        "rolled_back",
+        "failed"
+      ]
+    },
+    "task_frame_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "task_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "task_kind": {
+      "enum": [
+        "observe",
+        "compose",
+        "infer",
+        "verify",
+        "replay",
+        "delegate",
+        "promote",
+        "compute",
+        "adjudicate",
+        "rollback",
+        "export",
+        "resolve_rule",
+        "memory_write"
+      ]
+    },
+    "task_result_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "transaction_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "task_id",
+    "observer_id",
+    "task_kind",
+    "requested_syscall",
+    "input_refs",
+    "capability_token_id",
+    "resource_budget_id",
+    "policy_decision_id",
+    "pragmatic_context_id",
+    "status",
+    "created_at"
+  ],
+  "title": "ObserverTask",
+  "type": "object"
+}

@@ -1,0 +1,65 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/cache_audit_segment_seal_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "const": "terminal_segment_seal"
+    },
+    "previous_sealed_segment_tail_shake256_512": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/shake256_512"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "cache_audit_segment_seal/v1"
+    },
+    "sealed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "sealed_predecessor_tail_shake256_512": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/shake256_512"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sealed_through_sequence": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "segment_id": {
+      "$ref": "#/$defs/id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "segment_id",
+    "sealed_through_sequence",
+    "sealed_predecessor_tail_shake256_512",
+    "previous_sealed_segment_tail_shake256_512",
+    "decision",
+    "sealed_at"
+  ],
+  "title": "Signed Cache Audit Segment Terminal Seal v1",
+  "type": "object"
+}

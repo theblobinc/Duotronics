@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/theorem_promotion_gate_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "rejection_reason": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "allowed": {
+            "const": true
+          }
+        },
+        "required": [
+          "allowed"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rejection_reason": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "description": "Server-produced closure record. Draft 5.3.2 requires an effective verifier key and verified signatures for the compiler and proof witnesses.",
+  "properties": {
+    "allowed": {
+      "type": "boolean"
+    },
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "lean_compiler_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "non_collapse_transition_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "proof_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "theorem_promotion_gate/v2"
+    },
+    "status_event_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "theorem_promotion_gate_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "theorem_statement_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "verifier_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "theorem_promotion_gate_id",
+    "claim_id",
+    "claim_content_shake256_512",
+    "theorem_statement_shake256_512",
+    "status_event_id",
+    "proof_witness_id",
+    "lean_compiler_witness_id",
+    "non_collapse_transition_id",
+    "policy_decision_id",
+    "verifier_principal_id",
+    "key_id",
+    "allowed",
+    "created_at"
+  ],
+  "title": "TheoremPromotionGateV2",
+  "type": "object"
+}

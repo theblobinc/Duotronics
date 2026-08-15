@@ -1,0 +1,9 @@
+{
+  "authority_effect": "no_current_revision_execution_claim",
+  "generated_at": "2026-08-02T10:59:38.136092+00:00",
+  "package_version": "v1.6-draft-5.3.16",
+  "reason": "Python 3.12 interpreter is not installed in this validation environment",
+  "schema_version": "python_interpreter_unavailable/v1",
+  "status": "interpreter_unavailable",
+  "target_python_version": "3.12"
+}

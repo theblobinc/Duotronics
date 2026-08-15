@@ -1,0 +1,22 @@
+{
+  "dependency_integrity_scope": [
+    "executable/validators/vendor"
+  ],
+  "first_party_documentation_roots": [
+    ".",
+    "authority",
+    "executable",
+    "formal",
+    "kernel",
+    "mathematics",
+    "migration",
+    "refs",
+    "schemas"
+  ],
+  "first_party_link_check_exclusions": [
+    "executable/validators/vendor"
+  ],
+  "package_version": "v1.6-draft-5.3.15",
+  "rule": "Vendored dependency documentation is excluded only from first-party link quality; every vendored byte remains in package integrity closure.",
+  "schema_version": "validation_scope/v1"
+}

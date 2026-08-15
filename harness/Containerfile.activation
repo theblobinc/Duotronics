@@ -1,0 +1,19 @@
+FROM localhost/duotronic-wc-toolchain-base:lean4.29.1-java17-pq-v1
+USER root
+ARG TLA2TOOLS_VERSION=1.8.0
+ARG TLA2TOOLS_SHA512=fb8446a92a4321cfef1d457657a34321b50f4a26b4106bc778a19b735dbee760f9431c93bf51c139d9b204dbb50f479867f05be3c964672211f3447a30871d4e
+RUN install -d -m 0755 /opt/tla2tools \
+ && curl --fail --location --retry 5 --retry-all-errors --connect-timeout 30 --max-time 900 \
+    --output /opt/tla2tools/tla2tools.jar \
+    "https://github.com/tlaplus/tlaplus/releases/download/v${TLA2TOOLS_VERSION}/tla2tools.jar" \
+ && echo "${TLA2TOOLS_SHA512}  /opt/tla2tools/tla2tools.jar" | sha512sum -c - \
+ && chmod 0444 /opt/tla2tools/tla2tools.jar
+WORKDIR /opt/harness
+COPY --chown=harness:harness activation_sandbox.py sandbox_attestor.py qualification_signer.py paired_candidate.py pq_crypto.py crypto_policy_scan.py paired_candidate_policy_v1.json paired_candidate_schema_v1.json cryptographic_profile_registry_v1.json activation_gate_registry_v1.json activation_evidence_schema_v1.json /opt/harness/
+ENV PYTHONHASHSEED=0 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/work/corpus \
+    TLA2TOOLS_JAR=/opt/tla2tools/tla2tools.jar \
+    JAVA_TOOL_OPTIONS=-XX:+UseParallelGC
+USER harness
+ENTRYPOINT ["python3", "/opt/harness/activation_sandbox.py"]

@@ -1,0 +1,37 @@
+{
+  "payload": {
+    "cache_envelope_id": "cache:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "cache_registry_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "compiler_witness_signed_payload_shake256_512": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "replay_decision": {
+      "decision": "active_time_valid_rotation_valid",
+      "evaluated_at": "2026-08-01T12:00:00Z",
+      "key_id": "cache:key:test",
+      "principal_id": "cache:principal:test",
+      "registry_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rotation_predecessor_key_id": null,
+      "schema_version": "cache_key_validity_evidence/v1",
+      "status": "active",
+      "status_changed_at": "2026-01-01T00:00:00Z",
+      "use": "replay",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null
+    },
+    "schema_version": "cache_verification_evidence/v1",
+    "signing_decision": {
+      "decision": "active_time_valid_rotation_valid",
+      "evaluated_at": "2026-08-01T12:00:00Z",
+      "key_id": "cache:key:test",
+      "principal_id": "cache:principal:test",
+      "registry_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "rotation_predecessor_key_id": null,
+      "schema_version": "cache_key_validity_evidence/v1",
+      "status": "active",
+      "status_changed_at": "2026-01-01T00:00:00Z",
+      "use": "signing",
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": null
+    }
+  },
+  "schema_ref": "schemas/cache_verification_evidence_v1.schema.json"
+}

@@ -1,0 +1,28 @@
+{
+  "case_id": "valid_logical_observer_profile",
+  "expected_status": "pass",
+  "payload": {
+    "authority_scopes": [
+      "diagnostic",
+      "truth_observer"
+    ],
+    "capability_token_refs": [
+      "capability:fixture:kernel"
+    ],
+    "created_at": "2026-05-11T00:00:00Z",
+    "metadata": {},
+    "non_collapse_checked": true,
+    "non_collapse_state_id": "state:fixture:observer",
+    "observer_id": "observer:fixture:kernel",
+    "observer_kind": "ai_runtime",
+    "policy_decision_id": "policy:fixture:kernel",
+    "principal_id": "principal:fixture:kernel",
+    "runtime_modes": [
+      "test",
+      "audit"
+    ],
+    "schema_version": "logical_observer_profile/v1",
+    "status": "active"
+  },
+  "schema_ref": "schemas/logical_observer_profile.schema.json"
+}

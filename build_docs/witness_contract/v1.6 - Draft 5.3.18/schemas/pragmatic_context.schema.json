@@ -1,0 +1,134 @@
+{
+  "$id": "https://duotronics.local/schemas/pragmatic_context.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "audience": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "authority_scope": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "local_session",
+        "tenant",
+        "repo",
+        "service",
+        "cluster",
+        "system",
+        "release",
+        "mathematical_claim",
+        "nla_training",
+        "policy",
+        "memory_write",
+        "model_promotion",
+        "truth_observer"
+      ]
+    },
+    "channel": {
+      "enum": [
+        "api",
+        "mcp_tool",
+        "cli",
+        "admin_ui",
+        "scheduler",
+        "replay",
+        "test_fixture",
+        "human_review",
+        "agent_runtime"
+      ]
+    },
+    "constraints": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "delegation_chain_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "expires_at": {
+      "format": "date-time",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "force_indicator": {
+      "enum": [
+        "observe",
+        "propose",
+        "assert",
+        "defer",
+        "veto",
+        "delegate",
+        "replay_verify"
+      ]
+    },
+    "human_review_required": {
+      "type": "boolean"
+    },
+    "issuer_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "non_collapse_checked": {
+      "const": true,
+      "type": "boolean"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "pragmatic_context_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "runtime_mode": {
+      "enum": [
+        "observe",
+        "test",
+        "simulation",
+        "shadow",
+        "audit",
+        "migration",
+        "release_candidate",
+        "production",
+        "rollback"
+      ]
+    },
+    "schema_version": {
+      "const": "pragmatic_context/v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "pragmatic_context_id",
+    "issuer_principal_id",
+    "audience",
+    "channel",
+    "force_indicator",
+    "authority_scope",
+    "runtime_mode",
+    "policy_decision_id",
+    "human_review_required",
+    "non_collapse_checked",
+    "created_at"
+  ],
+  "title": "PragmaticContext",
+  "type": "object"
+}

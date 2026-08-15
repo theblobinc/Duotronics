@@ -1,0 +1,91 @@
+                       (SELECT count(*) FROM mcp_session_messages m WHERE m.recipient_session_id=s.session_id AND m.status IN ('queued','delivered')) AS unread_messages
+                FROM coordination_agent_sessions s
+                WHERE s.last_seen_at >= now() - make_interval(secs => %s)
+                ORDER BY s.last_seen_at DESC LIMIT %s
+                """,
+                (seconds, limit),
+            ).fetchall()
+            workers = conn.execute("SELECT worker_id,session_id,worker_kind,status,capabilities,allowed_tools,resource_profile,metadata,last_seen_at FROM mcp_worker_registry ORDER BY last_seen_at DESC").fetchall()
+        return {"project_key": project_key, "sessions": [dict(row) for row in sessions], "workers": [dict(row) for row in workers]}
+
+    def send_message(self, args: dict[str, Any]) -> dict[str, Any]:
+        sender = _safe_text(args.get("session_id"), "", 200)
+        recipient = _safe_text(args.get("recipient_session_id"), "", 200)
+        if not sender or not recipient:
+            raise HTTPException(422, "sender and recipient session IDs are required")
+        body = _safe_text(args.get("body"), "", 100000)
+        if not body:
+            raise HTTPException(422, "message body is required")
+        message_type = _safe_text(args.get("message_type"), "message", 20)
+        if message_type not in {"message","suggestion","handoff","request","result","system"}:
+            raise HTTPException(422, "invalid message_type")
+        work_id = _uuid(args.get("work_id"))
+        delegation_id = _uuid(args.get("delegation_id"))
+        expires_seconds = args.get("expires_seconds")
+        expires_at = None
+        if expires_seconds is not None:
+            seconds = max(60, min(int(expires_seconds), 604800))
+            expires_at = datetime.now(timezone.utc) + timedelta(seconds=seconds)
+        with self.store.connect() as conn:
+            target = conn.execute("SELECT session_id FROM coordination_agent_sessions WHERE session_id=%s", (recipient,)).fetchone()
+            if target is None:
+                raise HTTPException(404, "recipient MCP session is not registered")
+            row = conn.execute(
+                """
+                INSERT INTO mcp_session_messages(sender_session_id,recipient_session_id,project_key,work_id,delegation_id,message_type,subject,body,payload,expires_at)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                RETURNING *
+                """,
+                (sender, recipient, _project(args.get("project_key")), work_id, delegation_id, message_type, _safe_text(args.get("subject"), "", 500), body, Jsonb(args.get("payload") or {}), expires_at),
+            ).fetchone()
+            conn.commit()
+        return dict(row) | {"delivery": "durable-inbox"}
+
+    def inbox(self, args: dict[str, Any]) -> dict[str, Any]:
+        session_id = _safe_text(args.get("session_id"), "", 200)
+        if not session_id:
+            raise HTTPException(422, "session_id is required")
+        limit = max(1, min(int(args.get("limit", 50)), 200))
+        requested_status = args.get("status")
+        mark_read = bool(args.get("mark_read", False))
+        with self.store.connect() as conn:
+            conn.execute("UPDATE mcp_session_messages SET status='expired' WHERE status IN ('queued','delivered') AND expires_at IS NOT NULL AND expires_at < now()")
+            if requested_status:
+                rows = conn.execute("SELECT * FROM mcp_session_messages WHERE recipient_session_id=%s AND status=%s ORDER BY created_at ASC LIMIT %s", (session_id, requested_status, limit)).fetchall()
+            else:
+                rows = conn.execute("SELECT * FROM mcp_session_messages WHERE recipient_session_id=%s AND status IN ('queued','delivered','read') ORDER BY created_at ASC LIMIT %s", (session_id, limit)).fetchall()
+            ids = [str(row["message_id"]) for row in rows]
+            if ids:
+                if mark_read:
+                    conn.execute("UPDATE mcp_session_messages SET status='read',delivered_at=COALESCE(delivered_at,now()),read_at=COALESCE(read_at,now()) WHERE message_id = ANY(%s::uuid[])", (ids,))
+                else:
+                    conn.execute("UPDATE mcp_session_messages SET status='delivered',delivered_at=COALESCE(delivered_at,now()) WHERE message_id = ANY(%s::uuid[]) AND status='queued'", (ids,))
+            conn.commit()
+        return {"session_id": session_id, "messages": [dict(row) for row in rows], "count": len(rows)}
+
+    def acknowledge(self, args: dict[str, Any]) -> dict[str, Any]:
+        session_id = _safe_text(args.get("session_id"), "", 200)
+        message_id = _uuid(args.get("message_id"), required=True)
+        with self.store.connect() as conn:
+            row = conn.execute(
+                """
+                UPDATE mcp_session_messages SET
+                  status='acknowledged',
+                  delivered_at=COALESCE(delivered_at,now()),
+                  read_at=CASE WHEN %s THEN COALESCE(read_at,now()) ELSE read_at END,
+                  acknowledged_at=now()
+                WHERE message_id=%s AND recipient_session_id=%s
+                RETURNING *
+                """,
+                (bool(args.get("read", True)), message_id, session_id),
+            ).fetchone()
+            conn.commit()
+        if row is None:
+            raise HTTPException(404, "message not found for this session")
+        return dict(row)
+
+    def assign(self, args: dict[str, Any]) -> dict[str, Any]:
+        delegator = _safe_text(args.get("session_id"), "", 200)
+        objective = _safe_text(args.get("objective"), "", 20000)
+        if not delegator or not objective:
+            raise HTTPException(422, "delegator session and objective are required")

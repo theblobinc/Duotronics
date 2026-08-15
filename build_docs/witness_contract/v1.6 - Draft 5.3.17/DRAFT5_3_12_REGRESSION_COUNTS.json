@@ -1,0 +1,25 @@
+{
+  "count_source": "unittest.TestResult",
+  "draft5_3_11_baseline_tests_discovered": 248,
+  "duplicate_test_ids": [],
+  "generated_at": "2026-08-01T23:26:28.148279+00:00",
+  "package_version": "v1.6-draft-5.3.12",
+  "python_matrix_shake256_512": "358e44bab2cce2d0959993cb9c94ce67ee372310eedd55763168f1d91c1ee64f",
+  "schema_version": "draft5_3_12_regression_counts/v1",
+  "target_python_versions": [
+    "3.12",
+    "3.13"
+  ],
+  "tests_discovered": 261,
+  "tests_errored": 0,
+  "tests_failed": 0,
+  "tests_passed": 261,
+  "tests_run": 261,
+  "tests_skipped": 0,
+  "unavailable_python_versions": [],
+  "validated_python_versions": [
+    "3.12.13",
+    "3.13.5"
+  ],
+  "warning_output_lines": []
+}

@@ -1,0 +1,126 @@
+{
+  "$id": "https://duotronics.local/schemas/kernelErrorWitness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "error_code": {
+            "const": "missing_witness"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "missing_witness_refs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      }
+    }
+  ],
+  "description": "Typed evidence for refusal, denial, or escalation.",
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "denied_syscall": {
+      "enum": [
+        "observe",
+        "compose",
+        "infer",
+        "verify",
+        "replay",
+        "delegate",
+        "promote",
+        "compute",
+        "adjudicate",
+        "rollback",
+        "export",
+        "resolve_rule",
+        "read_memory",
+        "write_observation",
+        "promote_memory",
+        "raise_error",
+        null
+      ]
+    },
+    "error_code": {
+      "enum": [
+        "missing_witness",
+        "authority_denied",
+        "non_collapse_violation",
+        "replay_assumption_missing",
+        "indeterminate_result",
+        "human_review_required",
+        "schema_validation_failed",
+        "resource_budget_exceeded",
+        "canonical_rule_ambiguous",
+        "capability_denied"
+      ]
+    },
+    "escalation_required": {
+      "type": "boolean"
+    },
+    "kernel_error_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "message": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "missing_witness_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "non_collapse_transition_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "kernel_error_witness/v1"
+    },
+    "severity": {
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "fatal"
+      ]
+    },
+    "task_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "kernel_error_witness_id",
+    "task_id",
+    "error_code",
+    "severity",
+    "message",
+    "policy_decision_id",
+    "created_at"
+  ],
+  "title": "KernelErrorWitness",
+  "type": "object"
+}

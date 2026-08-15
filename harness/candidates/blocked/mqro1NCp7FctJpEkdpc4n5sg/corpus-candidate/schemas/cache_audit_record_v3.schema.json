@@ -1,0 +1,125 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_record_v3.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchor_namespace": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "anchor_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_key_validity_evidence": {
+      "type": "object"
+    },
+    "audit_record_id": {
+      "pattern": "^audit:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_signer_key_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "audit_signer_principal_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "audit_signing_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "event_canonical_json": {
+      "maxLength": 1048576,
+      "minLength": 2,
+      "type": "string"
+    },
+    "event_idempotency_key": {
+      "pattern": "^event:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "event_schema_version": {
+      "maxLength": 128,
+      "minLength": 1,
+      "type": "string"
+    },
+    "event_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "previous_audit_record_shake256_512": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "previous_sealed_segment_tail_shake256_512": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "rotation_policy": {
+      "const": "governed_external_anchor_and_signed_segment_transition"
+    },
+    "schema_version": {
+      "const": "cache_audit_record/v3"
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "audit_record_id",
+    "event_idempotency_key",
+    "segment_id",
+    "sequence",
+    "previous_audit_record_shake256_512",
+    "previous_sealed_segment_tail_shake256_512",
+    "event_schema_version",
+    "event_canonical_json",
+    "event_shake256_512",
+    "audit_signer_principal_id",
+    "audit_signer_key_id",
+    "audit_signing_registry_shake256_512",
+    "audit_key_validity_evidence",
+    "anchor_namespace",
+    "anchor_registry_shake256_512",
+    "rotation_policy",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Externally Anchored Governed Cache Audit Record v3",
+  "type": "object"
+}

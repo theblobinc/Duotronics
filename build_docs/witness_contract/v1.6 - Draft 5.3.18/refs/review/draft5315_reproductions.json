@@ -1,0 +1,56 @@
+{
+  "anchor_monotonicity": {
+    "file_ledger_restored_from_sequence_1_to_0": true,
+    "restored_file_ledger_accepted_after_restart": true,
+    "same_sequence_registry_hash_change_accepted": true,
+    "same_sequence_tail_rewrite_accepted": true
+  },
+  "audit_key_lifecycle": {
+    "expired_evidence_record_created_at": "2099-01-01T00:00:00+00:00",
+    "expired_key_evidence_reused_for_record": true,
+    "historical_key_record_replay_accepted": true,
+    "historical_receipt_key_accepted": "cache:audit:key:old",
+    "rotation_cycle_accepted": true
+  },
+  "cross_segment_idempotency": {
+    "duplicate_event_committed_twice": true,
+    "first_segment_status": "committed",
+    "second_segment_same_event_status": "committed"
+  },
+  "independent_validation": {
+    "duration_seconds": 211.601873,
+    "python_version": "3.13.5",
+    "required_phases_passed": 101,
+    "required_phases_total": 101,
+    "surviving_descendants": 0,
+    "tests_passed": 303,
+    "warning_as_error_tests_passed": 303
+  },
+  "production_integration_scope": {
+    "anchor_server_started": false,
+    "application_loader_passed": true,
+    "authority_loader_passed": true,
+    "proof_service_uid": 65534,
+    "publication_round_trip_executed": false,
+    "publisher_server_started": false,
+    "publisher_uid": 65533
+  },
+  "recovery_authorization": {
+    "authorization_created_at": "2020-01-01T00:00:00Z",
+    "authorization_expires_at": "2020-01-02T00:00:00Z",
+    "expired_authorization_accepted": true,
+    "matching_temporary_file_deleted": true
+  },
+  "successor_terminal_binding": {
+    "anchored_predecessor_segment_id": "cache:audit:segment:0001",
+    "governance_transition_referenced_supplied_record": true,
+    "successor_provisioning_accepted": true,
+    "supplied_terminal_segment_id": "cache:audit:segment:other"
+  },
+  "unix_socket_peer_authorization": {
+    "anchor_signed_unrelated_uid_genesis": true,
+    "publisher_returned_valid_signed_receipt": true,
+    "server_uses_so_peercred": false,
+    "unrelated_uid": 65534
+  }
+}

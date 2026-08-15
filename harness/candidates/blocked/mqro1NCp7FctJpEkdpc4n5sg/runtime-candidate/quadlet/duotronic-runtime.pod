@@ -1,0 +1,10 @@
+[Unit]
+Description=Duotronic SRNN Runtime Host Pod
+
+[Pod]
+PodName=duotronic-runtime
+Network=bridge
+PublishPort=127.0.0.1:8080:8080
+
+[Install]
+WantedBy=default.target

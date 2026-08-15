@@ -1,0 +1,44 @@
+{
+  "base_revision": "v1.6-draft-5.3.12",
+  "canonical_descriptor": "CANONICAL_CORPUS_v1_6_draft_5_3_13.json",
+  "change_set": "draft5_3_13_update_checklist",
+  "created_at": "2026-08-01T00:00:00-07:00",
+  "freeze_state": "permanently_not_frozen",
+  "inventory": "PACKAGE_INVENTORY_v1_6_draft_5_3_13.json",
+  "lifecycle_policy": "living_contract_never_freeze",
+  "package": "Duotronic Witness Contract",
+  "package_provenance": "PACKAGE_PROVENANCE_v1_6_draft_5_3_13.json",
+  "primary_contract": "duotronic_witness_contract_v1_6_draft_5_3_13.md",
+  "production_loader_integration_evidence": "validation/production_loader/draft5_3_13_nonroot_loader_evidence.json",
+  "production_loader_integration_status": "environment_unavailable",
+  "promotion_authority_default": "disabled",
+  "release_authority": false,
+  "schema_version": "package_metadata/v9",
+  "source_commit_sha": null,
+  "source_package_policy": "changes_merged_no_embedded_source_packages",
+  "source_provenance_status": "unpublished_workspace",
+  "source_repository": "https://github.com/TBI-Contracting/duotronic-witness-contract",
+  "source_subtree_path": ".",
+  "status": "completed_corrective_development_draft",
+  "target_python_versions": [
+    "3.12",
+    "3.13"
+  ],
+  "theorem_authority_default": "disabled",
+  "unavailable_python_versions": [
+    "3.12"
+  ],
+  "validated_python_versions": [
+    "3.13.5"
+  ],
+  "validation_report": "DRAFT5_3_13_VALIDATION_REPORT.json",
+  "validator": "executable/validators/validate_draft5_3_13_corpus.py",
+  "validator_reliability_completed_repetitions_by_target": {
+    "3.12": 0,
+    "3.13": 1
+  },
+  "validator_reliability_repetitions_per_interpreter": 1,
+  "validator_reliability_repetitions_per_validated_interpreter": 1,
+  "validator_reliability_status": "python_3_13_one_complete_run_python_3_12_unavailable",
+  "version": "v1.6-draft-5.3.13"
+}

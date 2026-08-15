@@ -1,0 +1,91 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/proof_witness_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "lean_compiler_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "proof_artifact_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "proof_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "proof_witness/v2"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "pattern": "^[A-Za-z0-9_-]{6170}$",
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "theorem_name": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "theorem_statement_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "theorem_status": {
+      "enum": [
+        "proved",
+        "failed"
+      ]
+    },
+    "verifier_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "proof_witness_id",
+    "claim_id",
+    "claim_content_shake256_512",
+    "theorem_statement_shake256_512",
+    "proof_artifact_shake256_512",
+    "lean_compiler_witness_id",
+    "theorem_name",
+    "theorem_status",
+    "policy_decision_id",
+    "verifier_principal_id",
+    "key_id",
+    "signed_payload_shake256_512",
+    "signature",
+    "created_at"
+  ],
+  "title": "ProofWitnessV2",
+  "type": "object"
+}

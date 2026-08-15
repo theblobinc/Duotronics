@@ -1,0 +1,124 @@
+{
+  "$id": "https://duotronics.local/schemas/logicalMemoryCell.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "cell_kind": {
+            "enum": [
+              "canonical_fact",
+              "authority_ref"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "promotion_transition_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "promotion_transition_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "purged"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "purge_witness_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "purge_witness_id"
+        ]
+      }
+    }
+  ],
+  "description": "Memory cell that distinguishes observation, cache, candidate fact, canonical fact, and authority reference.",
+  "properties": {
+    "cell_kind": {
+      "enum": [
+        "observation",
+        "cache",
+        "candidate_fact",
+        "canonical_fact",
+        "authority_ref"
+      ]
+    },
+    "content_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "evidence_claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "logical_memory_cell_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "promotion_transition_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "purge_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "logical_memory_cell/v1"
+    },
+    "snapshot_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "active",
+        "stale",
+        "promoted",
+        "purged"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "logical_memory_cell_id",
+    "cell_kind",
+    "status",
+    "content_ref",
+    "evidence_claim_id",
+    "policy_decision_id",
+    "created_at"
+  ],
+  "title": "LogicalMemoryCell",
+  "type": "object"
+}

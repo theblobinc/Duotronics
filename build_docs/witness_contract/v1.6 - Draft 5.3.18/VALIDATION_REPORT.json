@@ -1,0 +1,32 @@
+{
+  "authority_activated": false,
+  "baseline_file_count": 1968,
+  "baseline_retained_file_count": 1968,
+  "contract_version": "v1.6-draft-5.3.17",
+  "corpus_file_count_excluding_manifest_and_validation_report": 2004,
+  "forbidden_legacy_filename_count": 0,
+  "forbidden_legacy_primitive_reference_count": 0,
+  "json_document_count": 762,
+  "json_parse_status": "passed",
+  "manifest_status": "passed",
+  "portable_corpus_failure_count": 0,
+  "portable_corpus_status": "passed",
+  "production_provider_attested": false,
+  "python_compile_status": "passed",
+  "retained_runtime_regression_suite": {
+    "environment_blocked": 5,
+    "environment_blocked_reason": "portable sandbox forbids Unix-domain sockets and process-table inspection",
+    "failed": 0,
+    "passed": 309,
+    "skipped_superseded": 6,
+    "total": 320
+  },
+  "schema_count": 141,
+  "schema_registry_regeneration_status": "passed",
+  "status": "portable_complete_external_activation_pending",
+  "witness_5_3_17_identity_and_provider_tests": {
+    "failed": 0,
+    "passed": 6,
+    "total": 6
+  }
+}

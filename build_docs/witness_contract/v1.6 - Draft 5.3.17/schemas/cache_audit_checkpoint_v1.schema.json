@@ -1,0 +1,82 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/cache_audit_checkpoint_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "audit_signer_key_id": {
+      "$ref": "#/$defs/id"
+    },
+    "checkpoint_created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "previous_sealed_segment_tail_shake256_512": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/shake256_512"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "cache_audit_checkpoint/v1"
+    },
+    "segment_id": {
+      "$ref": "#/$defs/id"
+    },
+    "segment_status": {
+      "enum": [
+        "open",
+        "sealed"
+      ]
+    },
+    "sequence": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "tail_record_shake256_512": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/shake256_512"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "segment_id",
+    "sequence",
+    "tail_record_shake256_512",
+    "previous_sealed_segment_tail_shake256_512",
+    "audit_signer_key_id",
+    "segment_status",
+    "checkpoint_created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Independently Protected Cache Audit Tail Checkpoint v1",
+  "type": "object"
+}

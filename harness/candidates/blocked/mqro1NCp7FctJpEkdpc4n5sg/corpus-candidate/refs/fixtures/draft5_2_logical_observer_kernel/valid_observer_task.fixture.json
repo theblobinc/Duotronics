@@ -1,0 +1,26 @@
+{
+  "case_id": "valid_observer_task",
+  "expected_status": "pass",
+  "payload": {
+    "capability_token_id": "capability:fixture:kernel",
+    "created_at": "2026-05-11T00:00:00Z",
+    "input_refs": [
+      "claim:fixture:1"
+    ],
+    "kernel_error_witness_id": null,
+    "metadata": {},
+    "observer_id": "observer:fixture:kernel",
+    "policy_decision_id": "policy:fixture:kernel",
+    "pragmatic_context_id": "pragmatic:fixture:kernel",
+    "requested_syscall": "compute",
+    "resource_budget_id": "budget:fixture:kernel",
+    "schema_version": "observer_task/v1",
+    "status": "running",
+    "task_frame_id": "frame:fixture:kernel",
+    "task_id": "task:fixture:kernel",
+    "task_kind": "compute",
+    "task_result_witness_id": null,
+    "transaction_id": null
+  },
+  "schema_ref": "schemas/observer_task.schema.json"
+}

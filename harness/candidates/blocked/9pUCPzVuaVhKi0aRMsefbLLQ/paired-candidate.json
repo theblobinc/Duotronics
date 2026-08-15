@@ -1,0 +1,68 @@
+{
+  "authority": {
+    "namespace": "duotronic://authority/sandbox/witness-harness-vm",
+    "production_eligible": false,
+    "profile": "sandbox-test-only"
+  },
+  "candidate": {
+    "corpus_id": "duoid:shake256-512:ZBepHFlPLT6b18vK4HlMWcoYJLzBj3inLD7X0ilChr_JCLSIStvPYLcY5irZ3NJzBx4mPSufYNqLzRJtiUOndw",
+    "runtime_id": "duoid:shake256-512:skxUZXZewxJ8bOwBdC71cSIY8THLYEC980ta5lOkfbvZHsvnGAomP01sji54gHD3xjrVI216J6GvF5CvCedcKw"
+  },
+  "checks": {
+    "state": "pending",
+    "twelve_external_activation_gates": "pending"
+  },
+  "created_at": "2026-08-13T18:54:19.077884+00:00",
+  "lineage": {
+    "changes": [],
+    "external_snapshot_id": "duoid:shake256-512:IYuExV0OT_6gly2gTIlJgWZZhYjpqx5wrYuka-Ws_kkmsIQYiKe66yc8z_xSRcpFv-jnlXvvowD9JvQMt9jLPA",
+    "parent_snapshots_immutable": true,
+    "proposal_id": "duoid:shake256-512:KvlO6VVIoVOCNtBjLrt9uM9EIuZPPky3x4tGgINW2WV0qvlajO2yQRG9qGDVsefxUlmF0lj43nqHZykPFBBbow"
+  },
+  "outputs": {
+    "corpus": "/output/pair/corpus-candidate",
+    "runtime": "/output/pair/runtime-candidate"
+  },
+  "pair_id": "duoid:shake256-512:1EV4H_tViCdLSPPOZvtJlQzaXZrCcZX7YUQDiyFahtrmXVmLS8J9C3SD0FBk9-pUCPzVuaV_hKi0aRMsefbLLQ",
+  "parent": {
+    "corpus_id": "duoid:shake256-512:YZLIBWKBNEScR8OZQUIp2f7SrnOkc2SuLq0NUL6dgXvy5SYGZ4P2gJWR5h8V_n8HcmyeFpxlIT3X1ApmU148Dg",
+    "runtime_id": "duoid:shake256-512:m60NDPdT2hAFAdm-s2Il45mE45QOyyc_Ral0HO8xzR9E7Suq5zaJPquzkmMlgMfsZZee75YOgHiHDv1mPVs2Ag"
+  },
+  "recursive_witness": {
+    "authority_created": false,
+    "baseline": 2.0,
+    "candidate_pair": {
+      "corpus_id": "duoid:shake256-512:ZBepHFlPLT6b18vK4HlMWcoYJLzBj3inLD7X0ilChr_JCLSIStvPYLcY5irZ3NJzBx4mPSufYNqLzRJtiUOndw",
+      "runtime_id": "duoid:shake256-512:skxUZXZewxJ8bOwBdC71cSIY8THLYEC980ta5lOkfbvZHsvnGAomP01sji54gHD3xjrVI216J6GvF5CvCedcKw"
+    },
+    "external_snapshot_id": "duoid:shake256-512:IYuExV0OT_6gly2gTIlJgWZZhYjpqx5wrYuka-Ws_kkmsIQYiKe66yc8z_xSRcpFv-jnlXvvowD9JvQMt9jLPA",
+    "parent_pair": {
+      "corpus_id": "duoid:shake256-512:YZLIBWKBNEScR8OZQUIp2f7SrnOkc2SuLq0NUL6dgXvy5SYGZ4P2gJWR5h8V_n8HcmyeFpxlIT3X1ApmU148Dg",
+      "runtime_id": "duoid:shake256-512:m60NDPdT2hAFAdm-s2Il45mE45QOyyc_Ral0HO8xzR9E7Suq5zaJPquzkmMlgMfsZZee75YOgHiHDv1mPVs2Ag"
+    },
+    "positive_baseline_state": [
+      1.000034687659,
+      1.339470710285,
+      1.001877176352,
+      1.001764511033,
+      1.755496049018,
+      1.938950028748,
+      1.984738692177,
+      2.217137215024
+    ],
+    "role": "candidate-proposal-and-diagnostic-only",
+    "schema": "duotronic-witness-gated-recurrent-state/v1",
+    "semantic_state": [
+      -0.999965312341,
+      -0.660529289715,
+      -0.998122823648,
+      -0.998235488967,
+      -0.244503950982,
+      -0.061049971252,
+      -0.015261307823,
+      0.217137215024
+    ],
+    "witness_id": "duoid:shake256-512:-wHksU_44Sj5ipDMidiFFwSFiy4yvzvrICw4s-GNsxKD0cAEE-jb1jr3omkC3WdLgE6TXaJv35uL5YFwkKQhfw"
+  },
+  "schema": "duotronic-paired-candidate/v1"
+}

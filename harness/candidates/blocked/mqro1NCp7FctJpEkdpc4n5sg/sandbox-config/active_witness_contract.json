@@ -1,0 +1,8 @@
+{
+  "activated_at": "2026-08-13T18:44:49.590937+00:00",
+  "authority_namespace": "duotronic://authority/sandbox/witness-harness-vm",
+  "authority_profile": "sandbox-test-only",
+  "directory_name": "corpus-candidate",
+  "production_eligible": false,
+  "schema": "duotronic-active-witness-contract/v1"
+}

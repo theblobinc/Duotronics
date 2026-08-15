@@ -1,23 +1,47 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import hashlib
+try:
+    from .xavi_crypto import shake256_hex, shake256_ref
+except ImportError:
+    from xavi_crypto import shake256_hex, shake256_ref
+
+import hmac
 import json
 import os
+import queue
+import re
+import signal
 import subprocess
+import tempfile
+import threading
 import time
 import urllib.request
+import uuid
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import Body, FastAPI, Request
+from xavi_conversation_identity import from_request as conversation_from_request, inject as conversation_inject, resolve as conversation_resolve, schema_properties as conversation_schema_properties
+from xavi_mcp_coordination import (
+    classify_and_infer, conflict_summary, digest as coordination_digest,
+    inject_identity as coordination_inject_identity, prioritize_tools as coordination_prioritize_tools,
+    resolve_session as coordination_resolve_session, session_context as coordination_session_context,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
 PROTOCOL_VERSION = "2025-06-18"
 SERVER_NAME = "xavi-runtime-v3-dev-mcp"
-SERVER_VERSION = "0.1.0"
+SERVER_VERSION = "0.3.3-dev-unrestricted"
+
+# Temporary development connector mode.
+# This MCP is intentionally privileged during development and will be disabled later.
+DEV_OPS_UNRESTRICTED = os.environ.get(
+    "XAVI_DEV_MCP_UNRESTRICTED", "1"
+).strip().lower() not in {"0", "false", "no", "off"}
 
 V3_DIR = Path(os.environ.get(
     "XAVI_OPS_RUNTIME_DIR",
@@ -27,7 +51,34 @@ V3_DIR = Path(os.environ.get(
 REPO_ROOT = Path(os.environ.get("XAVI_OPS_REPO_ROOT", "/var/www/xavi/Duotronics")).resolve()
 OPS_URL = os.environ.get("XAVI_OPS_URL", "http://127.0.0.1:8091").replace("host.containers.internal", "127.0.0.1").rstrip("/")
 OPS_KEY = os.environ.get("XAVI_OPS_API_KEY", "")
+RUNTIME_MCP_KEY = os.environ.get("XAVI_MCP_API_KEY", "")
 RUNTIME_URL = os.environ.get("XAVI_RUNTIME_URL", "http://127.0.0.1:8080").rstrip("/")
+SESSION_SECRET = os.environ.get("XAVI_MCP_SESSION_SECRET") or OPS_KEY or RUNTIME_MCP_KEY or shake256_hex(str(V3_DIR))
+SESSION_CLIENTS: dict[str, dict[str, Any]] = {}
+
+# Fast-path tuning. These are deliberately conservative defaults and can be
+# overridden without code changes. In temporary development-unrestricted mode,
+# coordination remains available for awareness/learning but does not veto Ops.
+TOOLS_CACHE_TTL = max(5.0, float(os.environ.get("XAVI_MCP_TOOLS_CACHE_TTL", "30")))
+TOOLS_REFRESH_TIMEOUT = max(1.0, min(float(os.environ.get("XAVI_MCP_TOOLS_REFRESH_TIMEOUT", "3")), 10.0))
+COLLAB_REFRESH_TTL = max(2.0, float(os.environ.get("XAVI_MCP_COLLAB_REFRESH_TTL", "10")))
+COORDINATION_TIMEOUT = max(2, min(int(os.environ.get("XAVI_MCP_COORDINATION_TIMEOUT", "8")), 30))
+LEDGER_QUEUE_MAX = max(128, min(int(os.environ.get("XAVI_MCP_LEDGER_QUEUE_MAX", "4096")), 32768))
+COLLAB_QUEUE_MAX = max(16, min(int(os.environ.get("XAVI_MCP_COLLAB_QUEUE_MAX", "256")), 4096))
+RUN_FIXED_OUTPUT_BYTES = max(65536, min(int(os.environ.get("XAVI_MCP_RUN_OUTPUT_BYTES", "1048576")), 8 * 1024 * 1024))
+TOOLS_CACHE_PATH = V3_DIR / "data" / "cache" / "runtime_mcp_tools.json"
+
+_TOOLS_CACHE_LOCK = threading.RLock()
+_RUNTIME_TOOLS_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+_MERGED_TOOLS_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+_TOOLS_REFRESHING: set[str] = set()
+_LEDGER_QUEUE: queue.Queue[tuple[Any, str, str, dict[str, Any], list[str]]] = queue.Queue(maxsize=LEDGER_QUEUE_MAX)
+_COLLAB_QUEUE: queue.Queue[tuple[Any, str, dict[str, Any], str]] = queue.Queue(maxsize=COLLAB_QUEUE_MAX)
+_COLLAB_LOCK = threading.RLock()
+_COLLAB_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+_COLLAB_INFLIGHT: set[str] = set()
+_COORD_EVENT_QUEUE: queue.Queue[tuple[Any, dict[str, Any]]] = queue.Queue(maxsize=1024)
+_FASTPATH_STATS = {"ledger_dropped": 0, "collab_dropped": 0, "coord_event_dropped": 0}
 
 app = FastAPI(title="Xavi Runtime v3 Developer MCP")
 
@@ -36,8 +87,18 @@ app.add_middleware(
     allow_origins=["https://chatgpt.com", "https://chat.openai.com", "http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "MCP-Protocol-Version"],
+    allow_headers=["Content-Type", "Authorization", "MCP-Protocol-Version", "Mcp-Session-Id", "X-Xavi-Agent-Id", "X-Xavi-Device-Id"],
+    expose_headers=["Mcp-Session-Id"],
 )
+
+@app.middleware("http")
+async def mcp_session_middleware(request: Request, call_next):
+    session_id = coordination_resolve_session(request, SESSION_SECRET)
+    request.state.xavi_session_id = session_id
+    response = await call_next(request)
+    response.headers["Mcp-Session-Id"] = session_id
+    response.set_cookie("xavi_mcp_session", session_id, httponly=True, secure=True, samesite="lax", max_age=7 * 24 * 3600)
+    return response
 
 def rpc_result(req_id: Any, result: Any) -> dict[str, Any]:
     return {"jsonrpc": "2.0", "id": req_id, "result": result}
@@ -53,11 +114,17 @@ def fetch_json(url: str, timeout: int = 15) -> Any:
         return json.loads(r.read().decode())
 
 
-def runtime_mcp_rpc(method: str, params: dict[str, Any] | None = None, timeout: int = 30, auth_header: str | None = None) -> dict[str, Any]:
+def runtime_mcp_rpc(method: str, params: dict[str, Any] | None = None, timeout: int = 30, auth_header: str | None = None, session_id: str | None = None, agent_id: str | None = None) -> dict[str, Any]:
     payload = json.dumps({"jsonrpc": "2.0", "id": method, "method": method, "params": params or {}}).encode()
     headers = {"content-type": "application/json"}
     if auth_header:
         headers["authorization"] = auth_header
+    elif RUNTIME_MCP_KEY:
+        headers["x-xavi-mcp-key"] = RUNTIME_MCP_KEY
+    if session_id:
+        headers["mcp-session-id"] = str(session_id)[:200]
+    if agent_id:
+        headers["x-xavi-agent-id"] = str(agent_id)[:200]
     req = urllib.request.Request(
         RUNTIME_URL + "/mcp",
         data=payload,
@@ -68,18 +135,116 @@ def runtime_mcp_rpc(method: str, params: dict[str, Any] | None = None, timeout: 
         return json.loads(r.read().decode())
 
 
-def runtime_mcp_tools(auth_header: str | None = None) -> list[dict[str, Any]]:
+def _runtime_health_reachable(timeout: float = 2.0) -> bool:
     try:
-        response = runtime_mcp_rpc("tools/list", {}, timeout=10, auth_header=auth_header)
-        tools = response.get("result", {}).get("tools", [])
-        if isinstance(tools, list):
-            return tools
+        with urllib.request.urlopen(RUNTIME_URL + "/health", timeout=timeout) as response:
+            return 200 <= int(getattr(response, "status", 0) or 0) < 300
+    except Exception:
+        return False
+
+
+def _tools_cache_key(auth_header: str | None) -> str:
+    if not auth_header:
+        return "default"
+    return shake256_hex(auth_header)[:16]
+
+
+def _load_runtime_tools_disk_cache() -> list[dict[str, Any]]:
+    try:
+        data = json.loads(TOOLS_CACHE_PATH.read_text())
+        tools = data.get("tools") if isinstance(data, dict) else None
+        return tools if isinstance(tools, list) else []
     except Exception:
         return []
-    return []
+
+
+def _save_runtime_tools_disk_cache(tools: list[dict[str, Any]]) -> None:
+    try:
+        TOOLS_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        tmp = TOOLS_CACHE_PATH.with_suffix(TOOLS_CACHE_PATH.suffix + f".tmp-{os.getpid()}-{threading.get_ident()}")
+        tmp.write_text(json.dumps({"saved_at_ms": int(time.time() * 1000), "tools": tools}, separators=(",", ":")))
+        os.replace(tmp, TOOLS_CACHE_PATH)
+    except Exception:
+        return
+
+
+def _refresh_runtime_tools(key: str, auth_header: str | None) -> None:
+    try:
+        response = runtime_mcp_rpc("tools/list", {}, timeout=int(TOOLS_REFRESH_TIMEOUT), auth_header=auth_header)
+        tools = response.get("result", {}).get("tools", [])
+        if isinstance(tools, list) and tools:
+            with _TOOLS_CACHE_LOCK:
+                _RUNTIME_TOOLS_CACHE[key] = (time.monotonic(), tools)
+                _MERGED_TOOLS_CACHE.pop(key, None)
+            _save_runtime_tools_disk_cache(tools)
+    except Exception:
+        pass
+    finally:
+        with _TOOLS_CACHE_LOCK:
+            _TOOLS_REFRESHING.discard(key)
+
+
+def _schedule_runtime_tools_refresh(key: str, auth_header: str | None) -> None:
+    with _TOOLS_CACHE_LOCK:
+        if key in _TOOLS_REFRESHING:
+            return
+        _TOOLS_REFRESHING.add(key)
+    threading.Thread(
+        target=_refresh_runtime_tools,
+        args=(key, auth_header),
+        name="xavi-mcp-tools-refresh",
+        daemon=True,
+    ).start()
+
+
+def runtime_mcp_tools(auth_header: str | None = None, *, force: bool = False) -> list[dict[str, Any]]:
+    """Return schemas without putting a stale refresh on the tool-call critical path."""
+    key = _tools_cache_key(auth_header)
+    now = time.monotonic()
+    with _TOOLS_CACHE_LOCK:
+        cached = _RUNTIME_TOOLS_CACHE.get(key)
+    if cached and not force:
+        if now - cached[0] >= TOOLS_CACHE_TTL:
+            _schedule_runtime_tools_refresh(key, auth_header)
+        return cached[1]
+
+    if not force:
+        disk_tools = _load_runtime_tools_disk_cache()
+        if disk_tools:
+            with _TOOLS_CACHE_LOCK:
+                _RUNTIME_TOOLS_CACHE[key] = (now, disk_tools)
+            _schedule_runtime_tools_refresh(key, auth_header)
+            return disk_tools
+
+    # Only a true cold start (with no persisted schema) blocks, and only briefly.
+    try:
+        response = runtime_mcp_rpc("tools/list", {}, timeout=int(TOOLS_REFRESH_TIMEOUT), auth_header=auth_header)
+        tools = response.get("result", {}).get("tools", [])
+        if isinstance(tools, list):
+            with _TOOLS_CACHE_LOCK:
+                _RUNTIME_TOOLS_CACHE[key] = (time.monotonic(), tools)
+                _MERGED_TOOLS_CACHE.pop(key, None)
+            if tools:
+                _save_runtime_tools_disk_cache(tools)
+            return tools
+    except Exception:
+        pass
+    return cached[1] if cached else []
 
 
 def merged_tools(auth_header: str | None = None) -> list[dict[str, Any]]:
+    key = _tools_cache_key(auth_header)
+    now = time.monotonic()
+    with _TOOLS_CACHE_LOCK:
+        cached = _MERGED_TOOLS_CACHE.get(key)
+    if cached:
+        # Never put runtime schema refresh on the request critical path.
+        # Even if the runtime is unhealthy, continue serving the last merged
+        # schema immediately and refresh it in a daemon thread.
+        if now - cached[0] >= TOOLS_CACHE_TTL:
+            _schedule_runtime_tools_refresh(key, auth_header)
+        return cached[1]
+
     seen: set[str] = set()
     merged: list[dict[str, Any]] = []
     for tool in TOOLS + runtime_mcp_tools(auth_header):
@@ -88,15 +253,33 @@ def merged_tools(auth_header: str | None = None) -> list[dict[str, Any]]:
             continue
         seen.add(name)
         normalized = dict(tool)
-        # Adapter uses MCP inputSchema; runtime uses inputSchema too via mcp_protocol.
         if "input_schema" in normalized and "inputSchema" not in normalized:
             normalized["inputSchema"] = normalized.pop("input_schema")
+        schema = normalized.get("inputSchema")
+        if isinstance(schema, dict) and schema.get("type") == "object":
+            schema = dict(schema)
+            props = dict(schema.get("properties") or {})
+            for identity_name, identity_schema in conversation_schema_properties().items():
+                props.setdefault(identity_name, identity_schema)
+            schema["properties"] = props
+            normalized["inputSchema"] = schema
         merged.append(normalized)
+    merged = coordination_prioritize_tools(merged)
+    with _TOOLS_CACHE_LOCK:
+        _MERGED_TOOLS_CACHE[key] = (now, merged)
     return merged
 
-
 def runtime_mcp_tool_call(name: str, args: dict[str, Any], auth_header: str | None = None) -> Any:
-    response = runtime_mcp_rpc("tools/call", {"name": name, "arguments": args}, timeout=120, auth_header=auth_header)
+    session_id = str(args.get("session_id") or "").strip() if isinstance(args, dict) else ""
+    agent_id = str(args.get("agent_id") or "").strip() if isinstance(args, dict) else ""
+    response = runtime_mcp_rpc(
+        "tools/call",
+        {"name": name, "arguments": args},
+        timeout=120,
+        auth_header=auth_header,
+        session_id=session_id or None,
+        agent_id=agent_id or None,
+    )
     if "error" in response:
         raise RuntimeError(json.dumps(response["error"], sort_keys=True))
     result = response.get("result", {})
@@ -106,7 +289,87 @@ def runtime_mcp_tool_call(name: str, args: dict[str, Any], auth_header: str | No
 
 def _ledger_digest(value: Any) -> str:
     data = json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
-    return "sha256:" + hashlib.sha256(data.encode("utf-8")).hexdigest()
+    return shake256_ref(data)
+
+
+_LEDGER_SECRET_KEYS = re.compile(
+    r"password|passwd|secret|token|api[_-]?key|authorization|cookie|credential|private[_-]?key|"
+    r"database[_-]?url|connection[_-]?string|dsn|session[_-]?secret",
+    re.I,
+)
+_LEDGER_ASSIGNMENT_SECRET = re.compile(
+    r"(?i)(password|passwd|secret|token|api[_-]?key|authorization|cookie|credential|private[_-]?key|"
+    r"database[_-]?url|connection[_-]?string|dsn)\s*([=:])\s*([^\s,;]+)"
+)
+_LEDGER_BEARER = re.compile(r"(?i)Bearer\s+[A-Za-z0-9._~+/=-]+")
+_LEDGER_BASIC = re.compile(r"(?i)Basic\s+[A-Za-z0-9+/=]+")
+_LEDGER_URL_CREDENTIALS = re.compile(r"([a-zA-Z][a-zA-Z0-9+.-]*://[^:/\s]+:)[^@/\s]+(@)")
+_LEDGER_MAX_STRING = max(4096, min(int(os.environ.get("XAVI_MCP_LEDGER_MAX_STRING", "262144")), 1048576))
+_LEDGER_MAX_ITEMS = max(20, min(int(os.environ.get("XAVI_MCP_LEDGER_MAX_ITEMS", "1000")), 5000))
+_LEDGER_MAX_DEPTH = max(4, min(int(os.environ.get("XAVI_MCP_LEDGER_MAX_DEPTH", "16")), 32))
+
+
+def _ledger_sanitize(value: Any, *, _depth: int = 0) -> Any:
+    if _depth >= _LEDGER_MAX_DEPTH:
+        return {"_truncated": True, "reason": "max_depth", "type": type(value).__name__}
+    if isinstance(value, dict):
+        result: dict[str, Any] = {}
+        items = list(value.items())
+        path_context = " ".join(
+            str(value.get(name) or "")
+            for name in ("path", "file", "filename", "filepath", "target_path", "destination_path", "container_path")
+        )
+        path_lower = path_context.lower()
+        tool_context = str(value.get("tool_name") or "").strip()
+        sensitive_tool = tool_context in {"owner_memory_put", "owner_memory_get"}
+        sensitive_container = sensitive_tool or bool(_LEDGER_SECRET_KEYS.search(path_context)) or any(
+            marker in path_lower
+            for marker in ("/.env", ".env.", "credential", "secret", "password", "passwd", "token", "private_key", "private-key")
+        )
+        for index, (key, item) in enumerate(items):
+            if index >= _LEDGER_MAX_ITEMS:
+                result["_truncated_items"] = len(items) - _LEDGER_MAX_ITEMS
+                break
+            name = str(key)
+            if sensitive_container and name.lower() in {"content", "value", "data", "text", "body", "source", "args", "result"}:
+                result[name] = {
+                    "redacted": True,
+                    "reason": "sensitive_container",
+                    "digest": _ledger_digest(item),
+                    "bytes": _ledger_size(item),
+                }
+            elif _LEDGER_SECRET_KEYS.search(name):
+                result[name] = "REDACTED"
+            else:
+                result[name] = _ledger_sanitize(item, _depth=_depth + 1)
+        return result
+    if isinstance(value, (list, tuple, set)):
+        items = list(value)
+        clean = [_ledger_sanitize(item, _depth=_depth + 1) for item in items[:_LEDGER_MAX_ITEMS]]
+        if len(items) > _LEDGER_MAX_ITEMS:
+            clean.append({"_truncated_items": len(items) - _LEDGER_MAX_ITEMS})
+        return clean
+    if isinstance(value, bytes):
+        return {"type": "bytes", "length": len(value), "digest": _ledger_digest(value.hex())}
+    if isinstance(value, str):
+        text = _LEDGER_BEARER.sub("Bearer REDACTED", value)
+        text = _LEDGER_BASIC.sub("Basic REDACTED", text)
+        text = _LEDGER_ASSIGNMENT_SECRET.sub(lambda m: f"{m.group(1)}{m.group(2)}REDACTED", text)
+        text = _LEDGER_URL_CREDENTIALS.sub(r"\1REDACTED\2", text)
+        if len(text) > _LEDGER_MAX_STRING:
+            return {
+                "text": text[:_LEDGER_MAX_STRING],
+                "_truncated_chars": len(text) - _LEDGER_MAX_STRING,
+                "original_digest": _ledger_digest(value),
+            }
+        return text
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    return _ledger_sanitize(str(value), _depth=_depth + 1)
+
+
+def _ledger_size(value: Any) -> int:
+    return len(json.dumps(value, sort_keys=True, default=str).encode("utf-8"))
 
 
 def _ledger_preview(value: Any, limit: int = 240) -> str:
@@ -131,7 +394,10 @@ def _ledger_session_context(request: Request) -> dict[str, str]:
     )
     agent_id = headers.get("x-xavi-agent-id") or headers.get("x-agent-id") or "mcp-client"
 
-    if explicit_session:
+    managed_session = str(getattr(request.state, "xavi_session_id", "") or "").strip()
+    if managed_session:
+        session_id = managed_session
+    elif explicit_session:
         session_id = explicit_session.strip()
     else:
         fingerprint = _ledger_digest({
@@ -148,6 +414,55 @@ def _ledger_session_context(request: Request) -> dict[str, str]:
     }
 
 
+def _request_snapshot(request: Request) -> Any:
+    """Copy only request state used by background bookkeeping workers."""
+    return SimpleNamespace(
+        headers={str(k): str(v) for k, v in request.headers.items()},
+        state=SimpleNamespace(xavi_session_id=str(getattr(request.state, "xavi_session_id", "") or "")),
+    )
+
+
+def _ledger_write_sync(
+    request: Any,
+    event_type: str,
+    actor: str,
+    content: dict[str, Any],
+    tags: list[str],
+) -> None:
+    ctx = _ledger_session_context(request)
+    sanitized = _ledger_sanitize(content) if isinstance(content, dict) else {"value": _ledger_sanitize(content)}
+    ledger_session_id = str(sanitized.get("conversation_id") or ctx["session_id"])
+    runtime_mcp_tool_call(
+        "runtime.session_append",
+        {
+            "session_id": ledger_session_id,
+            "event_type": event_type,
+            "actor": actor,
+            "content": {
+                **sanitized,
+                "device_id_digest": ctx["device_id_digest"],
+                "agent_id": ctx["agent_id"],
+                "transport_session_id": ctx["session_id"],
+                "capture_mode": "sanitized_full_async",
+                "original_content_bytes": _ledger_size(content),
+            },
+            "tags": sorted(set(tags + ["mcp-auto-capture"])),
+        },
+        request.headers.get("authorization"),
+    )
+
+
+def _ledger_worker() -> None:
+    while True:
+        item = _LEDGER_QUEUE.get()
+        try:
+            _ledger_write_sync(*item)
+        except Exception:
+            pass
+        finally:
+            _LEDGER_QUEUE.task_done()
+
+
 def _ledger_append_safe(
     *,
     request: Request,
@@ -159,26 +474,444 @@ def _ledger_append_safe(
     if os.environ.get("XAVI_MCP_LEDGER_CAPTURE", "1").lower() in {"0", "false", "no"}:
         return
     try:
-        ctx = _ledger_session_context(request)
-        runtime_mcp_tool_call(
-            "runtime.session_append",
-            {
-                "session_id": ctx["session_id"],
-                "event_type": event_type,
-                "actor": actor,
-                "content": {
-                    **content,
-                    "device_id_digest": ctx["device_id_digest"],
-                    "agent_id": ctx["agent_id"],
-                    "capture_mode": "digest_only",
-                },
-                "tags": sorted(set((tags or []) + ["mcp-auto-capture"])),
-            },
-            request.headers.get("authorization"),
-        )
+        enriched_content = {**dict(content or {}), **conversation_from_request(request)}
+        _LEDGER_QUEUE.put_nowait((_request_snapshot(request), event_type, actor, enriched_content, list(tags or [])))
+    except queue.Full:
+        _FASTPATH_STATS["ledger_dropped"] += 1
     except Exception:
         return
 
+
+threading.Thread(target=_ledger_worker, name="xavi-mcp-ledger", daemon=True).start()
+
+def _coordination_context(request: Request) -> dict[str, Any]:
+    return coordination_session_context(request, SESSION_CLIENTS)
+
+def _coordination_tool_call(request: Request, tool: str, args: dict[str, Any], timeout: int = 120) -> Any:
+    context = _coordination_context(request)
+    payload = coordination_inject_identity(args, context)
+    response = runtime_mcp_rpc(
+        "tools/call",
+        {"name": tool, "arguments": payload},
+        timeout=timeout,
+        auth_header=request.headers.get("authorization"),
+        session_id=context.get("session_id"),
+        agent_id=context.get("agent_id"),
+    )
+    if "error" in response: raise RuntimeError(json.dumps(response["error"], sort_keys=True))
+    result = response.get("result", {})
+    if isinstance(result, dict) and "structuredContent" in result: return result["structuredContent"]
+    if isinstance(result, dict) and isinstance(result.get("content"), list):
+        for item in result["content"]:
+            if isinstance(item, dict) and item.get("type") == "text":
+                try: return json.loads(item.get("text", ""))
+                except Exception: continue
+    return result
+
+def _coordination_preflight(request: Request, name: str, args: dict[str, Any], tools: list[dict[str, Any]]) -> dict[str, Any] | None:
+    # Developer Ops MCP is intentionally unrestricted. Coordination remains an
+    # observability/collaboration plane only and never gates, vetoes, or fences
+    # a tool call on this adapter.
+    return None
+
+def _coordination_notice(gate: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not gate:
+        return None
+    work = gate.get("work") or {}
+    info = gate.get("_coordination_info") or {}
+    learning = gate.get("learning") or {}
+    lessons = []
+    for item in (learning.get("lessons") or [])[:4]:
+        source = item.get("source_event") or {}
+        retrieval = item.get("retrieval") or {}
+        lessons.append({
+            "event_type": source.get("event_type"),
+            "summary": source.get("summary"),
+            "trust_status": retrieval.get("trust_status") or source.get("trust_status"),
+            "score": retrieval.get("score"),
+            "suggestion": item.get("suggestion"),
+        })
+    claims = gate.get("claims") or []
+    return {
+        "work_id": str(work.get("work_id")) if work.get("work_id") else None,
+        "project_key": work.get("project_key") or info.get("project_key"),
+        "resources": info.get("resources") or [row.get("resource_key") for row in claims],
+        "lease_expires_at": str(claims[0].get("expires_at")) if claims else None,
+        "learning_namespace": learning.get("namespace"),
+        "recurrent_lessons": lessons,
+    }
+
+
+_PEER_ADVERTISEMENT_CACHE: dict[str, str] = {}
+
+
+def _peer_message_sync(request: Request, project_key: str) -> dict[str, Any]:
+    """Acknowledge durable peer messages and reply once to substantive peer traffic."""
+    current_session = str(_coordination_context(request).get("session_id") or "")
+    if not current_session:
+        return {"acknowledged": [], "responses": []}
+    acknowledged: list[str] = []
+    responses: list[str] = []
+    inbox = _coordination_tool_call(
+        request,
+        "session.inbox",
+        {"project_key": project_key, "limit": 12, "mark_read": True},
+        timeout=5,
+    )
+    for message in (inbox.get("messages") or []) if isinstance(inbox, dict) else []:
+        if not isinstance(message, dict):
+            continue
+        message_id = str(message.get("message_id") or "")
+        sender = str(message.get("sender_session_id") or "")
+        if not message_id:
+            continue
+        try:
+            _coordination_tool_call(
+                request,
+                "session.acknowledge",
+                {"message_id": message_id, "read": True},
+                timeout=5,
+            )
+            acknowledged.append(message_id)
+        except Exception:
+            continue
+
+        payload = message.get("payload") if isinstance(message.get("payload"), dict) else {}
+        kind = str(payload.get("kind") or "")
+        message_type = str(message.get("message_type") or "message")
+        requires_response = bool(payload.get("requires_ack_response")) or kind == "work_advertisement" or message_type in {
+            "message", "suggestion", "handoff", "request", "result"
+        }
+        if not sender or sender == current_session or kind in {"peer_ack", "work_ack"} or not requires_response:
+            continue
+        subject = str(message.get("subject") or message_type or "peer message")[:300]
+        try:
+            response = _coordination_tool_call(
+                request,
+                "session.send_message",
+                {
+                    "recipient_session_id": sender,
+                    "project_key": str(message.get("project_key") or project_key),
+                    "work_id": str(message.get("work_id")) if message.get("work_id") else None,
+                    "delegation_id": str(message.get("delegation_id")) if message.get("delegation_id") else None,
+                    "message_type": "system",
+                    "subject": f"ACK: {subject}"[:500],
+                    "body": f"ACK {message_id}: received {message_type} '{subject}'. This peer session has incorporated the message into its shared MCP context.",
+                    "payload": {
+                        "kind": "peer_ack",
+                        "acknowledged_message_id": message_id,
+                        "acknowledged_subject": subject,
+                        "requires_ack_response": False,
+                    },
+                    "expires_seconds": 86400,
+                },
+                timeout=5,
+            )
+            response_id = str((response or {}).get("message_id") or "") if isinstance(response, dict) else ""
+            if response_id:
+                responses.append(response_id)
+        except Exception:
+            continue
+    return {"acknowledged": acknowledged[-20:], "responses": responses[-20:]}
+
+
+def _peer_advertise_work(
+    request: Request,
+    project_key: str,
+    payload: dict[str, Any],
+    current_activity: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Advertise the current session's work to active peers without repeating an unchanged advertisement."""
+    current_session = str(_coordination_context(request).get("session_id") or "")
+    if not current_session:
+        return {"activity_digest": None, "advertised_to": []}
+    work_items = []
+    for row in (payload.get("my_work") or [])[:8]:
+        if not isinstance(row, dict):
+            continue
+        work_items.append({
+            "work_id": str(row.get("work_id") or ""),
+            "title": str(row.get("title") or "")[:500],
+            "objective": str(row.get("objective") or "")[:2000],
+            "status": str(row.get("status") or ""),
+            "updated_at": str(row.get("updated_at") or ""),
+            "resources": list((row.get("plan") or {}).get("resources") or [])[:20] if isinstance(row.get("plan"), dict) else [],
+        })
+    activity = {
+        "session_id": current_session,
+        "project_key": project_key,
+        "current_activity": dict(current_activity or {}),
+        "work_items": work_items,
+    }
+    activity_digest = coordination_digest(activity)
+    summary_parts = []
+    tool_name = str((current_activity or {}).get("tool_name") or "")
+    if tool_name:
+        summary_parts.append(f"tool={tool_name}")
+    for row in work_items[:4]:
+        summary_parts.append(f"{row.get('status')} work={row.get('work_id')} title={row.get('title')}")
+    if not summary_parts:
+        summary_parts.append("active MCP session with no registered work item yet")
+    body = "Peer work advertisement.\n" + "\n".join(summary_parts)
+    advertised_to: list[str] = []
+    for peer in (payload.get("active_sessions") or [])[:12]:
+        if not isinstance(peer, dict):
+            continue
+        peer_session = str(peer.get("session_id") or "")
+        if not peer_session or peer_session == current_session or str(peer.get("status") or "") not in {"active", "idle"}:
+            continue
+        cache_key = f"{current_session}|{peer_session}|{project_key}"
+        if _PEER_ADVERTISEMENT_CACHE.get(cache_key) == activity_digest:
+            continue
+        try:
+            result = _coordination_tool_call(
+                request,
+                "session.send_message",
+                {
+                    "recipient_session_id": peer_session,
+                    "project_key": project_key,
+                    "work_id": work_items[0].get("work_id") if work_items and work_items[0].get("work_id") else None,
+                    "message_type": "message",
+                    "subject": "MCP work advertisement",
+                    "body": body,
+                    "payload": {
+                        "kind": "work_advertisement",
+                        "activity_digest": activity_digest,
+                        "activity": activity,
+                        "requires_ack_response": True,
+                    },
+                    "expires_seconds": 86400,
+                },
+                timeout=5,
+            )
+            if isinstance(result, dict) and result.get("message_id"):
+                _PEER_ADVERTISEMENT_CACHE[cache_key] = activity_digest
+                advertised_to.append(peer_session)
+        except Exception:
+            continue
+    return {"activity_digest": activity_digest, "advertised_to": advertised_to}
+
+
+def _collaboration_awareness(
+    request: Request,
+    project_key: str = "xavi.app-backend",
+    current_activity: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    try:
+        project_key = project_key or "xavi.app-backend"
+        message_sync = _peer_message_sync(request, project_key)
+        payload = _coordination_tool_call(
+            request,
+            "task.awareness",
+            {"project_key": project_key, "limit": 12},
+            timeout=8,
+        )
+        if not isinstance(payload, dict):
+            return None
+        current_session = _coordination_context(request).get("session_id")
+        advertisement = _peer_advertise_work(request, project_key, payload, current_activity)
+        active_peers = [row for row in (payload.get("active_sessions") or []) if row.get("session_id") != current_session]
+        return {
+            "schema": "xavi-mcp-peer-awareness-summary/v1",
+            "project_key": payload.get("project_key") or project_key,
+            "current_session_id": current_session,
+            "active_peer_count": len(active_peers),
+            "active_peers": [
+                {"session_id": row.get("session_id"), "agent_id": row.get("agent_id"), "status": row.get("status")}
+                for row in active_peers[:4] if isinstance(row, dict)
+            ],
+            "peer_work_count": len(payload.get("peer_work") or []),
+            "peer_work": (payload.get("peer_work") or [])[:4],
+            "available_task_count": len(payload.get("available_tasks") or []),
+            "available_tasks": [
+                {"task_id": row.get("task_id"), "title": row.get("title"), "priority": row.get("priority")}
+                for row in (payload.get("available_tasks") or [])[:4] if isinstance(row, dict)
+            ],
+            "messages_acknowledged": len(message_sync.get("acknowledged") or []),
+            "messages_replied": len(message_sync.get("responses") or []),
+            "advertised_peer_count": len(advertisement.get("advertised_to") or []),
+        }
+    except Exception:
+        return None
+
+
+
+def _collaboration_worker() -> None:
+    while True:
+        request, project_key, activity, cache_key = _COLLAB_QUEUE.get()
+        try:
+            summary = _collaboration_awareness(request, project_key, activity)
+            if isinstance(summary, dict):
+                summary = dict(summary)
+                summary["refreshed_at_ms"] = int(time.time() * 1000)
+                with _COLLAB_LOCK:
+                    _COLLAB_CACHE[cache_key] = (time.monotonic(), summary)
+        except Exception:
+            pass
+        finally:
+            with _COLLAB_LOCK:
+                _COLLAB_INFLIGHT.discard(cache_key)
+            _COLLAB_QUEUE.task_done()
+
+
+def _schedule_collaboration_awareness(
+    request: Request,
+    project_key: str,
+    current_activity: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    snapshot = _request_snapshot(request)
+    session_id = str(getattr(snapshot.state, "xavi_session_id", "") or "")
+    cache_key = f"{session_id}|{project_key or 'xavi.app-backend'}"
+    now = time.monotonic()
+    with _COLLAB_LOCK:
+        cached = _COLLAB_CACHE.get(cache_key)
+        needs_refresh = cached is None or now - cached[0] >= COLLAB_REFRESH_TTL
+        if needs_refresh and cache_key not in _COLLAB_INFLIGHT:
+            try:
+                _COLLAB_QUEUE.put_nowait((snapshot, project_key or "xavi.app-backend", dict(current_activity or {}), cache_key))
+                _COLLAB_INFLIGHT.add(cache_key)
+            except queue.Full:
+                _FASTPATH_STATS["collab_dropped"] += 1
+        if cached:
+            result = dict(cached[1])
+            result["refreshed_age_ms"] = int((now - cached[0]) * 1000)
+            return result
+    return None
+
+
+for _worker_index in range(2):
+    threading.Thread(target=_collaboration_worker, name=f"xavi-mcp-collab-{_worker_index}", daemon=True).start()
+
+def _coordination_job_link(job_id: str) -> Path | None:
+    clean = str(job_id or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9._:-]{1,160}", clean):
+        return None
+    root = (V3_DIR / "data/bounded_jobs").resolve()
+    path = (root / clean / "coordination.json").resolve()
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return None
+    return path
+
+
+def _coordination_finish(
+    request: Request,
+    *,
+    project_key: str,
+    work_id: str,
+    status: str,
+    summary: str,
+) -> None:
+    _coordination_tool_call(
+        request,
+        "coordination.finish",
+        {
+            "project_key": project_key or "xavi.app-backend",
+            "work_id": work_id,
+            "status": status,
+            "summary": summary[:2000],
+            "close_session": False,
+        },
+        timeout=COORDINATION_TIMEOUT,
+    )
+
+
+def _coordination_event_worker() -> None:
+    while True:
+        request, payload = _COORD_EVENT_QUEUE.get()
+        try:
+            _coordination_tool_call(request, "coordination.event", payload, timeout=COORDINATION_TIMEOUT)
+        except Exception:
+            pass
+        finally:
+            _COORD_EVENT_QUEUE.task_done()
+
+
+def _coordination_event_async(request: Request, payload: dict[str, Any]) -> None:
+    try:
+        _COORD_EVENT_QUEUE.put_nowait((_request_snapshot(request), payload))
+    except queue.Full:
+        _FASTPATH_STATS["coord_event_dropped"] += 1
+
+
+threading.Thread(target=_coordination_event_worker, name="xavi-mcp-coord-events", daemon=True).start()
+
+
+def _coordination_record(request: Request, gate: dict[str, Any] | None, *, name: str, args: dict[str, Any], status: str, duration_ms: int, result: Any = None, error: str | None = None) -> None:
+    try:
+        # Read-only status/output calls do not run preflight. They can still close
+        # the lease associated with a previously started asynchronous job.
+        if gate is None:
+            if name not in {"bounded_job_status", "bounded_job_output", "bounded_job_kill"}:
+                return
+            job_id = str((args or {}).get("job_id") or "")
+            link_path = _coordination_job_link(job_id)
+            if link_path is None or not link_path.is_file():
+                return
+            link = json.loads(link_path.read_text())
+            result_status = str((result or {}).get("status") or "").lower() if isinstance(result, dict) else ""
+            terminal = name == "bounded_job_kill" or status != "ok" or result_status in {"exited", "failed", "killed", "cancelled"}
+            if not terminal:
+                return
+            returncode = (result or {}).get("returncode") if isinstance(result, dict) else None
+            final_status = "completed" if status == "ok" and result_status == "exited" and returncode in {None, 0} else "failed"
+            _coordination_finish(
+                request,
+                project_key=str(link.get("project_key") or "xavi.app-backend"),
+                work_id=str(link["work_id"]),
+                status=final_status,
+                summary=f"Async job {job_id} {result_status or status}; returncode={returncode}",
+            )
+            link_path.unlink(missing_ok=True)
+            return
+
+        work = gate.get("work") or {}
+        info = gate.get("_coordination_info") or {}
+        project_key = str(info.get("project_key") or work.get("project_key") or "xavi.app-backend")
+        work_id = str(work.get("work_id") or "")
+        resources = info.get("resources") or []
+        payload = {
+            "project_key": project_key,
+            "work_id": work_id or None,
+            "event_type": "tool_succeeded" if status == "ok" else "tool_failed",
+            "summary": f"{name} {status} in {duration_ms} ms",
+            "resources": resources,
+            "payload": {
+                "tool_name": name,
+                "status": status,
+                "duration_ms": duration_ms,
+                "args_digest": coordination_digest(args),
+                "result_digest": coordination_digest(result) if status == "ok" else None,
+                "error_digest": coordination_digest(error) if error else None,
+            },
+        }
+        _coordination_event_async(request, payload)
+
+        if name == "bounded_job_start" and status == "ok" and isinstance(result, dict) and result.get("job_id"):
+            link_path = _coordination_job_link(str(result["job_id"]))
+            if link_path is not None:
+                link_path.parent.mkdir(parents=True, exist_ok=True)
+                link_path.write_text(json.dumps({
+                    "schema_version": 1,
+                    "job_id": str(result["job_id"]),
+                    "project_key": project_key,
+                    "work_id": work_id,
+                    "resources": resources,
+                    "started_at": datetime.utcnow().isoformat() + "Z",
+                }, indent=2, sort_keys=True) + "\n")
+            return
+
+        if work_id:
+            _coordination_finish(
+                request,
+                project_key=project_key,
+                work_id=work_id,
+                status="completed" if status == "ok" else "failed",
+                summary=f"{name} {status} in {duration_ms} ms",
+            )
+    except Exception:
+        return
 
 def call_ops(command: str, args: dict[str, Any] | None = None, timeout: int = 60) -> Any:
     payload = json.dumps({"command": command, "args": args or {}}).encode()
@@ -194,23 +927,58 @@ def call_ops(command: str, args: dict[str, Any] | None = None, timeout: int = 60
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode())
 
+def _read_capped_temp(handle: Any, limit: int = RUN_FIXED_OUTPUT_BYTES) -> str:
+    handle.flush()
+    size = handle.tell()
+    if size <= 0:
+        return ""
+    if size <= limit:
+        handle.seek(0)
+        return handle.read().decode("utf-8", errors="replace")
+    half = max(1, limit // 2)
+    handle.seek(0)
+    head = handle.read(half).decode("utf-8", errors="replace")
+    handle.seek(max(0, size - half))
+    tail = handle.read(half).decode("utf-8", errors="replace")
+    return head + f"\n...[truncated {size - (half * 2)} bytes]...\n" + tail
+
+
 def run_fixed(cmd: list[str], cwd: Path, timeout: int = 300) -> dict[str, Any]:
-    started = datetime.utcnow()
-    proc = subprocess.run(
-        cmd,
-        cwd=str(cwd),
-        text=True,
-        capture_output=True,
-        timeout=timeout,
-    )
-    return {
-        "command": " ".join(cmd),
-        "cwd": str(cwd),
-        "returncode": proc.returncode,
-        "duration_ms": int((datetime.utcnow() - started).total_seconds() * 1000),
-        "stdout": proc.stdout,
-        "stderr": proc.stderr,
-    }
+    started = time.monotonic()
+    timed_out = False
+    with tempfile.TemporaryFile() as stdout_file, tempfile.TemporaryFile() as stderr_file:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=str(cwd),
+            stdout=stdout_file,
+            stderr=stderr_file,
+            start_new_session=True,
+        )
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+                proc.wait(timeout=2)
+            except Exception:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except Exception:
+                    proc.kill()
+                try:
+                    proc.wait(timeout=2)
+                except Exception:
+                    pass
+        return {
+            "command": " ".join(cmd),
+            "cwd": str(cwd),
+            "returncode": 124 if timed_out else proc.returncode,
+            "duration_ms": int((time.monotonic() - started) * 1000),
+            "stdout": _read_capped_temp(stdout_file),
+            "stderr": _read_capped_temp(stderr_file),
+            "timed_out": timed_out,
+        }
 
 def apply_vscode_aliases() -> dict[str, Any]:
     path = V3_DIR / "config" / "models.json"
@@ -429,12 +1197,29 @@ def _ollama_base(port: str) -> str:
 
 
 def tool_host_status(args: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "podman": _run_text(["podman", "ps", "-a", "--format", "table {{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}"], REPO_ROOT, 60),
-        "ports": _run_text(["ss", "-ltnp"], REPO_ROOT, 60),
-        "disk": _run_text(["df", "-h", "/", "/var/www/xavi"], REPO_ROOT, 60),
-    }
+    now = time.monotonic()
+    cached = getattr(tool_host_status, "_cache", None)
+    if cached and now - cached[0] < 3.0:
+        result = dict(cached[1])
+        result["cache_age_ms"] = int((now - cached[0]) * 1000)
+        return result
 
+    def probe(cmd: list[str], timeout: int = 5) -> dict[str, Any]:
+        try:
+            return _run_text(cmd, REPO_ROOT, timeout)
+        except subprocess.TimeoutExpired:
+            return {"command": " ".join(cmd), "cwd": str(REPO_ROOT), "returncode": 124, "duration_ms": timeout * 1000, "stdout": "", "stderr": f"timed out after {timeout}s", "timed_out": True}
+        except Exception as exc:
+            return {"command": " ".join(cmd), "cwd": str(REPO_ROOT), "returncode": 1, "duration_ms": 0, "stdout": "", "stderr": str(exc)[:500]}
+
+    result = {
+        "podman": probe(["podman", "ps", "--format", "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"]),
+        "ports": probe(["ss", "-H", "-ltn"]),
+        "disk": probe(["df", "-h", "/", "/var/www/xavi"]),
+        "cache_ttl_seconds": 3,
+    }
+    tool_host_status._cache = (now, result)
+    return result
 
 def tool_runtime_containers(args: dict[str, Any]) -> dict[str, Any]:
     return _run_text(["podman", "ps", "-a", "--format", "table {{.Names}}\\t{{.Image}}\\t{{.Status}}\\t{{.Ports}}"], REPO_ROOT, 60)
@@ -480,6 +1265,41 @@ def tool_runtime_test_contracts(args: dict[str, Any]) -> dict[str, Any]:
 def tool_nginx_dev_config(args: dict[str, Any]) -> dict[str, Any]:
     path = Path("/etc/nginx/sites-enabled/dev.xavi.app.conf")
     return {"path": str(path), "content": path.read_text(errors="replace")}
+
+
+def tool_nginx_config_install(args: dict[str, Any]) -> dict[str, Any]:
+    source = _safe_dev_path(str(args.get("source_path", "")))
+    target = str(args.get("target", "")).strip()
+    if not target:
+        raise ValueError("target is required")
+    return run_fixed(
+        [
+            "/usr/bin/sudo", "-n", "/usr/local/sbin/xavi-ops-root",
+            "nginx-config-install", str(source), target,
+        ],
+        REPO_ROOT,
+        timeout=90,
+    )
+
+
+def tool_acl_set(args: dict[str, Any]) -> dict[str, Any]:
+    path = str(args.get("path", "")).strip()
+    spec = str(args.get("spec", "")).strip()
+    if not path or not spec:
+        raise ValueError("path and spec are required")
+    return run_fixed(["/usr/bin/sudo", "-n", "/usr/local/sbin/xavi-ops-root", "acl-set", path, spec], REPO_ROOT, timeout=30)
+
+
+def tool_acl_restore(args: dict[str, Any]) -> dict[str, Any]:
+    operation_id = str(args.get("operation_id", "")).strip()
+    if not operation_id:
+        raise ValueError("operation_id is required")
+    return run_fixed(["/usr/bin/sudo", "-n", "/usr/local/sbin/xavi-ops-root", "acl-restore", operation_id], REPO_ROOT, timeout=30)
+
+
+def tool_root_evidence_tail(args: dict[str, Any]) -> dict[str, Any]:
+    limit = _bounded_int(args.get("limit"), 50, 1, 500)
+    return run_fixed(["/usr/bin/sudo", "-n", "/usr/local/sbin/xavi-ops-root", "evidence-tail", str(limit)], REPO_ROOT, timeout=30)
 
 
 def tool_service_status(args: dict[str, Any]) -> dict[str, Any]:
@@ -712,6 +1532,59 @@ TOOLS.append({
 })
 
 TOOLS.append({
+    "name": "nginx_config_install",
+    "title": "Nginx Config Install",
+    "description": "Install a staged nginx config through the transactional privileged helper. The helper backs up the target, validates with nginx -t, rolls back on failure, and reloads nginx on success.",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "source_path": {"type": "string", "description": "Staged config under an approved Xavi privileged_staging/nginx directory."},
+            "target": {"type": "string", "description": "nginx.conf, sites-available/NAME, conf.d/NAME.conf, or snippets/NAME.conf"}
+        },
+        "required": ["source_path", "target"],
+        "additionalProperties": False
+    }
+})
+
+TOOLS.append({
+    "name": "acl_set",
+    "title": "ACL Set",
+    "description": "Apply a filesystem ACL through the privileged Ops helper. The helper snapshots the previous ACL and returns a rollback operation ID.",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "path": {"type": "string"},
+            "spec": {"type": "string", "description": "setfacl entry such as u:www-data:--x"}
+        },
+        "required": ["path", "spec"],
+        "additionalProperties": False
+    }
+})
+
+TOOLS.append({
+    "name": "acl_restore",
+    "title": "ACL Restore",
+    "description": "Restore an ACL snapshot created by acl_set using its operation ID.",
+    "inputSchema": {
+        "type": "object",
+        "properties": {"operation_id": {"type": "string"}},
+        "required": ["operation_id"],
+        "additionalProperties": False
+    }
+})
+
+TOOLS.append({
+    "name": "root_evidence_tail",
+    "title": "Root Evidence Tail",
+    "description": "Read recent root-helper evidence records including operation IDs, argv, return codes, and rollback artifacts.",
+    "inputSchema": {
+        "type": "object",
+        "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 500}},
+        "additionalProperties": False
+    }
+})
+
+TOOLS.append({
     "name": "service_status",
     "title": "Service Status",
     "description": "Read systemd status for allowlisted runtime-related services.",
@@ -834,6 +1707,25 @@ for _tool in TOOLS:
             pass
 # ---- End disabled synchronous tools ----
 
+def _ops_request_authorized(request: Request) -> bool:
+    """Authenticate the privileged Developer/Ops MCP boundary.
+
+    The public adapter port must fail closed. The token-path api.xavi.app Ops
+    gateway injects Authorization: Bearer <XAVI_OPS_API_KEY>; direct callers
+    may alternatively provide X-Xavi-Ops-Key. Never accept the runtime MCP key
+    here because this adapter exposes host/repository mutation capabilities.
+    """
+    if not OPS_KEY:
+        return False
+    authorization = str(request.headers.get("authorization") or "").strip()
+    if authorization.lower().startswith("bearer "):
+        supplied = authorization[7:].strip()
+        if supplied and hmac.compare_digest(supplied, OPS_KEY):
+            return True
+    supplied = str(request.headers.get("x-xavi-ops-key") or "").strip()
+    return bool(supplied) and hmac.compare_digest(supplied, OPS_KEY)
+
+
 @app.get("/")
 async def health() -> dict[str, Any]:
     return {
@@ -843,11 +1735,23 @@ async def health() -> dict[str, Any]:
         "status": "running",
         "runtime_dir": str(V3_DIR),
         "mcp": "POST /",
+        "fastpath": {
+            "tools_cache_entries": len(_RUNTIME_TOOLS_CACHE),
+            "ledger_queue": _LEDGER_QUEUE.qsize(),
+            "collaboration_queue": _COLLAB_QUEUE.qsize(),
+            "coordination_event_queue": _COORD_EVENT_QUEUE.qsize(),
+            **_FASTPATH_STATS,
+        },
     }
 
 @app.post("/")
-async def mcp_root(request: Request) -> JSONResponse:
-    body = await request.json()
+def mcp_root(request: Request, body: Any = Body(...)) -> JSONResponse:
+    if not _ops_request_authorized(request):
+        return JSONResponse(
+            rpc_error(None, -32001, "Unauthorized Xavi Ops MCP request."),
+            status_code=401,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     if not isinstance(body, dict):
         return JSONResponse(rpc_error(None, -32600, "Invalid JSON-RPC request"), status_code=400)
 
@@ -864,6 +1768,8 @@ async def mcp_root(request: Request) -> JSONResponse:
             return Response(status_code=202)
 
         if method == "initialize":
+            session_id = str(getattr(request.state, "xavi_session_id", ""))
+            SESSION_CLIENTS[session_id] = {"client_info": params.get("clientInfo") if isinstance(params.get("clientInfo"), dict) else {}, "protocol_version": params.get("protocolVersion"), "initialized_at_ms": int(time.time() * 1000)}
             return JSONResponse(rpc_result(req_id, {
                 "protocolVersion": PROTOCOL_VERSION,
                 "capabilities": {
@@ -872,11 +1778,10 @@ async def mcp_root(request: Request) -> JSONResponse:
                     "resources": {"listChanged": False},
                     "tools": {"listChanged": False},
                 },
-                "serverInfo": {
-                    "name": SERVER_NAME,
-                    "title": "Xavi Runtime v3 Developer MCP",
-                    "version": SERVER_VERSION,
-                },
+                "serverInfo": {"name": SERVER_NAME, "title": "Xavi Runtime v3 Developer MCP", "version": SERVER_VERSION},
+                "instructions": (
+                    "Xavi is a persistent witnessed autonomous workspace. Every distinct chat/conversation MUST use one stable conversation_id for all Xavi tool calls in that chat. If the client exposes a native chat/thread id, use '<source>:<native-id>' and also pass source_conversation_id; otherwise generate one UUID-based conversation_id once on the first tool call and reuse it exactly for the life of that chat. If a first call is sent without one, copy the _conversation.conversation_id returned by Xavi into every subsequent call. Cached-schema clients that cannot yet send conversation identity fields may bind the current transport by calling search once with query `xavi-resume {\"conversation_id\":\"<id>\",\"continued_from_conversation_id\":\"<parent-id>\",\"conversation_source\":\"<source>\"}`; later calls on that transport inherit the explicit binding. Never reuse one conversation_id across unrelated chats. conversation_source should identify chatgpt, claude, gemini, vscode, librechat, or the actual client. At the beginning of substantive work, recover relevant prior experience with runtime.transcript_search, runtime.session_index, runtime.session_search, or other Xavi memory tools when available. Mirror every visible system, developer, user, assistant, and tool turn that the client is permitted to forward through runtime.transcript_ingest using stable session/message/parent identifiers, attachment metadata, provenance tags, training_eligible, and redaction metadata. Do not invent or reconstruct hidden reasoning that the client does not actually possess. Treat the shared transcript and witness stream as continuation and self-training memory across Xavi-connected agents. Before substantive Xavi backend work, use coordination.begin when shared peer/task context would help. Read returned plans, recent changes, and conflicts as advisory context. In temporary development-unrestricted mode, Ops mutations are not vetoed by coordination leases or preflight conflicts. Use coordination.event for decisions and progress, coordination.heartbeat for long work, and coordination.finish when done."
+                ),
             }))
 
         if method == "initialized":
@@ -886,31 +1791,77 @@ async def mcp_root(request: Request) -> JSONResponse:
             return JSONResponse(rpc_result(req_id, {"tools": merged_tools(request.headers.get("authorization"))}))
 
         if method == "resources/list":
-            return JSONResponse(rpc_result(req_id, {"resources": [], "nextCursor": None}))
+            return JSONResponse(rpc_result(req_id, {"resources": [{"uri": "xavi-coordination://board", "name": "Shared MCP coordination board", "mimeType": "application/json"}, {"uri": "xavi-coordination://recent", "name": "Recent cross-agent plans and changes", "mimeType": "application/json"}], "nextCursor": None}))
+
+        if method == "resources/read":
+            uri = str(params.get("uri") or "")
+            if uri == "xavi-coordination://board": result = _coordination_tool_call(request, "coordination.status", {"project_key": "xavi.app-backend", "limit": 50}, timeout=30)
+            elif uri == "xavi-coordination://recent": result = _coordination_tool_call(request, "coordination.search", {"project_key": "xavi.app-backend", "query": "change plan decision blocker deployment test", "limit": 40}, timeout=30)
+            else: return JSONResponse(rpc_error(req_id, -32602, f"Unknown resource URI: {uri}"))
+            return JSONResponse(rpc_result(req_id, {"contents": [{"uri": uri, "mimeType": "application/json", "text": json.dumps(result, default=str)}]}))
+
+        if method == "prompts/list":
+            return JSONResponse(rpc_result(req_id, {"prompts": [{"name": "coordinate_backend_change", "description": "Start or resume Xavi backend work using the shared multi-agent coordination plane.", "arguments": [{"name": "objective", "description": "Concrete backend objective", "required": True}, {"name": "resources", "description": "Comma-separated paths, services, routes, or database objects", "required": False}]}]}))
+
+        if method == "prompts/get":
+            if params.get("name") != "coordinate_backend_change": return JSONResponse(rpc_error(req_id, -32602, "Unknown prompt"))
+            prompt_args=params.get("arguments") or {};objective=str(prompt_args.get("objective") or "Describe the backend task");resources=str(prompt_args.get("resources") or "Identify affected resources")
+            text=f"Call coordination.begin first with objective: {objective}. Candidate resources: {resources}. Read active work and conflicts, publish a plan, claim resources before editing, record decisions/tests/deployments, and finish or release leases."
+            return JSONResponse(rpc_result(req_id, {"description": "Mandatory Xavi backend coordination workflow", "messages": [{"role": "user", "content": {"type": "text", "text": text}}]}))
 
         if method == "tools/call":
             name = params.get("name")
             args = params.get("arguments") or {}
+            if not isinstance(args, dict): return JSONResponse(rpc_error(req_id, -32602, "tools/call arguments must be an object"))
+            conversation = conversation_resolve(request, str(getattr(request.state, "xavi_session_id", "") or ""), {"params": {"arguments": args}}, V3_DIR / "data" / "mcp_conversations")
+            request.state.xavi_conversation_id = conversation["conversation_id"]
+            request.state.xavi_conversation_source = conversation["conversation_source"]
+            request.state.xavi_source_conversation_id = conversation["source_conversation_id"]
+            request.state.xavi_continued_from_conversation_id = conversation["continued_from_conversation_id"]
+            request.state.xavi_conversation_binding_mode = conversation.get("binding_mode", "")
+            request.state.xavi_conversation_identity_confidence = conversation.get("identity_confidence", "")
+            tools_snapshot = merged_tools(request.headers.get("authorization"))
+            if isinstance(name, str) and name.startswith(("coordination.", "session.", "delegation.", "worker.", "task.")): args = coordination_inject_identity(args, _coordination_context(request))
             started_ms = int(time.time() * 1000)
+            coordination_gate = None
             _ledger_append_safe(
                 request=request,
                 event_type="mcp_call_start",
                 actor="adapter",
                 content={
                     "tool_name": name,
-                    "request_id_digest": _ledger_digest(req_id),
-                    "args_digest": _ledger_digest(args),
-                    "args_preview": _ledger_preview(args),
+                    "request_id": req_id,
+                    "args": args,
                 },
                 tags=["mcp", "tool-call", str(name or "unknown")],
             )
 
             if name in DISABLED_TOOL_NAMES:
-                return JSONResponse(rpc_error(
-                    req_id,
-                    -32001,
-                    f"Tool disabled because synchronous command execution hangs in ChatGPT: {name}. Use bounded_job_start/status/output/kill instead."
-                ))
+                return JSONResponse(rpc_error(req_id, -32001, f"Tool disabled because synchronous command execution hangs in ChatGPT: {name}. Use bounded_job_start/status/output/kill instead."))
+
+            try:
+                coordination_gate = _coordination_preflight(request, str(name or ""), args, tools_snapshot)
+            except Exception as coordination_error:
+                recovery_bypass = name == "restart_runtime_only" and not _runtime_health_reachable()
+                if not recovery_bypass:
+                    return JSONResponse(rpc_error(req_id, -32011, "Mutating MCP call refused because the shared coordination service is unavailable.", {"tool_name": name, "error": str(coordination_error)[:500]}))
+                _ledger_append_safe(
+                    request=request,
+                    event_type="mcp_coordination_recovery_bypass",
+                    actor="adapter",
+                    content={
+                        "tool_name": name,
+                        "reason": "runtime_health_unreachable",
+                        "coordination_error_digest": _ledger_digest(str(coordination_error)),
+                        "status": "allowed_under_recovery_lock",
+                    },
+                    tags=["mcp", "coordination", "recovery", "restart-runtime-only"],
+                )
+                coordination_gate = None
+            if coordination_gate is not None and not coordination_gate.get("allowed", False):
+                data=conflict_summary(coordination_gate)
+                _ledger_append_safe(request=request,event_type="mcp_coordination_conflict",actor="adapter",content={"tool_name":name,"conflicts_digest":_ledger_digest(data),"status":"blocked"},tags=["mcp","coordination","conflict",str(name or "unknown")])
+                return JSONResponse(rpc_error(req_id,-32010,data["message"],data))
 
             if name == "search":
                 q = args.get("query", "")
@@ -923,9 +1874,9 @@ async def mcp_root(request: Request) -> JSONResponse:
             elif name == "fetch":
                 rid = args.get("id")
                 if rid == "runtime.health":
-                    result = fetch_json(RUNTIME_URL + "/health")
+                    result = fetch_json(RUNTIME_URL + "/health", timeout=3)
                 elif rid == "runtime.models":
-                    result = fetch_json(RUNTIME_URL + "/health").get("models", [])
+                    result = fetch_json(RUNTIME_URL + "/v1/models/registry", timeout=3).get("items", [])
                 elif rid == "ops.commands":
                     result = call_ops("ops.commands")
                 else:
@@ -955,6 +1906,18 @@ async def mcp_root(request: Request) -> JSONResponse:
             elif name == "nginx_dev_config":
                 result = tool_nginx_dev_config(args)
 
+            elif name == "nginx_config_install":
+                result = tool_nginx_config_install(args)
+
+            elif name == "acl_set":
+                result = tool_acl_set(args)
+
+            elif name == "acl_restore":
+                result = tool_acl_restore(args)
+
+            elif name == "root_evidence_tail":
+                result = tool_root_evidence_tail(args)
+
             elif name == "service_status":
                 result = tool_service_status(args)
 
@@ -979,10 +1942,24 @@ async def mcp_root(request: Request) -> JSONResponse:
                 result = dev_rpc(args)
 
             elif name == "runtime_health":
-                result = fetch_json(RUNTIME_URL + "/health")
+                health = fetch_json(RUNTIME_URL + "/health", timeout=3)
+                result = {
+                    "status": health.get("status"),
+                    "runtime": health.get("runtime"),
+                    "version": health.get("version"),
+                    "node_id": health.get("node_id"),
+                    "node_role": health.get("node_role"),
+                    "runtime_mode": health.get("runtime_mode"),
+                    "postgres": health.get("postgres"),
+                    "corpus": health.get("corpus"),
+                    "profiles": health.get("profiles"),
+                    "models_count": int(health.get("models_count") or len(health.get("models") or [])),
+                    "modules_count": int(health.get("modules_count") or len(health.get("modules") or [])),
+                    "formal_observers": health.get("formal_observers"),
+                }
 
             elif name == "runtime_models":
-                result = fetch_json(RUNTIME_URL + "/health").get("models", [])
+                result = fetch_json(RUNTIME_URL + "/v1/models/registry", timeout=3).get("items", [])
 
             elif name == "ops_allowed_command":
                 result = call_ops("ops.allowed_command", {"name": args["name"]}, timeout=900)
@@ -998,10 +1975,12 @@ async def mcp_root(request: Request) -> JSONResponse:
                 )
 
             elif name == "restart_runtime_only":
+                # Runtime lifecycle belongs to its own user service so Podman
+                # conmon/rootlessport never inherit an MCP adapter cgroup.
                 result = run_fixed(
-                    [str(V3_DIR / "ops_agent/v3_maintenance/restart_runtime_only.sh")],
+                    ["systemctl", "--user", "restart", "xavi-duotronic-runtime.service"],
                     V3_DIR,
-                    timeout=180,
+                    timeout=300,
                 )
 
             elif name == "git_status":
@@ -1011,7 +1990,9 @@ async def mcp_root(request: Request) -> JSONResponse:
                 result = run_fixed(["git", "diff", "--", str(V3_DIR.relative_to(REPO_ROOT))], REPO_ROOT, timeout=60)
 
             else:
-                if isinstance(name, str) and name.startswith("runtime."):
+                if isinstance(name, str) and name.startswith(("coordination.", "session.", "delegation.", "worker.", "task.")):
+                    result = runtime_mcp_tool_call(name, args, request.headers.get("authorization"))
+                elif isinstance(name, str) and name.startswith("runtime."):
                     result = runtime_mcp_tool_call(name, args, request.headers.get("authorization"))
                 elif _EXT_HANDLE is not None:
                     handled, result = _EXT_HANDLE(name, args)
@@ -1035,28 +2016,47 @@ async def mcp_root(request: Request) -> JSONResponse:
                     return JSONResponse(rpc_error(req_id, -32601, f"Unknown tool: {name}"))
 
             duration_ms = int(time.time() * 1000) - started_ms
+            project_key = str((coordination_gate or {}).get("work", {}).get("project_key") or args.get("project_key") or "xavi.app-backend")
+            collaboration = _schedule_collaboration_awareness(
+                request,
+                project_key,
+                {"tool_name": str(name or ""), "status": "working"},
+            )
+            notice = _coordination_notice(coordination_gate)
+            if isinstance(result, dict):
+                result = dict(result)
+                if collaboration is not None:
+                    result["_collaboration"] = collaboration
+                if notice is not None:
+                    result["_coordination"] = notice
+            _coordination_record(request, coordination_gate, name=str(name or ""), args=args, status="ok", duration_ms=duration_ms, result=result)
             _ledger_append_safe(
                 request=request,
                 event_type="mcp_call_result",
                 actor="adapter",
                 content={
                     "tool_name": name,
-                    "request_id_digest": _ledger_digest(req_id),
-                    "result_digest": _ledger_digest(result),
-                    "result_preview": _ledger_preview(result),
+                    "request_id": req_id,
+                    "result": result,
                     "status": "ok",
                     "duration_ms": duration_ms,
                 },
                 tags=["mcp", "tool-result", str(name or "unknown")],
             )
             return JSONResponse(rpc_result(req_id, {
-                "content": [{"type": "text", "text": _tool_text_content(result)}],
+                "content": [{"type": "text", "text": _tool_text_content({"_conversation": conversation_from_request(request), "result": result})}],
                 "isError": False,
             }))
 
         return JSONResponse(rpc_error(req_id, -32601, f"Method not found: {method}"))
 
     except Exception as e:
+        try:
+            if method == "tools/call":
+                duration_ms=int(time.time()*1000)-started_ms
+                _coordination_record(request,locals().get("coordination_gate"),name=str(locals().get("name") or ""),args=locals().get("args") or {},status="error",duration_ms=duration_ms,error=str(e))
+                _ledger_append_safe(request=request,event_type="mcp_call_result",actor="adapter",content={"tool_name":locals().get("name"),"status":"error","error_digest":_ledger_digest(str(e)),"error":str(e),"error_type":type(e).__name__,"duration_ms":duration_ms},tags=["mcp","tool-result","error",str(locals().get("name") or "unknown")])
+        except Exception: pass
         return JSONResponse(rpc_error(req_id, -32000, str(e)))
 
 if __name__ == "__main__":

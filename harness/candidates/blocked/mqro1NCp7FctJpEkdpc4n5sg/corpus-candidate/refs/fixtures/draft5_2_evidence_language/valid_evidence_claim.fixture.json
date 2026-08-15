@@ -1,0 +1,24 @@
+{
+  "authority_scope": "diagnostic",
+  "claim_id": "claim:fixture:temperature-observed",
+  "claim_kind": "observation",
+  "claim_object": 21.4,
+  "claim_status": "observed",
+  "confidence": 0.99,
+  "created_at": "2026-05-11T00:00:00Z",
+  "delegation_chain_id": null,
+  "epistemic_status": "observed",
+  "evidence_refs": [
+    "artifact:fixture:sensor-log-1"
+  ],
+  "force_indicator": "assert",
+  "issuer_principal_id": "principal:fixture:test-runner",
+  "metadata": {},
+  "non_collapse_state_id": "state:fixture:observed",
+  "policy_decision_id": "policy:fixture:allow-observation",
+  "pragmatic_context_id": "pragmatic:fixture:test",
+  "predicate": "observed_temperature_c",
+  "runtime_mode": "test",
+  "schema_version": "evidence_claim/v1",
+  "subject_ref": "sensor:fixture:1"
+}

@@ -1,0 +1,70 @@
+version: "3.8"
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    environment:
+      POSTGRES_USER: duotronic_sandbox
+      POSTGRES_PASSWORD: duotronic_sandbox_ephemeral
+      POSTGRES_DB: duotronic_sandbox
+    networks: [runtime-isolated]
+    tmpfs:
+      - /var/lib/postgresql/data:rw,nosuid,nodev,size=1024m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U duotronic_sandbox -d duotronic_sandbox"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    restart: "no"
+  redis:
+    image: docker.io/library/redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks: [runtime-isolated]
+    tmpfs:
+      - /data:rw,nosuid,nodev,size=256m
+    restart: "no"
+  runtime-candidate:
+    image: localhost/duotronic-runtime-candidate:dev
+    read_only: true
+    userns_mode: keep-id
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges"]
+    pids_limit: 512
+    mem_limit: 4g
+    cpus: 4
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+    environment:
+      APP_ENV: sandbox
+      DATABASE_URL: postgresql://duotronic_sandbox:duotronic_sandbox_ephemeral@postgres:5432/duotronic_sandbox
+      CORPUS_DIR: /runtime/corpus
+      CORPUS_HISTORY_DIR: /runtime/corpus-history
+      ACTIVE_WITNESS_CONTRACT_STATE: /runtime/config/active_witness_contract.json
+      RUNTIME_DATA_DIR: /runtime/data
+      WG_RNN_RUNTIME_MODE: sandbox
+      NLA_POLICY_MODE: audit_only
+      NLA_ALLOW_INFLUENCE_RESPONSE: "0"
+      NLA_ALLOW_MEMORY_WRITE: "0"
+      NLA_ALLOW_PROMOTE_WITNESS: "0"
+      OLLAMA_ENABLED: "0"
+      LLAMA_CPP_ENABLED: "0"
+      MILVUS_ENABLED: "0"
+      XAVI_MCP_ENABLED: "0"
+      XAVI_MCP_REPO_TOOLS_ENABLED: "0"
+      XAVI_OPS_ENABLED: "0"
+      CODE_INTERPRETER_ENABLED: "0"
+      XAVI_TOOLS_ENABLED: "0"
+    volumes:
+      - ./corpus-candidate:/runtime/corpus:ro
+      - ./:/runtime/corpus-history:ro
+      - ./sandbox-config:/runtime/config:ro
+      - ./runtime-data:/runtime/data:rw
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks: [runtime-isolated]
+    restart: "no"
+networks:
+  runtime-isolated:
+    internal: true

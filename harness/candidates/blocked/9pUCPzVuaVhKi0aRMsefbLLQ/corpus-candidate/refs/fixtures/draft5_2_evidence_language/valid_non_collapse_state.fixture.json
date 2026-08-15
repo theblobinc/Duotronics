@@ -1,0 +1,12 @@
+{
+  "authority_class": "diagnostic",
+  "claim_id": "claim:fixture:temperature-observed",
+  "collapse_status": "not_collapsed",
+  "created_at": "2026-05-11T00:00:00Z",
+  "external_witness_ref": "artifact:fixture:sensor-log-1",
+  "may_collapse_to": [],
+  "primitive_category": "observation",
+  "schema_version": "non_collapse_state/v1",
+  "state_id": "state:fixture:observed",
+  "state_kind": "epistemic_state"
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "duotronic://schemas/external-gate-evidence/v2",
+  "title": "Duotronic external activation gate evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "contract_version", "gate_id", "subject_id", "issuer_id", "key_id",
+    "challenge_id", "replay_nonce", "source_instance_id", "provenance",
+    "cryptographic_profile", "profile_registry_id", "issued_at", "expires_at",
+    "claims", "probe", "authority_profile", "authority_namespace",
+    "evidence_environment", "production_eligible", "signed_payload_shake256_512",
+    "signature_suite", "signature_base64url"
+  ],
+  "properties": {
+    "schema": {"const": "duotronic-external-gate-evidence/v2"},
+    "contract_version": {"type": "string", "pattern": "^v1\\.6-draft-[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "gate_id": {"type": "string", "minLength": 1},
+    "subject_id": {"type": "string", "minLength": 1},
+    "issuer_id": {"type": "string", "minLength": 1},
+    "key_id": {"type": "string", "pattern": "^duoid:shake256-512:"},
+    "challenge_id": {"type": "string", "pattern": "^duoid:shake256-512:"},
+    "replay_nonce": {"type": "string", "pattern": "^duoid:shake256-512:"},
+    "source_instance_id": {"type": "string", "pattern": "^duoid:shake256-512:"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_kind", "isolation", "measurement_id", "probe_run_id", "independent_key"],
+      "properties": {
+        "source_kind": {"const": "independent-sandbox-external-attestor"},
+        "isolation": {"const": "distinct-rootless-podman-attestor"},
+        "measurement_id": {"type": "string", "pattern": "^duoid:shake256-512:"},
+        "probe_run_id": {"type": "string", "minLength": 1},
+        "independent_key": {"const": true}
+      }
+    },
+    "cryptographic_profile": {"const": "duotronic-pq-2026.1"},
+    "profile_registry_id": {"type": "string", "pattern": "^duoid:shake256-512:"},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "claims": {"type": "object"},
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "exit_code", "result_id"],
+      "properties": {
+        "run_id": {"type": "string", "minLength": 1},
+        "exit_code": {"type": "integer"},
+        "result_id": {"type": "string", "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"}
+      }
+    },
+    "authority_profile": {"enum": ["sandbox-test-only", "production"]},
+    "authority_namespace": {"type": "string", "minLength": 1},
+    "evidence_environment": {"type": "string", "minLength": 1},
+    "production_eligible": {"type": "boolean"},
+    "signed_payload_shake256_512": {"type": "string", "pattern": "^[0-9a-f]{128}$"},
+    "signature_suite": {"const": "ML-DSA-87"},
+    "signature_base64url": {"type": "string", "pattern": "^[A-Za-z0-9_-]{6170}$"}
+  }
+}

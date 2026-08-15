@@ -1,0 +1,14 @@
+Duotronic Witness Contract v1.6 Draft 5.3.8 — Generated Validation Summary
+Status: non-authoritative portable conformance corpus; permanently not frozen
+Supported Python versions: 3.12 and 3.13
+Validated Python version: 3.12.13
+Count source: unittest.TestResult
+Draft 5.3.7 baseline: 154 tests discovered
+Tests discovered: 195
+Tests passed: 195
+Tests skipped: 0
+Warning output lines: 0
+Theorem authority: disabled
+Promotion authority: disabled
+Release authority: disabled
+External activation gates complete: 0 of 8

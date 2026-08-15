@@ -1,0 +1,24 @@
+{
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled",
+  "base_version": "v1.6-draft-5.3.14",
+  "change_id": "scr:v1.6-draft-5.3.15",
+  "changes": [
+    "require an independently protected monotonic audit anchor and reject coordinated restoration of local log and checkpoint state",
+    "require governance-signed genesis authorization and verified predecessor seal/checkpoint/anchor evidence for successor segments",
+    "reserve terminal-seal record and byte capacity before accepting normal events",
+    "move durable publication behind a separately supervised publisher boundary with deterministic event identifiers and signed receipts",
+    "reject oversized logs by fstat before allocation and verify accepted logs using bounded streaming reads",
+    "clean failed checkpoint temporaries and provide governance-authorized signed recovery evidence for dangling signed records",
+    "govern audit and anchor key scope validity status revocation rotation and historical verification through signed registries",
+    "enforce complete audit storage ancestry ownership mode and no-follow policy",
+    "terminate and reap validator workers escaped descendants and nested children on SIGTERM or SIGINT",
+    "execute both real production loaders after setgid and setuid using a distinct publisher identity and private-parent SQLite mode",
+    "retain all eight external authority gates as independently incomplete rather than self-certifying them"
+  ],
+  "classification": "corrective_externally_anchored_separated_audit_authority_revision",
+  "freeze_policy": "permanently_not_frozen",
+  "schema_version": "spec_change_request/v1",
+  "source_review": "refs/review/v1.6_draft_5.3.15_update_checklist.md",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "target_version": "v1.6-draft-5.3.15"
+}

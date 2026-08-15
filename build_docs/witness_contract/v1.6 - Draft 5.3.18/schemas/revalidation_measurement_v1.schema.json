@@ -1,0 +1,79 @@
+{
+  "$id": "duotronic://schemas/revalidation_measurement/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RevalidationMeasurement/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "revalidation_measurement/v1"
+    },
+    "revalidation_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "original_measurement_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "authority_namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_profile": {
+      "enum": [
+        "sandbox-test-only",
+        "production"
+      ]
+    },
+    "production_eligible": {
+      "type": "boolean"
+    },
+    "trust_registry_snapshot_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "comparison_policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fresh_exact_result_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "fresh_stable_projection_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "stable_projection_matches": {
+      "type": "boolean"
+    },
+    "revalidation_successful": {
+      "type": "boolean"
+    },
+    "performed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verifier_principal_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "revalidation_id",
+    "original_measurement_id",
+    "authority_namespace",
+    "authority_profile",
+    "production_eligible",
+    "trust_registry_snapshot_id",
+    "comparison_policy_id",
+    "fresh_exact_result_content_id",
+    "fresh_stable_projection_content_id",
+    "stable_projection_matches",
+    "revalidation_successful",
+    "performed_at",
+    "verifier_principal_id"
+  ]
+}

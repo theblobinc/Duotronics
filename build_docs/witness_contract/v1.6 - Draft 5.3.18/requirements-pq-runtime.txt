@@ -1,0 +1,3 @@
+cryptography==46.0.0
+pqcrypto==0.3.4
+pycryptodomex==3.23.0

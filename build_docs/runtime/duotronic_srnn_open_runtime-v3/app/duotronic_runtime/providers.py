@@ -421,7 +421,7 @@ class ModelProvider:
         }
 
 
-async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, str]] | None = None) -> AsyncIterator[dict[str, Any]]:
+async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, Any]] | None = None, tools: list[dict[str, Any]] | None = None) -> AsyncIterator[dict[str, Any]]:
     """Yield normalized chunks from Ollama /api/chat streaming JSON lines."""
     base = model.get("base_url") or settings.ollama_host
     name = model.get("model") or settings.ollama_default_model
@@ -446,6 +446,7 @@ async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict
                     "top_p": 0.85,
                     "repeat_penalty": 1.08,
                 },
+                **({"tools": tools} if tools else {}),
             },
         ) as response:
             response.raise_for_status()
@@ -472,17 +473,19 @@ async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict
                 else:
                     text = str(data.get("response") or "")
                     reasoning = str(data.get("thinking") or data.get("reasoning") or "")
+                native_tool_calls = message.get("tool_calls") if isinstance(message, dict) else None
                 yield {
                     "raw": data,
                     "response_text": text,
                     "reasoning_text": reasoning,
+                    "tool_calls": native_tool_calls or [],
                     "done": bool(data.get("done")),
                     "done_reason": data.get("done_reason"),
                     "model": name,
                 }
 
 
-async def complete_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, str]] | None = None) -> dict[str, Any]:
+async def complete_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, Any]] | None = None, tools: list[dict[str, Any]] | None = None, timeout_seconds: float | None = None) -> dict[str, Any]:
     """Return one direct Ollama chat completion for OpenAI-v1-compatible clients.
 
     Use Ollama /api/chat instead of /api/generate so each model receives its
@@ -493,11 +496,12 @@ async def complete_ollama_generate(settings: Settings, *, prompt: str, model: di
     base = model.get("base_url") or settings.ollama_host
     name = model.get("model") or settings.ollama_default_model
     chat_messages = messages or [{"role": "user", "content": prompt}]
+    interactive_timeout = float(timeout_seconds) if timeout_seconds is not None else float(getattr(settings, "ollama_timeout_seconds", 180.0))
     timeout = httpx.Timeout(
-        connect=10.0,
-        read=float(getattr(settings, "ollama_timeout_seconds", 180.0)),
-        write=30.0,
-        pool=10.0,
+        connect=min(5.0, interactive_timeout),
+        read=interactive_timeout,
+        write=min(10.0, interactive_timeout),
+        pool=min(5.0, interactive_timeout),
     )
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -514,6 +518,7 @@ async def complete_ollama_generate(settings: Settings, *, prompt: str, model: di
                         "repeat_penalty": 1.08,
                     },
                 },
+                **({"tools": tools} if tools else {}),
             )
             r.raise_for_status()
             data = r.json()

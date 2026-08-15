@@ -1,0 +1,56 @@
+{
+  "$id": "https://duotronics.local/schemas/authority_supersession_v3.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "effective_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "governance_event_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "reason": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "record_type": {
+      "enum": [
+        "verifier_key",
+        "compiler_profile",
+        "promotion_gate",
+        "authority_snapshot",
+        "compiler_witness",
+        "proof_witness"
+      ]
+    },
+    "replacement_record_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "authority_supersession/v3"
+    },
+    "superseded_record_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "supersession_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "supersession_id",
+    "record_type",
+    "superseded_record_id",
+    "replacement_record_id",
+    "reason",
+    "governance_event_id",
+    "effective_at"
+  ],
+  "title": "Typed Authority Supersession v3",
+  "type": "object"
+}

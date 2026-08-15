@@ -1,0 +1,76 @@
+{
+  "$id": "https://duotronics.local/schemas/build_attestation_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attestation_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "build_invocation_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "builder_identity": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "dependency_closure_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "build_attestation/v1"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "signer_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_revision": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "subject_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "subject_type": {
+      "enum": [
+        "trusted_verifier_executable",
+        "oci_image",
+        "lean_toolchain",
+        "dependency_closure",
+        "validation_package"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "attestation_id",
+    "subject_type",
+    "subject_shake256_512",
+    "source_revision",
+    "builder_identity",
+    "build_invocation_shake256_512",
+    "dependency_closure_shake256_512",
+    "created_at",
+    "signer_key_id",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Source and Build Attestation v1",
+  "type": "object"
+}

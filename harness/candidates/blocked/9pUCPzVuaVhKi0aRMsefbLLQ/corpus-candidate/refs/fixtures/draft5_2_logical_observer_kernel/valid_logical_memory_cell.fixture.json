@@ -1,0 +1,18 @@
+{
+  "case_id": "valid_logical_memory_cell",
+  "expected_status": "pass",
+  "payload": {
+    "cell_kind": "candidate_fact",
+    "content_ref": "artifact:fixture:memory-content",
+    "created_at": "2026-05-11T00:00:00Z",
+    "evidence_claim_id": "claim:fixture:memory",
+    "logical_memory_cell_id": "memory:fixture:1",
+    "policy_decision_id": "policy:fixture:kernel",
+    "promotion_transition_id": null,
+    "purge_witness_id": null,
+    "schema_version": "logical_memory_cell/v1",
+    "snapshot_ref": null,
+    "status": "active"
+  },
+  "schema_ref": "schemas/logical_memory_cell.schema.json"
+}

@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/idempotency_cache_envelope_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authenticated_principal_id": {
+      "$ref": "#/$defs/id"
+    },
+    "cache_envelope_id": {
+      "pattern": "^cache:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "cache_key_validity_evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "decision": {
+          "const": "active_time_valid_rotation_valid"
+        },
+        "evaluated_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "key_id": {
+          "$ref": "#/$defs/id"
+        },
+        "principal_id": {
+          "$ref": "#/$defs/id"
+        },
+        "registry_shake256_512": {
+          "$ref": "#/$defs/shake256_512"
+        },
+        "rotation_predecessor_key_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "schema_version": {
+          "const": "cache_key_validity_evidence/v1"
+        },
+        "status": {
+          "const": "active"
+        },
+        "use": {
+          "const": "signing"
+        },
+        "valid_from": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "schema_version",
+        "registry_shake256_512",
+        "key_id",
+        "principal_id",
+        "status",
+        "valid_from",
+        "valid_until",
+        "rotation_predecessor_key_id",
+        "use",
+        "decision",
+        "evaluated_at"
+      ],
+      "type": "object"
+    },
+    "cache_registry_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "cache_signed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "cache_signer_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "cache_signer_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "claim_id": {
+      "$ref": "#/$defs/id"
+    },
+    "compiler_profile_id": {
+      "$ref": "#/$defs/id"
+    },
+    "idempotency_key": {
+      "$ref": "#/$defs/id"
+    },
+    "policy_decision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "policy_decision_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "request_id": {
+      "$ref": "#/$defs/id"
+    },
+    "request_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "result": {
+      "$ref": "proof_check_result_v7.schema.json"
+    },
+    "schema_version": {
+      "const": "idempotency_cache_envelope/v2"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "source_bundle_id": {
+      "$ref": "#/$defs/id"
+    }
+  },
+  "required": [
+    "schema_version",
+    "cache_envelope_id",
+    "request_shake256_512",
+    "request_id",
+    "idempotency_key",
+    "authenticated_principal_id",
+    "claim_id",
+    "compiler_profile_id",
+    "policy_decision_id",
+    "policy_decision_shake256_512",
+    "source_bundle_id",
+    "cache_signer_principal_id",
+    "cache_signer_key_id",
+    "cache_registry_shake256_512",
+    "cache_signed_at",
+    "cache_key_validity_evidence",
+    "result",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Registry- and Time-Bound Signed Idempotency Cache Envelope v2",
+  "type": "object"
+}

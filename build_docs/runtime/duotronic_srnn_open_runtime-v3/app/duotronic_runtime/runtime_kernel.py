@@ -7,11 +7,12 @@ from .config import Settings, get_settings
 from .corpus_agent import build_agentic_plan, scan_corpus
 from .corpus_manager import CorpusManager
 from .db import Store
-from .evidence import nla_activation_witness_contract_v1, CorpusRef, EvidenceKernel, sha256_ref
+from .evidence import nla_activation_witness_contract_v1, CorpusRef, EvidenceKernel, shake256_ref
 from .formal_observers import FormalObserverFleet
 from .models import RuntimeRunResult, now_ms, stable_id
 from .module_registry import ModuleRegistry
 from .model_orchestrator import ModelOrchestrator
+from .observer_consensus import ObserverConsensusEngine
 from .moe_router import MoERouter
 from .nla import NLAWitnessFactory
 from .turbo_quant_service import TurboQuantSidecar
@@ -19,13 +20,18 @@ from .policy import PolicyEngine
 from .providers import ModelProvider
 from .response_grounding import ground_response
 from .self_development import SelfDevelopmentController
+from .autonomy_stack import AutonomyStack
+from .pq_key_manager import PQKeyManager
 from .wgrnn import WGRNNRuntime
 
 
 class RuntimeKernel:
-    def __init__(self, settings: Settings | None = None) -> None:
+    def __init__(self, settings: Settings | None = None, *, initialize_schema: bool = False) -> None:
         self.settings = settings or get_settings()
         self.store = Store(self.settings)
+        if initialize_schema:
+            self.store.migrate()
+        self.pq_keys = PQKeyManager(self.settings.runtime_data_dir / "crypto" / "pq_keys")
         self.model_provider = ModelProvider(self.settings)
         self.model_orchestrator = ModelOrchestrator(
             self.settings.model_orchestrator_path,
@@ -46,6 +52,7 @@ class RuntimeKernel:
             slot_dim=self.settings.wg_rnn_slot_dim,
             num_slots=self.settings.wg_rnn_num_slots,
             data_dir=self.settings.runtime_data_dir / "wgrnn",
+            store=self.store,
         )
         self.nla_factory = NLAWitnessFactory(
             loop_id="loop-main",
@@ -54,20 +61,20 @@ class RuntimeKernel:
             max_mse=self.settings.nla_max_mse,
             min_repeat_stability=self.settings.nla_min_repeat_stability,
         )
-        self.corpus_manager = CorpusManager(self.settings.corpus_dir)
+        self.corpus_manager = CorpusManager(self.settings.corpus_dir, store=self.store)
         corpus_ref = CorpusRef(**self.corpus_manager.inspect().get("corpus_ref", CorpusRef().to_dict()))
         self.evidence = EvidenceKernel(observer_id=f"srnn-runtime:{self.settings.node_id}", corpus=corpus_ref)
         module_path = Path(getattr(self.settings, "module_registry_path", self.settings.runtime_data_dir / "modules.json"))
         self.modules = ModuleRegistry(module_path if module_path.exists() else None)
         self.formal = FormalObserverFleet()
         self.self_development = SelfDevelopmentController()
+        self.autonomy = AutonomyStack(self)
+        self.consensus = ObserverConsensusEngine(self)
 
-    def migrate(self) -> None:
-        self.store.migrate()
-
-    def health(self) -> dict[str, Any]:
-        corpus = self.corpus_manager.inspect()
-        return {
+        # Health/liveness must never rescan or rehash the mounted corpus.
+        # All of these values are safe startup snapshots. Expensive live
+        # diagnostics belong in deep_health(), not the container liveness path.
+        self._health_snapshot = {
             "status": "ok",
             "runtime": "duotronic-srnn-runtime-host",
             "version": "0.2.0",
@@ -75,16 +82,41 @@ class RuntimeKernel:
             "node_role": self.settings.node_role,
             "runtime_mode": self.settings.wg_rnn_runtime_mode,
             "postgres": "configured",
-            "corpus": corpus.get("corpus_ref"),
+            "corpus": self.evidence.corpus.to_dict(),
             "profiles": {
                 "milvus_enabled": self.settings.milvus_enabled,
                 "ollama_enabled": self.settings.ollama_enabled,
                 "llama_cpp_enabled": self.settings.llama_cpp_enabled,
             },
+            "models_count": len(self.model_provider.registry.list_models()),
+            "modules_count": len(self.modules.list()),
+            "formal_observers": self.formal.status(),
+        }
+
+    def migrate(self) -> None:
+        self.store.migrate()
+
+    def health(self) -> dict[str, Any]:
+        """Constant-time liveness snapshot.
+
+        Do not perform corpus traversal, hashing, database I/O, model probing,
+        or other potentially blocking diagnostics here.
+        """
+        return dict(self._health_snapshot)
+
+    def deep_health(self) -> dict[str, Any]:
+        """Explicit expensive diagnostic health report."""
+        corpus = self.corpus_manager.inspect()
+        report = dict(self._health_snapshot)
+        report.update({
+            "deep": True,
+            "corpus": corpus.get("corpus_ref"),
+            "corpus_file_count": corpus.get("file_count"),
             "models": self.model_provider.registry.list_models(),
             "modules": self.modules.list(),
             "formal_observers": self.formal.status(),
-        }
+        })
+        return report
 
     async def run_cognition(self, *, prompt: str, steps: int = 1, requested_action: str = "observe", model_name: str | None = None, evidence_quality: float = 0.72) -> dict[str, Any]:
         completion = await self.model_provider.complete(prompt=prompt, model_name=model_name)
@@ -125,9 +157,9 @@ class RuntimeKernel:
             "runtime_snapshot": wg_result["snapshot"],
         }
         run_payload = {
-            "prompt_digest": sha256_ref(prompt),
-            "response_digest": sha256_ref(response_text),
-            "raw_response_digest": sha256_ref(raw_response_text),
+            "prompt_digest": shake256_ref(prompt),
+            "response_digest": shake256_ref(response_text),
+            "raw_response_digest": shake256_ref(raw_response_text),
             "requested_action": requested_action,
             "grounding": grounding,
             "model": completion["model"],

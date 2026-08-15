@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/build_attestation_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attestation_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "build_command": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "dependency_lock_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "image_identity": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "output_binary_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "reproducible_build_count": {
+      "minimum": 2,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "build_attestation/v2"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "signer_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_tree_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "not_run"
+      ]
+    },
+    "subject_type": {
+      "enum": [
+        "trusted_lean_inspector",
+        "governed_oci_image"
+      ]
+    },
+    "toolchain_identity": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "attestation_id",
+    "subject_type",
+    "source_tree_shake256_512",
+    "build_command",
+    "toolchain_identity",
+    "dependency_lock_shake256_512",
+    "output_binary_shake256_512",
+    "image_identity",
+    "reproducible_build_count",
+    "status",
+    "signer_key_id",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Reproducible Inspector Build Attestation v2",
+  "type": "object"
+}

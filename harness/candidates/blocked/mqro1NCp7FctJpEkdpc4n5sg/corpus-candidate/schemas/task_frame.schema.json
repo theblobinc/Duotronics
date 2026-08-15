@@ -1,0 +1,65 @@
+{
+  "$id": "https://duotronics.local/schemas/taskFrame.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Replayable task frame. Hidden state is forbidden.",
+  "properties": {
+    "call_stack": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "deterministic": {
+      "const": true,
+      "type": "boolean"
+    },
+    "hidden_state_allowed": {
+      "const": false,
+      "type": "boolean"
+    },
+    "local_bindings": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "parent_frame_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "task_frame/v1"
+    },
+    "step_index": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "task_frame_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "task_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "task_frame_id",
+    "task_id",
+    "step_index",
+    "call_stack",
+    "deterministic",
+    "hidden_state_allowed",
+    "created_at"
+  ],
+  "title": "TaskFrame",
+  "type": "object"
+}

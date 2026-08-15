@@ -53,8 +53,8 @@ def test_rejects_stale_replay_identity() -> None:
     diagnostics = MetaDiagnostics(
         epoch_step_count=2,
         objective_bundle_hash="bundle-1",
-        replay_spec_hash="sha256:stale0000000000",
-        replay_identity="sha256:stale0000000000:bundle-1",
+        replay_spec_hash="shake256-512:" + "0" * 128,
+        replay_identity=("shake256-512:" + "0" * 128 + ":bundle-1"),
         sufficient_evidence=True,
         coverage_ratio=0.8,
         eval_count=3,

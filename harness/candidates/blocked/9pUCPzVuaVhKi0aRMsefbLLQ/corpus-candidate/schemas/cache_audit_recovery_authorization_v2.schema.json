@@ -1,0 +1,149 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_recovery_authorization_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "reconcile_signed_dangling_tail",
+        "remove_orphan_checkpoint_temporaries",
+        "complete_interrupted_seal",
+        "complete_interrupted_successor"
+      ]
+    },
+    "authorization_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "checkpoint_sequence_before": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checkpoint_tail_before": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "const": "authorize_governed_recovery"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "log_sequence_after": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "log_tail_after": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "operator_principal_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "reason": {
+      "maxLength": 512,
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "cache_audit_recovery_authorization/v2"
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "target_file_identities": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "device": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "inode": {
+            "minimum": 1,
+            "type": "integer"
+          },
+          "mode": {
+            "maximum": 4095,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "size": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "uid": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "device",
+          "inode",
+          "size",
+          "mode",
+          "uid"
+        ],
+        "type": "object"
+      },
+      "maxItems": 256,
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "segment_id",
+    "action",
+    "checkpoint_sequence_before",
+    "checkpoint_tail_before",
+    "log_sequence_after",
+    "log_tail_after",
+    "target_file_identities",
+    "operator_principal_id",
+    "reason",
+    "decision",
+    "created_at",
+    "expires_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "One-Time Cache Audit Recovery Authorization v2",
+  "type": "object"
+}

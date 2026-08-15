@@ -1,0 +1,105 @@
+{
+  "$id": "https://duotronics.local/schemas/non_collapse_state.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Primitive non-collapse state. It records a state; transitions between states are represented by non_collapse_transition.schema.json.",
+  "properties": {
+    "authority_class": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "proposal",
+        "audit",
+        "shadow",
+        "release_candidate",
+        "authoritative",
+        "human_authoritative",
+        "formal_proof"
+      ]
+    },
+    "claim_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "collapse_status": {
+      "enum": [
+        "not_collapsed",
+        "collapse_denied",
+        "transition_requires_witness",
+        "transition_witnessed",
+        "transition_allowed",
+        "transition_forbidden"
+      ]
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "external_witness_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "may_collapse_to": {
+      "description": "Silent collapse targets are forbidden. Any state change must be expressed as non_collapse_transition/v1.",
+      "maxItems": 0,
+      "type": "array"
+    },
+    "primitive_category": {
+      "enum": [
+        "zero",
+        "absence",
+        "unknown",
+        "invalid",
+        "empty",
+        "null",
+        "computational_evidence",
+        "theorem",
+        "conjectural",
+        "self_trained",
+        "authoritative",
+        "audit_only",
+        "active",
+        "observation",
+        "proof",
+        "explanation",
+        "fact",
+        "policy_approval",
+        "human_attestation",
+        "synthetic_witness",
+        "activation_witness"
+      ]
+    },
+    "schema_version": {
+      "const": "non_collapse_state/v1"
+    },
+    "state_id": {
+      "type": "string"
+    },
+    "state_kind": {
+      "enum": [
+        "value_state",
+        "epistemic_state",
+        "authority_state",
+        "runtime_state",
+        "claim_state",
+        "model_state",
+        "replay_state"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "state_id",
+    "primitive_category",
+    "authority_class",
+    "state_kind",
+    "collapse_status",
+    "created_at"
+  ],
+  "title": "NonCollapseState",
+  "type": "object"
+}

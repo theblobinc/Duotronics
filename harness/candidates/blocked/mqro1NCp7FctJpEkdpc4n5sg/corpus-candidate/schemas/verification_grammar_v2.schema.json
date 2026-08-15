@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "instruction": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "type": "object"
+        },
+        "instruction_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "op": {
+          "enum": [
+            "read_manifest",
+            "hash_artifact",
+            "compare_hash",
+            "validate_schema",
+            "check_policy_ref",
+            "check_non_collapse_transition",
+            "check_replay_assumptions",
+            "execute_deterministic_replay",
+            "compare_replay_output",
+            "return_status"
+          ]
+        },
+        "required_for_pass": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "instruction_id",
+        "op",
+        "args",
+        "required_for_pass"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/verification_grammar_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "deterministic": {
+      "const": true
+    },
+    "forbidden_operations": {
+      "items": {
+        "enum": [
+          "write_memory",
+          "change_policy",
+          "promote_model",
+          "replace_authority",
+          "delete_evidence",
+          "network_fetch",
+          "random_sample",
+          "wall_clock_now"
+        ]
+      },
+      "minItems": 8,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "grammar_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "grammar_shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    },
+    "instructions": {
+      "items": {
+        "$ref": "#/$defs/instruction"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "verification_grammar/v2"
+    }
+  },
+  "required": [
+    "schema_version",
+    "grammar_id",
+    "deterministic",
+    "instructions",
+    "forbidden_operations",
+    "grammar_shake256_512",
+    "created_at"
+  ],
+  "title": "VerificationGrammarV2",
+  "type": "object"
+}

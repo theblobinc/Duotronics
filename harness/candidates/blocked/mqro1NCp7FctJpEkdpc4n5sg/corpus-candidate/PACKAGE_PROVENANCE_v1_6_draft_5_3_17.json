@@ -1,0 +1,11 @@
+{
+  "build_date": "2026-08-12",
+  "build_method": "complete_baseline_plus_full_tree_crypto_migration",
+  "contract_version": "v1.6-draft-5.3.17",
+  "predecessor_archive_commitment": "shake256-512:618a9b7939e017c5a2bf0ee23d9f15c51dd7c1ced0c11e5fa9e7a5613d0cd8cec118af3bd15374dedf634b3da51b422c627577ab7e12ba8c3dbc004e1ee64810",
+  "predecessor_archive_name": "v1.6 - Draft 5.3.16(1).zip",
+  "predecessor_file_count": 1968,
+  "provenance_version": "package_provenance/v10",
+  "release_authority": false,
+  "source_class": "user_supplied_complete_predecessor_corpus"
+}

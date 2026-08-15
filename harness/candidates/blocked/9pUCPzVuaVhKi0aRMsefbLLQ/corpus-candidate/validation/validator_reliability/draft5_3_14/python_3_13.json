@@ -1,0 +1,30 @@
+{
+  "complete_validator": "executable/validators/validate_draft5_3_14_corpus.py",
+  "completed_repetitions": 1,
+  "generated_at": "2026-08-02T03:37:23.273893+00:00",
+  "optional_activation_phase_count": 8,
+  "package_version": "v1.6-draft-5.3.14",
+  "python_executable": "/opt/pyvenv/bin/python3",
+  "python_version": "3.13.5",
+  "requested_repetitions": 1,
+  "required_phase_count": 94,
+  "runs": [
+    {
+      "bounded_reap": true,
+      "capture_backend": "rlimit_bounded_temporary_files",
+      "duration_seconds": 147.791212,
+      "optional_phases_skipped": 8,
+      "parent_capture_descriptors_closed": true,
+      "report_shake256_512": "6c1153bdc5f0a43294d3ed0d269ef9a358ac07a8d10c28876ea41d4662f1f9a3",
+      "required_phases_passed": 94,
+      "sequence": 1,
+      "surviving_descendants": [],
+      "validator_exit_code": 0,
+      "warning_free_phase_status": "passed"
+    }
+  ],
+  "schema_version": "validator_reliability_evidence/v1",
+  "started_at": "2026-08-02T03:34:55.480852+00:00",
+  "status": "passed",
+  "target_python_version": "3.13"
+}

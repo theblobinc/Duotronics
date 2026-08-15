@@ -1,0 +1,17 @@
+{
+  "schema_version": "package_metadata/v1.1",
+  "package": "duotronic_v1_6_draft_5_2_1_complete_corpus",
+  "version": "v1.6-draft-5.2.1",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "status": "complete",
+  "base_package": "uploaded v1.6 - Draft 5.2(7).zip",
+  "additive_layers": [
+    "lean_proof_authority",
+    "lake_build_project",
+    "check_proof_syscall",
+    "theorem_promotion_gate"
+  ],
+  "lean_toolchain": "leanprover/lean4:v4.29.1",
+  "validator": "executable/validators/validate_draft5_2_1_corpus.py",
+  "inventory": "PACKAGE_INVENTORY_v1_6_draft_5_2_1.json"
+}

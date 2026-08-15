@@ -1,0 +1,19 @@
+{
+  "collapse_status": "transition_witnessed",
+  "created_at": "2026-05-11T00:00:00Z",
+  "external_witness_ref": "artifact:fixture:sensor-log-1",
+  "forbidden_without_external_witness": true,
+  "policy_decision_id": "policy:fixture:allow-observation",
+  "proof_witness_ref": null,
+  "reason": "Computation is derived from an observation and remains marked as computational evidence.",
+  "schema_version": "non_collapse_transition/v1",
+  "source_primitive_category": "observation",
+  "source_state_id": "state:fixture:observed",
+  "source_state_kind": "epistemic_state",
+  "target_primitive_category": "computational_evidence",
+  "target_state_id": "state:fixture:computed",
+  "target_state_kind": "epistemic_state",
+  "transition_id": "nct:fixture:observe-to-computed",
+  "transition_kind": "measurement",
+  "transition_status": "allowed"
+}

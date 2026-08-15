@@ -1,0 +1,73 @@
+{
+  "schema_version": "lean_toolchain_manifest/v1",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "integration_scope": "draft_5_3_6_recursive_dependency_inspection_exact_invocation_and_handoff_protocol",
+  "lean_toolchain_added": true,
+  "toolchain": "leanprover/lean4:v4.29.1",
+  "lakefile": "lakefile.lean",
+  "package_root": ".",
+  "build_command": [
+    "lake",
+    "build",
+    "Duotronic",
+    "WitnessAuthority",
+    "witnessAuthorityInspector"
+  ],
+  "strict_mode_command": [
+    "python3",
+    "executable/formal/run_lean_build.py",
+    "--mode",
+    "strict",
+    "--json"
+  ],
+  "hermetic_integration_command": [
+    "python3",
+    "executable/formal/run_hermetic_proof_authority_integration.py",
+    "--json"
+  ],
+  "advisory_mode_command": [
+    "python3",
+    "executable/formal/run_lean_build.py",
+    "--mode",
+    "advisory",
+    "--json"
+  ],
+  "lean_modules": [
+    "Duotronic",
+    "Duotronic.All",
+    "Duotronic.Core",
+    "Duotronic.CoreMetaphysics",
+    "Duotronic.EvidenceSyntax",
+    "Duotronic.ProofAuthority",
+    "Duotronic.Kernel",
+    "WitnessAuthority.Verifier",
+    "WitnessAuthority.InspectorMain"
+  ],
+  "required_build_targets": [
+    "Duotronic",
+    "WitnessAuthority",
+    "witnessAuthorityInspector"
+  ],
+  "hermetic_verifier_sources": [
+    "formal/draft5_3_6/lean/WitnessAuthority/Verifier.lean",
+    "formal/draft5_3_6/lean/WitnessAuthority/InspectorMain.lean",
+    "executable/trusted_verifier/compile_lean.py",
+    "executable/trusted_verifier/verify_lean.py",
+    "executable/trusted_verifier/Containerfile"
+  ],
+  "forbidden_proof_markers": [
+    "sorry",
+    "admit"
+  ],
+  "unapproved_axiom_policy": "deny_for_theorem_promotion",
+  "compiler_witness_schema": "schemas/lean_compiler_witness_v5.schema.json",
+  "structured_result_schema": "schemas/lean_verifier_result_v4.schema.json",
+  "compiler_registry_schema": "schemas/governed_compiler_registry_v2.schema.json",
+  "proof_witness_schema": "schemas/proof_witness_v2.schema.json",
+  "sandbox_profile": "authority/hermetic_lean_sandbox_profile_v3.json",
+  "result_channel": "two_domain_untrusted_compile_trusted_signed_verifier",
+  "snapshot_digest_order": "seal_then_hash_snapshot_only",
+  "build_attestations_required": true,
+  "authority_activation_requires_real_image": true,
+  "contract_freeze_policy": "permanently_unfrozen"
+}

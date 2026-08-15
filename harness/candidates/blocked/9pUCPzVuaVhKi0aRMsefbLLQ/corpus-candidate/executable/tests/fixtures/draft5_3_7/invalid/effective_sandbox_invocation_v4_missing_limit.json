@@ -1,0 +1,6 @@
+{
+  "payload": {
+    "domain": "trusted_inspection"
+  },
+  "schema_ref": "schemas/effective_sandbox_invocation_v4.schema.json"
+}

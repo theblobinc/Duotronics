@@ -1,0 +1,20 @@
+{
+  "payload": {
+    "base_revision": "v1.6-draft-5.3.4",
+    "change_set_shake256_512": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "generated_at": "2026-07-31T00:00:00Z",
+    "generator_name": "build_draft5_3_5_manifests.py",
+    "generator_shake256_512": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "generator_version": "1.0.0",
+    "provenance_status": "unpublished_workspace",
+    "schema_version": "package_provenance/v1",
+    "source_commit_sha": null,
+    "source_generation": "v1.6-draft-5.3.5",
+    "source_ref": "unpublished/v1.6-draft-5.3.5",
+    "source_repository": "https://github.com/theblobinc/Duotronics",
+    "source_subtree_path": "build_docs/witness_contract/v1.6 - Draft 5.3.5",
+    "source_subtree_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "workspace_status": "not_git_backed"
+  },
+  "schema_ref": "schemas/package_provenance_v1.schema.json"
+}

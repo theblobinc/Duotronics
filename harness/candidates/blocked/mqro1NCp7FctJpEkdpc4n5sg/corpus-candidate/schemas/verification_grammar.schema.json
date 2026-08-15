@@ -1,0 +1,172 @@
+{
+  "$id": "https://duotronics.local/schemas/verification_grammar.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Deterministic verification and pure-computation grammar. Instruction ops are locked to the allowed operation enum and mutation/time/network operations are forbidden.",
+  "properties": {
+    "allowed_operations": {
+      "items": {
+        "enum": [
+          "read_manifest",
+          "hash_artifact",
+          "compare_hash",
+          "validate_schema",
+          "check_policy_ref",
+          "check_delegation_chain",
+          "check_pragmatic_context",
+          "check_non_collapse_state",
+          "check_non_collapse_transition",
+          "check_replay_assumptions",
+          "check_replay_sign",
+          "execute_deterministic_replay",
+          "compare_replay_output",
+          "read_object",
+          "hash_object",
+          "compare",
+          "evaluate_predicate",
+          "run_pure_function",
+          "check_result",
+          "read_memory_cell",
+          "snapshot_memory",
+          "replay_memory_state",
+          "return_status"
+        ]
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "determinism_profile": {
+      "additionalProperties": false,
+      "properties": {
+        "deterministic": {
+          "const": true,
+          "type": "boolean"
+        },
+        "max_runtime_ms": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "network_access": {
+          "const": false,
+          "type": "boolean"
+        },
+        "randomness_access": {
+          "const": false,
+          "type": "boolean"
+        },
+        "wall_clock_access": {
+          "const": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "deterministic",
+        "network_access",
+        "wall_clock_access",
+        "randomness_access"
+      ],
+      "type": "object"
+    },
+    "deterministic": {
+      "const": true,
+      "type": "boolean"
+    },
+    "forbidden_operations": {
+      "items": {
+        "enum": [
+          "write_memory",
+          "change_policy",
+          "promote_model",
+          "replace_authority",
+          "delete_evidence",
+          "network_fetch",
+          "random_sample",
+          "wall_clock_now"
+        ]
+      },
+      "minItems": 8,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "grammar_id": {
+      "type": "string"
+    },
+    "grammar_version": {
+      "const": "verification_grammar/v1"
+    },
+    "instruction_set": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "instructions": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "args": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "label": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "op": {
+            "enum": [
+              "read_manifest",
+              "hash_artifact",
+              "compare_hash",
+              "validate_schema",
+              "check_policy_ref",
+              "check_delegation_chain",
+              "check_pragmatic_context",
+              "check_non_collapse_state",
+              "check_non_collapse_transition",
+              "check_replay_assumptions",
+              "check_replay_sign",
+              "execute_deterministic_replay",
+              "compare_replay_output",
+              "read_object",
+              "hash_object",
+              "compare",
+              "evaluate_predicate",
+              "run_pure_function",
+              "check_result",
+              "read_memory_cell",
+              "snapshot_memory",
+              "replay_memory_state",
+              "return_status"
+            ]
+          }
+        },
+        "required": [
+          "op",
+          "args"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "verification_grammar/v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "grammar_id",
+    "deterministic",
+    "instructions",
+    "grammar_version",
+    "instruction_set",
+    "determinism_profile",
+    "forbidden_operations"
+  ],
+  "title": "VerificationGrammar",
+  "type": "object"
+}

@@ -31,7 +31,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-duotronic_dev_password_change_me}
       POSTGRES_DB: ${POSTGRES_DB:-duotronic_runtime}
     volumes:
-      - postgres-data:/var/lib/postgresql/data:Z
+      - /datastore2/xavi/db/duotronic-postgres:/var/lib/postgresql/data:Z
     ports:
       - "127.0.0.1:${POSTGRES_PORT_FORWARD:-5433}:5432"
     networks: [runtime-net]
@@ -76,7 +76,11 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://duotronic:duotronic_dev_password_change_me@postgres:5432/duotronic_runtime}
       CORPUS_DIR: /runtime/corpus
+      CORPUS_HISTORY_DIR: /runtime/corpus-history
+      ACTIVE_WITNESS_CONTRACT_STATE: /runtime/config/active_witness_contract.json
+      CORPUS_BACKEND: ${CORPUS_BACKEND:-postgres}
       RUNTIME_DATA_DIR: /runtime/data
+      XAVI_DATALAKE_ROOT: /data-lake
       MODEL_REGISTRY_PATH: /runtime/config/models.json
       MODEL_ORCHESTRATOR_PATH: /runtime/config/model_orchestrator.json
       MODULE_REGISTRY_PATH: /runtime/config/modules.json
@@ -86,11 +90,14 @@ services:
       CODE_INTERPRETER_URL: ${CODE_INTERPRETER_URL:-http://host.containers.internal:8000}
     command: ["python", "-m", "duotronic_runtime.main"]
     volumes:
-      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.2.2:/runtime/corpus:Z"
-      - ./data:/runtime/data:Z
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.3.16:/runtime/corpus:Z"
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract:/runtime/corpus-history:ro,Z"
+      - /datastore2/xavi/data/duotronic-runtime/runtime-data:/runtime/data:Z
+      - /datastore2/xavi/data:/data-lake:ro,Z
       - ./config:/runtime/config:Z
       - ../models/gguf:/models:Z
       - ./formal:/runtime/formal:Z
+      - ./app/duotronic_runtime/api.py:/app/app/duotronic_runtime/api.py:ro,Z
       - ../../..:/workspace/Duotronics:Z
     extra_hosts:
       - "host.containers.internal:host-gateway"
@@ -107,7 +114,7 @@ services:
       - runtime-net
       - xavi-perma
     healthcheck:
-      test: ["CMD", "python", "-m", "duotronic_runtime.cli", "health", "--url", "http://127.0.0.1:8080"]
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection((\"127.0.0.1\",8080),2); s.close()"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -123,13 +130,16 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://duotronic:duotronic_dev_password_change_me@postgres:5432/duotronic_runtime}
       CORPUS_DIR: /runtime/corpus
+      CORPUS_HISTORY_DIR: /runtime/corpus-history
+      ACTIVE_WITNESS_CONTRACT_STATE: /runtime/config/active_witness_contract.json
       RUNTIME_DATA_DIR: /runtime/data
       MODEL_REGISTRY_PATH: /runtime/config/models.json
       MODULE_REGISTRY_PATH: /runtime/config/modules.json
     command: ["python", "-m", "duotronic_runtime.mcp_stdio"]
     volumes:
-      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.2.2:/runtime/corpus:Z"
-      - ./data:/runtime/data:Z
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract/v1.6 - Draft 5.3.16:/runtime/corpus:Z"
+      - "/var/www/xavi/Duotronics/build_docs/witness_contract:/runtime/corpus-history:ro,Z"
+      - /datastore2/xavi/data/duotronic-runtime/runtime-data:/runtime/data:Z
       - ./config:/runtime/config:Z
       - ../models/gguf:/models:Z
       - ./formal:/runtime/formal:Z
@@ -153,8 +163,9 @@ services:
       OLLAMA_KEEP_ALIVE: "30m"
       OLLAMA_NUM_PARALLEL: "1"
       OLLAMA_MAX_LOADED_MODELS: "1"
-    devices:
-      - nvidia.com/gpu=all
+    # GPU CDI is intentionally not forced here. The host's NVIDIA CDI spec can
+    # become stale after driver updates; Ollama remains available on CPU until
+    # CDI is regenerated, instead of failing the entire model service startup.
     volumes:
       - ../models/ollama:/root/.ollama:Z
     ports:
@@ -172,7 +183,7 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      OLLAMA_BASE_URL: http://127.0.0.1:18205
+      OLLAMA_BASE_URL: http://10.77.0.2:11434
       DEFAULT_MODEL: xavi-copilot-agent:latest
       XAVI_MAX_TOOL_ROUNDS: "999999"
       XAVI_ALLOW_TERMINAL_TOOLS: "0"

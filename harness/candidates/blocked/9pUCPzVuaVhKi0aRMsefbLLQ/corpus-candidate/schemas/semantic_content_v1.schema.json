@@ -1,0 +1,29 @@
+{
+  "$id": "duotronic://schemas/semantic_content/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "body": {
+      "type": "object"
+    },
+    "content_type": {
+      "pattern": "^[a-z][a-z0-9_.-]{0,127}/v[1-9][0-9]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "semantic_content/v1"
+    },
+    "semantic_content_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "content_type",
+    "body",
+    "semantic_content_id"
+  ],
+  "title": "SemanticContent/v1",
+  "type": "object"
+}

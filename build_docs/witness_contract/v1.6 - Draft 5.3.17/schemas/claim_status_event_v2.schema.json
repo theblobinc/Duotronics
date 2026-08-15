@@ -1,0 +1,131 @@
+{
+  "$id": "https://duotronics.local/schemas/claim_status_event_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "allowed": {
+            "const": true
+          },
+          "target_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        },
+        "required": [
+          "allowed",
+          "target_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "lean_compiler_witness_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "proof_witness_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "source_status": {
+            "const": "conjecture"
+          },
+          "transition_kind": {
+            "const": "prove"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "allowed": {
+      "type": "boolean"
+    },
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "lean_compiler_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "non_collapse_transition_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "proof_witness_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "claim_status_event/v2"
+    },
+    "source_status": {
+      "enum": [
+        "unknown",
+        "observed",
+        "computed",
+        "conjecture",
+        "theorem",
+        "proof_verified",
+        "released"
+      ]
+    },
+    "status_event_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "target_status": {
+      "enum": [
+        "unknown",
+        "observed",
+        "computed",
+        "conjecture",
+        "theorem",
+        "proof_verified",
+        "released"
+      ]
+    },
+    "transition_kind": {
+      "enum": [
+        "observe",
+        "compute",
+        "conjecture",
+        "prove",
+        "verify_proof",
+        "release",
+        "rollback"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "status_event_id",
+    "claim_id",
+    "source_status",
+    "target_status",
+    "transition_kind",
+    "allowed",
+    "policy_decision_id",
+    "non_collapse_transition_id",
+    "created_at"
+  ],
+  "title": "ClaimStatusEventV2",
+  "type": "object"
+}

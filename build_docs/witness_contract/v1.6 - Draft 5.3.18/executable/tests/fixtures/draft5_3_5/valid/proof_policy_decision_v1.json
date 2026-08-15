@@ -1,0 +1,26 @@
+{
+  "payload": {
+    "canonical_record_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "compiler_profile_ids": [
+      "lean-4.29.1-hermetic-3"
+    ],
+    "created_at": "2026-07-31T00:00:00Z",
+    "governance_authority_id": "governance:key:1",
+    "operation": "proof_check",
+    "policy_decision_id": "policy-proof-001",
+    "resource_permissions": {
+      "maximum_source_bytes": 536870912,
+      "maximum_timeout_seconds": 600
+    },
+    "schema_version": "proof_policy_decision/v1",
+    "source_bundle_ids": [
+      "bundle-001"
+    ],
+    "status": "active",
+    "subject_id": "principal-reviewer-001",
+    "supersedes_policy_decision_id": null,
+    "valid_from": "2026-01-01T00:00:00Z",
+    "valid_until": "2027-01-01T00:00:00Z"
+  },
+  "schema_ref": "schemas/proof_policy_decision_v1.schema.json"
+}

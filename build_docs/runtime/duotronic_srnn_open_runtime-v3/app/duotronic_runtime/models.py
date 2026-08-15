@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
-import hashlib
 import json
 import time
 from typing import Any, Literal
 
+from .crypto_primitives import stable_shake_id
+
 
 def stable_id(prefix: str, payload: Any, length: int = 20) -> str:
-    raw = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
-    return f"{prefix}_{hashlib.sha256(raw).hexdigest()[:length]}"
+    return stable_shake_id(prefix, payload, length=length)
 
 
 def now_ms() -> int:

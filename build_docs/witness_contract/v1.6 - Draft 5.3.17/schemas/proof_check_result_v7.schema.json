@@ -1,0 +1,87 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/proof_check_result_v7.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authenticated_principal_id": {
+      "$ref": "#/$defs/id"
+    },
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "claim_id": {
+      "$ref": "#/$defs/id"
+    },
+    "compiler_profile_id": {
+      "$ref": "#/$defs/id"
+    },
+    "compiler_witness": {
+      "$ref": "lean_compiler_witness_v8.schema.json"
+    },
+    "idempotency_key": {
+      "$ref": "#/$defs/id"
+    },
+    "policy_decision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "policy_decision_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "proof_artifact_relative_path": {
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$))(?!.*\\\\)(?!.*//)(?![.]/).+[.]lean$",
+      "type": "string"
+    },
+    "request_id": {
+      "$ref": "#/$defs/id"
+    },
+    "request_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "schema_version": {
+      "const": "proof_check_service_result/v7"
+    },
+    "source_bundle_id": {
+      "$ref": "#/$defs/id"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "toolchain_unavailable"
+      ]
+    },
+    "theorem_statement_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    }
+  },
+  "required": [
+    "schema_version",
+    "request_id",
+    "request_shake256_512",
+    "idempotency_key",
+    "authenticated_principal_id",
+    "status",
+    "claim_id",
+    "claim_content_shake256_512",
+    "theorem_statement_shake256_512",
+    "compiler_profile_id",
+    "policy_decision_id",
+    "policy_decision_shake256_512",
+    "source_bundle_id",
+    "proof_artifact_relative_path",
+    "compiler_witness"
+  ],
+  "title": "Authenticated Deadline-Complete Synchronous Proof Check Result v7",
+  "type": "object"
+}

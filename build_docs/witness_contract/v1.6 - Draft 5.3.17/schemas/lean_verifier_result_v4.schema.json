@@ -1,0 +1,439 @@
+{
+  "$defs": {
+    "name_set": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "resource_limits": {
+      "additionalProperties": false,
+      "properties": {
+        "combined_output_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "compiler_artifact_file_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "final_result_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "handoff_total_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "inspection_output_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "source_total_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "stderr_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "stdout_bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "timeout_seconds": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "timeout_seconds",
+        "source_total_bytes",
+        "compiler_artifact_file_bytes",
+        "handoff_total_bytes",
+        "inspection_output_bytes",
+        "final_result_bytes",
+        "stdout_bytes",
+        "stderr_bytes",
+        "combined_output_bytes"
+      ],
+      "type": "object"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/lean_verifier_result_v4.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "passed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "build_from_source": {
+            "const": true
+          },
+          "declaration_found": {
+            "const": true
+          },
+          "declaration_type_matches": {
+            "const": true
+          },
+          "exit_status": {
+            "const": 0
+          },
+          "forbidden_axiom_set": {
+            "maxItems": 0,
+            "type": "array"
+          },
+          "opaque_dependency_policy_result": {
+            "const": "passed"
+          },
+          "output_limit_exceeded": {
+            "const": false
+          },
+          "prebuilt_artifacts_used": {
+            "const": false
+          },
+          "sorry_ax_present": {
+            "const": false
+          },
+          "timeout_status": {
+            "const": "completed"
+          },
+          "unsafe_dependency_present": {
+            "const": false
+          },
+          "warnings_as_errors": {
+            "const": true
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "accepted_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "actual_type_expression_fingerprint": {
+      "type": "string"
+    },
+    "actual_type_expression_hash": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "axiom_set": {
+      "$ref": "#/$defs/name_set"
+    },
+    "axiom_set_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "build_from_source": {
+      "type": "boolean"
+    },
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "compiler_profile_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "control_evidence": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "control": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "observation_shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          },
+          "source": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "measured_pass",
+              "measured_fail",
+              "unverified_missing_observation"
+            ]
+          }
+        },
+        "required": [
+          "control",
+          "status",
+          "source",
+          "observation_shake256_512"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "declaration_found": {
+      "type": "boolean"
+    },
+    "declaration_type_matches": {
+      "type": "boolean"
+    },
+    "dependency_closure": {
+      "$ref": "#/$defs/name_set"
+    },
+    "dependency_closure_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "derived_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "direct_dependencies": {
+      "$ref": "#/$defs/name_set"
+    },
+    "effective_resource_limits": {
+      "$ref": "#/$defs/resource_limits"
+    },
+    "effective_resource_limits_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "effective_sandbox_invocation_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "emitted_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "execution_finished_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "execution_started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "exit_status": {
+      "type": "integer"
+    },
+    "expected_type_expression_fingerprint": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "expected_type_expression_hash": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "forbidden_axiom_set": {
+      "$ref": "#/$defs/name_set"
+    },
+    "generated_binding_module_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "handoff_manifest_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "immutable_snapshot_id": {
+      "pattern": "^shake256-512:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "immutable_snapshot_tree_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lake_executable_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lean_executable_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "lean_stdlib_tree_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "measured_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "normalization_policy": {
+      "const": "lean_isDefEq_reducibility_regular/v1"
+    },
+    "normalized_executed_argv_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "oci_image_digest": {
+      "pattern": "^shake256-512:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "oci_runtime_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "oci_runtime_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "oci_runtime_version_output_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "opaque_dependency_policy_result": {
+      "enum": [
+        "passed",
+        "failed",
+        "not_evaluated"
+      ]
+    },
+    "output_limit_exceeded": {
+      "type": "boolean"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "prebuilt_artifacts_used": {
+      "type": "boolean"
+    },
+    "proof_artifact_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "request_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "request_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "requested_controls": {
+      "$ref": "#/$defs/name_set"
+    },
+    "sandbox_policy_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "schema_version": {
+      "const": "wc_lean_verifier_result/v4"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "sorry_ax_present": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed"
+      ]
+    },
+    "stderr_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "stdout_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "theorem_declaration": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "theorem_statement_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "timeout_status": {
+      "enum": [
+        "completed",
+        "timed_out"
+      ]
+    },
+    "transitive_dependencies_root": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "unsafe_dependency_present": {
+      "type": "boolean"
+    },
+    "verifier_executable_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "verifier_result_signer_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "warnings_as_errors": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "request_id",
+    "request_shake256_512",
+    "compiler_profile_id",
+    "claim_content_shake256_512",
+    "policy_decision_id",
+    "policy_decision_shake256_512",
+    "theorem_statement_shake256_512",
+    "proof_artifact_shake256_512",
+    "immutable_snapshot_id",
+    "immutable_snapshot_tree_shake256_512",
+    "generated_binding_module_shake256_512",
+    "lake_executable_shake256_512",
+    "lean_executable_shake256_512",
+    "lean_stdlib_tree_shake256_512",
+    "dependency_closure_shake256_512",
+    "oci_image_digest",
+    "oci_runtime_shake256_512",
+    "oci_runtime_version",
+    "oci_runtime_version_output_shake256_512",
+    "verifier_executable_shake256_512",
+    "sandbox_policy_shake256_512",
+    "effective_sandbox_invocation_shake256_512",
+    "normalized_executed_argv_shake256_512",
+    "handoff_manifest_shake256_512",
+    "effective_resource_limits",
+    "effective_resource_limits_shake256_512",
+    "theorem_declaration",
+    "declaration_found",
+    "declaration_type_matches",
+    "expected_type_expression_hash",
+    "actual_type_expression_hash",
+    "expected_type_expression_fingerprint",
+    "actual_type_expression_fingerprint",
+    "normalization_policy",
+    "direct_dependencies",
+    "dependency_closure",
+    "transitive_dependencies_root",
+    "axiom_set",
+    "axiom_set_shake256_512",
+    "forbidden_axiom_set",
+    "sorry_ax_present",
+    "unsafe_dependency_present",
+    "opaque_dependency_policy_result",
+    "build_from_source",
+    "prebuilt_artifacts_used",
+    "warnings_as_errors",
+    "exit_status",
+    "timeout_status",
+    "execution_started_at",
+    "execution_finished_at",
+    "verifier_result_signer_key_id",
+    "requested_controls",
+    "emitted_controls",
+    "accepted_controls",
+    "measured_controls",
+    "derived_controls",
+    "control_evidence",
+    "stdout_shake256_512",
+    "stderr_shake256_512",
+    "output_limit_exceeded",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Trusted Lean Verifier Result v4",
+  "type": "object"
+}

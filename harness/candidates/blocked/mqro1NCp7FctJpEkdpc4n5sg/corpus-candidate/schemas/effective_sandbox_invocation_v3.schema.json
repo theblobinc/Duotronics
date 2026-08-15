@@ -1,0 +1,358 @@
+{
+  "$defs": {
+    "control_set": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "mount": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "domain": {
+          "enum": [
+            "untrusted_compilation",
+            "trusted_verifier"
+          ]
+        },
+        "host_path": {
+          "pattern": "^/",
+          "type": "string"
+        },
+        "lifecycle": {
+          "const": "request"
+        },
+        "mode": {
+          "enum": [
+            "ro",
+            "rw"
+          ]
+        },
+        "purpose": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "source": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "host_path",
+        "destination",
+        "mode",
+        "domain",
+        "purpose",
+        "lifecycle"
+      ],
+      "type": "object"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "tmpfs": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "enum": [
+            "/tmp",
+            "/work"
+          ]
+        },
+        "options": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "destination",
+        "options"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/effective_sandbox_invocation_v3.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "properties": {
+        "apparmor_profile": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "selinux_label": {
+          "maxLength": 0,
+          "type": "string"
+        }
+      }
+    },
+    {
+      "properties": {
+        "apparmor_profile": {
+          "maxLength": 0,
+          "type": "string"
+        },
+        "selinux_label": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    }
+  ],
+  "properties": {
+    "accepted_controls": {
+      "$ref": "#/$defs/control_set"
+    },
+    "apparmor_profile": {
+      "type": "string"
+    },
+    "applied_controls": {
+      "$ref": "#/$defs/control_set"
+    },
+    "arguments": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "capability_drop_set": {
+      "contains": {
+        "const": "ALL"
+      },
+      "type": "array"
+    },
+    "combined_output_bytes_limit": {
+      "minimum": 2048,
+      "type": "integer"
+    },
+    "compiler_artifact_file_size_limit": {
+      "minimum": 1048576,
+      "type": "integer"
+    },
+    "container_gid": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "container_uid": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "cpu_limit": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "domain": {
+      "enum": [
+        "untrusted_compilation",
+        "trusted_verifier"
+      ]
+    },
+    "emitted_controls": {
+      "$ref": "#/$defs/control_set"
+    },
+    "entrypoint": {
+      "pattern": "^/opt/witness-authority/bin/(compile|verify)-lean$",
+      "type": "string"
+    },
+    "environment_allowlist": {
+      "items": {
+        "pattern": "^[A-Z_][A-Z0-9_]*=.*$",
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "final_result_bytes_limit": {
+      "minimum": 1024,
+      "type": "integer"
+    },
+    "handoff_total_bytes_limit": {
+      "minimum": 1048576,
+      "type": "integer"
+    },
+    "image_digest": {
+      "pattern": "^shake256-512:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "image_reference": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "immutable_policy_files": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "pattern": "^/",
+            "type": "string"
+          },
+          "shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          }
+        },
+        "required": [
+          "path",
+          "shake256_512"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "inspection_output_bytes_limit": {
+      "minimum": 1024,
+      "type": "integer"
+    },
+    "memory_limit": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "mount_manifest": {
+      "items": {
+        "$ref": "#/$defs/mount"
+      },
+      "minItems": 3,
+      "type": "array"
+    },
+    "network_mode": {
+      "const": "none"
+    },
+    "normalized_executed_argv": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 10,
+      "type": "array"
+    },
+    "normalized_executed_argv_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "oci_runtime_path": {
+      "pattern": "^/",
+      "type": "string"
+    },
+    "oci_runtime_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "oci_runtime_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "oci_runtime_version_output_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "open_file_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "pid_limit": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "read_only_rootfs": {
+      "const": true
+    },
+    "requested_controls": {
+      "$ref": "#/$defs/control_set"
+    },
+    "seccomp_profile_path": {
+      "pattern": "^/",
+      "type": "string"
+    },
+    "seccomp_profile_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "security_options": {
+      "contains": {
+        "const": "no-new-privileges"
+      },
+      "type": "array"
+    },
+    "selinux_label": {
+      "type": "string"
+    },
+    "stderr_bytes_limit": {
+      "minimum": 1024,
+      "type": "integer"
+    },
+    "stdout_bytes_limit": {
+      "minimum": 1024,
+      "type": "integer"
+    },
+    "timeout": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "tmpfs_mounts": {
+      "items": {
+        "$ref": "#/$defs/tmpfs"
+      },
+      "minItems": 2,
+      "type": "array"
+    },
+    "user_namespace_mode": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "working_directory": {
+      "const": "/work"
+    }
+  },
+  "required": [
+    "domain",
+    "oci_runtime_path",
+    "oci_runtime_shake256_512",
+    "oci_runtime_version",
+    "oci_runtime_version_output_shake256_512",
+    "image_reference",
+    "image_digest",
+    "entrypoint",
+    "arguments",
+    "container_uid",
+    "container_gid",
+    "network_mode",
+    "read_only_rootfs",
+    "capability_drop_set",
+    "security_options",
+    "seccomp_profile_shake256_512",
+    "seccomp_profile_path",
+    "apparmor_profile",
+    "selinux_label",
+    "user_namespace_mode",
+    "pid_limit",
+    "memory_limit",
+    "cpu_limit",
+    "compiler_artifact_file_size_limit",
+    "handoff_total_bytes_limit",
+    "inspection_output_bytes_limit",
+    "final_result_bytes_limit",
+    "stdout_bytes_limit",
+    "stderr_bytes_limit",
+    "combined_output_bytes_limit",
+    "open_file_limit",
+    "timeout",
+    "environment_allowlist",
+    "mount_manifest",
+    "tmpfs_mounts",
+    "working_directory",
+    "requested_controls",
+    "emitted_controls",
+    "accepted_controls",
+    "applied_controls",
+    "immutable_policy_files",
+    "normalized_executed_argv",
+    "normalized_executed_argv_shake256_512"
+  ],
+  "title": "Exact Executed Sandbox Invocation v3",
+  "type": "object"
+}

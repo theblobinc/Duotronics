@@ -1,0 +1,169 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/evidence_claim_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "claim_kind": {
+            "const": "proof_claim"
+          }
+        },
+        "required": [
+          "claim_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "theorem_statement": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "theorem_statement_shake256_512": {
+            "$ref": "#/$defs/shake256_512"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_kind": {
+            "not": {
+              "const": "proof_claim"
+            }
+          }
+        },
+        "required": [
+          "claim_kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "theorem_statement": {
+            "type": "null"
+          },
+          "theorem_statement_shake256_512": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "claim_kind": {
+      "enum": [
+        "atomic",
+        "measurement",
+        "observation",
+        "policy_decision",
+        "proof_claim",
+        "replay_claim",
+        "human_attestation"
+      ]
+    },
+    "claim_object": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "not": {
+            "type": "integer"
+          },
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "object"
+        },
+        {
+          "type": "array"
+        }
+      ]
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "issuer_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "predicate": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "evidence_claim/v2"
+    },
+    "subject_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "theorem_statement": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "theorem_statement_shake256_512": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/shake256_512"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "claim_id",
+    "claim_kind",
+    "subject_ref",
+    "predicate",
+    "claim_object",
+    "claim_content_shake256_512",
+    "theorem_statement",
+    "theorem_statement_shake256_512",
+    "created_at",
+    "issuer_principal_id"
+  ],
+  "title": "EvidenceClaimV2",
+  "type": "object"
+}

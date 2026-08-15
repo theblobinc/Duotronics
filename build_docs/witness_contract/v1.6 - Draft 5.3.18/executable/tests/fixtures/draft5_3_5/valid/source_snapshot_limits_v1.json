@@ -1,0 +1,14 @@
+{
+  "payload": {
+    "maximum_depth": 32,
+    "maximum_directories": 1024,
+    "maximum_directory_entries": 4096,
+    "maximum_file_bytes": 67108864,
+    "maximum_files": 4096,
+    "maximum_path_bytes": 1024,
+    "maximum_seconds": 30,
+    "maximum_total_bytes": 536870912,
+    "schema_version": "source_snapshot_limits/v1"
+  },
+  "schema_ref": "schemas/source_snapshot_limits_v1.schema.json"
+}

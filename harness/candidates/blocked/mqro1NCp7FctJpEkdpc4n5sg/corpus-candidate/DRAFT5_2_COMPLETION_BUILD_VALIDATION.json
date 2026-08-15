@@ -1,0 +1,8 @@
+{
+  "status": "passed_with_tla_plus_integration",
+  "scope": "tla_plus_only",
+  "lean_toolchain_added": false,
+  "validator": "executable/validators/validate_draft5_2_corpus.py",
+  "tla_runner": "executable/formal/run_tla_model_check.py",
+  "tla_runner_mode": "advisory_pass_tlc_unavailable_when_tlc_not_installed"
+}

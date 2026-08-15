@@ -1,0 +1,74 @@
+{
+  "$id": "https://duotronics.local/schemas/temporal_scope_witness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "claim_id": {
+      "type": "string"
+    },
+    "deep_time_replay_required": {
+      "type": "boolean"
+    },
+    "extension_of": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_decision_id": {
+      "type": "string"
+    },
+    "replay_assumption_manifest_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replay_witness_ref": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "temporal_scope_witness/v1"
+    },
+    "temporal_granularity": {
+      "enum": [
+        "instant",
+        "interval",
+        "event_sequence",
+        "version_epoch",
+        "unknown"
+      ]
+    },
+    "temporal_scope_witness_id": {
+      "type": "string"
+    },
+    "time_window": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "type": "string"
+        },
+        "start": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "temporal_scope_witness_id",
+    "claim_id",
+    "time_window",
+    "replay_witness_ref",
+    "policy_decision_id",
+    "temporal_granularity",
+    "deep_time_replay_required"
+  ],
+  "title": "TemporalScopeWitness",
+  "type": "object"
+}

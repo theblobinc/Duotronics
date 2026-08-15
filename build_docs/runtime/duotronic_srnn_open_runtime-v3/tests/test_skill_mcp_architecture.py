@@ -38,12 +38,12 @@ def test_tool_and_resource_progressive_disclosure(corpus: Path):
         read = await call_skill_tool(corpus, "skills.read", {"name": "concretecms/building-blocktypes"})
         assert "Use db.xml" in read["content"]
         legacy = await call_skill_tool(corpus, "runtime.skills_read", {"name": "concretecms/building-blocktypes"})
-        assert legacy["sha256"] == read["sha256"]
+        assert legacy["shake256_512"] == read["shake256_512"]
         resource = await read_skill_resource(corpus, "skills://concretecms/building-blocktypes/skill.md")
         assert resource is not None
         assert resource["mimeType"] == "text/markdown"
         assert "Use db.xml" in resource["contents"]
         legacy_resource = await read_skill_resource(corpus, "xavi-runtime://skills/concretecms/building-blocktypes")
         assert legacy_resource is not None
-        assert legacy_resource["metadata"]["sha256"] == resource["metadata"]["sha256"]
+        assert legacy_resource["metadata"]["shake256_512"] == resource["metadata"]["shake256_512"]
     asyncio.run(exercise())

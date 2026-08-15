@@ -1,0 +1,220 @@
+{
+  "$id": "https://duotronics.local/schemas/compound_claim_witness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operator": {
+            "const": "not"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "premise_claim_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 1,
+            "minItems": 1,
+            "type": "array"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "implies",
+              "equivalent",
+              "xor",
+              "temporal_since"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "premise_claim_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operator": {
+            "enum": [
+              "and",
+              "or",
+              "sequence",
+              "aggregate_any",
+              "aggregate_all"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "premise_claim_ids": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 2,
+            "type": "array"
+          }
+        }
+      }
+    }
+  ],
+  "description": "Compound claim witness. It does not prove the resulting claim by itself; it records composition under policy and non-collapse checks.",
+  "properties": {
+    "authority_scope": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "local_session",
+        "tenant",
+        "repo",
+        "service",
+        "cluster",
+        "system",
+        "release",
+        "mathematical_claim",
+        "nla_training",
+        "policy",
+        "memory_write",
+        "model_promotion",
+        "truth_observer"
+      ]
+    },
+    "claim_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "draft",
+        "observed",
+        "computed",
+        "proposed",
+        "asserted",
+        "deferred",
+        "vetoed",
+        "conjecture",
+        "theorem",
+        "replay_verified",
+        "proof_verified",
+        "policy_approved",
+        "released"
+      ]
+    },
+    "composition_policy_id": {
+      "type": "string"
+    },
+    "compound_claim_id": {
+      "type": "string"
+    },
+    "evidence_bundle_refs": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "non_collapse_checked": {
+      "const": true,
+      "type": "boolean"
+    },
+    "non_collapse_state_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "non_collapse_transition_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "operator": {
+      "enum": [
+        "and",
+        "or",
+        "implies",
+        "equivalent",
+        "not",
+        "xor",
+        "temporal_since",
+        "sequence",
+        "aggregate_any",
+        "aggregate_all"
+      ]
+    },
+    "output_claim_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "policy_decision_id": {
+      "type": "string"
+    },
+    "premise_claim_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "replay_identity_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "runtime_mode": {
+      "enum": [
+        "observe",
+        "test",
+        "simulation",
+        "shadow",
+        "audit",
+        "migration",
+        "release_candidate",
+        "production",
+        "rollback"
+      ]
+    },
+    "schema_version": {
+      "const": "compound_claim_witness/v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "compound_claim_id",
+    "operator",
+    "premise_claim_ids",
+    "composition_policy_id",
+    "policy_decision_id",
+    "evidence_bundle_refs",
+    "non_collapse_checked",
+    "claim_status",
+    "authority_scope",
+    "runtime_mode",
+    "non_collapse_transition_id"
+  ],
+  "title": "CompoundClaimWitness",
+  "type": "object"
+}

@@ -1,0 +1,50 @@
+{
+  "$id": "duotronic://schemas/legacy_mapping_witness/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "execution_witness_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "legacy_bytes_commitment": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "legacy_opaque_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "mapping_witness_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "migration_policy_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "new_envelope_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "new_semantic_content_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "legacy_mapping_witness/v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "legacy_opaque_id",
+    "legacy_bytes_commitment",
+    "new_semantic_content_id",
+    "new_envelope_id",
+    "migration_policy_id",
+    "execution_witness_id",
+    "mapping_witness_id"
+  ],
+  "title": "LegacyMappingWitness/v1",
+  "type": "object"
+}

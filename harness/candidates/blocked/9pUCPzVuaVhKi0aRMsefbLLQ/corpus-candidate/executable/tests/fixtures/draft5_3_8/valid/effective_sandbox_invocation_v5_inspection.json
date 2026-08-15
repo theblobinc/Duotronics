@@ -1,0 +1,120 @@
+{
+  "payload": {
+    "accepted_controls": [],
+    "apparmor_profile": "witness-authority-default",
+    "applied_controls": [],
+    "arguments": [
+      "--request",
+      "/input/control/request.json"
+    ],
+    "capability_drop_set": [
+      "ALL"
+    ],
+    "combined_output_bytes_limit": 2097152,
+    "compiler_artifact_file_size_limit": 134217728,
+    "container_gid": 65534,
+    "container_id_file": "/authority/result/inspector.cid",
+    "container_uid": 65534,
+    "cpu_limit": "2",
+    "domain": "trusted_inspection",
+    "domain_file_size_limit": 4194304,
+    "emitted_controls": [
+      "rlimit_fsize"
+    ],
+    "entrypoint": "/opt/witness-authority/bin/verify-lean",
+    "environment_allowlist": [
+      "HOME=/nonexistent"
+    ],
+    "final_result_bytes_limit": 1048576,
+    "handoff_total_bytes_limit": 536870912,
+    "image_digest": "shake256-512:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "image_reference": "registry.invalid/witness/verifier",
+    "immutable_policy_files": [
+      {
+        "path": "/etc/witness/seccomp.json",
+        "shake256_512": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    ],
+    "inspection_output_bytes_limit": 4194304,
+    "memory_limit": "2g",
+    "mount_manifest": [
+      {
+        "destination": "/input/source",
+        "domain": "trusted_inspection",
+        "host_path": "/snapshot",
+        "lifecycle": "request",
+        "mode": "ro",
+        "purpose": "sealed_source",
+        "source": "snapshot:a"
+      },
+      {
+        "destination": "/input/control",
+        "domain": "trusted_inspection",
+        "host_path": "/control",
+        "lifecycle": "request",
+        "mode": "ro",
+        "purpose": "trusted_request",
+        "source": "control:a"
+      },
+      {
+        "destination": "/trusted-inspection",
+        "domain": "trusted_inspection",
+        "host_path": "/inspection",
+        "lifecycle": "request",
+        "mode": "rw",
+        "purpose": "inspection_output",
+        "source": "inspection:a"
+      }
+    ],
+    "network_mode": "none",
+    "normalized_executed_argv": [
+      "/usr/bin/podman",
+      "run",
+      "--rm",
+      "--pull=never",
+      "--entrypoint=/opt/witness-authority/bin/verify-lean",
+      "--workdir=/work",
+      "--network=none",
+      "--read-only",
+      "--ulimit=fsize=4194304:4194304",
+      "image"
+    ],
+    "normalized_executed_argv_shake256_512": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "oci_runtime_path": "/usr/bin/podman",
+    "oci_runtime_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "oci_runtime_version": "podman version 5.4.0",
+    "oci_runtime_version_output_shake256_512": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "open_file_limit": 256,
+    "pid_limit": 128,
+    "read_only_rootfs": true,
+    "requested_controls": [
+      "rlimit_fsize"
+    ],
+    "runtime_created_environment_keys": [
+      "HOSTNAME",
+      "container"
+    ],
+    "seccomp_profile_path": "/etc/witness/seccomp.json",
+    "seccomp_profile_shake256_512": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "security_options": [
+      "no-new-privileges"
+    ],
+    "selinux_label": "",
+    "stderr_bytes_limit": 1048576,
+    "stdout_bytes_limit": 1048576,
+    "timeout": 600,
+    "tmpfs_mounts": [
+      {
+        "destination": "/tmp",
+        "options": "rw,noexec,nosuid,nodev,size=512m"
+      },
+      {
+        "destination": "/work",
+        "options": "rw,nosuid,nodev,size=1g"
+      }
+    ],
+    "user_namespace_mode": "keep-id",
+    "working_directory": "/work"
+  },
+  "schema_ref": "schemas/effective_sandbox_invocation_v5.schema.json"
+}

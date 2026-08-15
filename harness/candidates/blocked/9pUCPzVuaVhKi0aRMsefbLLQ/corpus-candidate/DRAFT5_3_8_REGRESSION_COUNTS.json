@@ -1,0 +1,36 @@
+{
+  "count_source": "unittest.TestResult",
+  "draft5_3_7_baseline_tests_discovered": 154,
+  "duplicate_test_ids": [],
+  "generated_at": "2026-08-01T17:31:07.373692+00:00",
+  "normal_command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "executable/validators/run_unittest_structured.py"
+  ],
+  "normal_stderr_shake256_512": "af9079abdfebc5d33114bc25462ac1c555c497ff5d4d68fcba492f6fe9c6b1c1",
+  "normal_stdout_shake256_512": "93066197e335ceb4765c7af165caaf62a5a87fcd82ba1db1fcf3d483988064bf",
+  "package_version": "v1.6-draft-5.3.8",
+  "schema_version": "draft5_3_8_regression_counts/v1",
+  "supported_python_versions": [
+    "3.12",
+    "3.13"
+  ],
+  "tests_discovered": 195,
+  "tests_errored": 0,
+  "tests_failed": 0,
+  "tests_passed": 195,
+  "tests_run": 195,
+  "tests_skipped": 0,
+  "validated_python_version": "3.12.13",
+  "warning_free_command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-X",
+    "dev",
+    "-W",
+    "error",
+    "executable/validators/run_unittest_structured.py"
+  ],
+  "warning_free_stderr_shake256_512": "c9af8b3a651246b485fbc9baa61c53e455815b29902f90e8b645e80abb9000c1",
+  "warning_free_stdout_shake256_512": "93066197e335ceb4765c7af165caaf62a5a87fcd82ba1db1fcf3d483988064bf",
+  "warning_output_lines": []
+}

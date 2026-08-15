@@ -1,0 +1,35 @@
+{
+  "package": "Duotronic Witness Contract v1.6 Draft 5.2 Completion Candidate",
+  "status": "completed_implementation_review_candidate_not_frozen_with_logical_observer_kernel_and_tla_plus_only_toolchain",
+  "generated_at": "2026-05-11T00:00:00Z",
+  "root_directory_name": "v1.6 - Draft 5.2",
+  "file_count": 439,
+  "hash_closure_file_count": 435,
+  "excluded_self_referential_artifacts": [
+    "PACKAGE_INVENTORY_v1_6_draft_5_2.json",
+    "PACKAGE_METADATA_v1_6_draft_5_2.json",
+    "refs/manifest/CHECKSUMS_v1_6_draft_5_2.shake256_512",
+    "refs/manifest/MANIFEST_v1_6_draft_5_2_complete.md"
+  ],
+  "extension_counts": {
+    ".cfg": 4,
+    ".json": 72,
+    ".lean": 3,
+    ".md": 334,
+    ".py": 2,
+    ".shake256_512": 5,
+    ".sql": 3,
+    ".tla": 5,
+    ".txt": 6,
+    ".yaml": 5
+  },
+  "primary_contract": "duotronic_witness_contract_v1_6_draft_5_2.md",
+  "start_here": "START_HERE.md",
+  "operating_primer": "EVIDENCE_LANGUAGE_OPERATING_SYSTEM_PRIMER_v1_0.md",
+  "logical_observer_kernel": "kernel/logical_observer_kernel_contract_v1_0.md",
+  "kernel_syscalls": "executable/kernel/logical_observer_kernel_syscalls.yaml",
+  "tla_plus_manifest": "refs/formal_toolchain/tla_toolchain_manifest_v1_0.json",
+  "tla_plus_runner": "executable/formal/run_tla_model_check.py",
+  "lean_toolchain_added_in_this_update": false,
+  "freeze_state": "not_frozen_pending_runtime_implementation_human_review_and_strict_tlc_run"
+}

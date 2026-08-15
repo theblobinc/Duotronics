@@ -1,0 +1,22 @@
+{
+  "schema": "duotronic-runtime-interface/v1",
+  "api_version": "duotronic-runtime-api/1.0",
+  "manifest_schema": "duotronic-corpus-manifest/1.0",
+  "supported_manifest_majors": [0, 1],
+  "native_manifest_major": 1,
+  "unknown_noncritical_fields": "preserve",
+  "unknown_critical_fields": "read-only",
+  "required_capabilities": [
+    "paired-corpus-runtime-binding",
+    "shake256-512-identities",
+    "kmac256-authentication",
+    "ml-dsa-87-witness-signatures",
+    "ml-kem-1024-evidence-transport",
+    "twelve-independent-activation-gates",
+    "append-only-key-revocation"
+  ],
+  "migration_adapters": [
+    "legacy-unversioned-to-v1-read-only",
+    "v1-forward-preserving"
+  ]
+}

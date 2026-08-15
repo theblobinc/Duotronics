@@ -1,0 +1,43 @@
+{
+  "payload": {
+    "apparmor_profile": "witness-authority-default",
+    "arguments": [],
+    "capability_drop_set": [
+      "ALL"
+    ],
+    "container_gid": 65534,
+    "container_uid": 65534,
+    "cpu_limit": "2",
+    "domain": "untrusted_compilation",
+    "entrypoint": "/opt/witness-authority/bin/compile-lean",
+    "environment_allowlist": [
+      "HOME=/nonexistent"
+    ],
+    "file_size_limit": 1048576,
+    "image_digest": "shake256-512:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "image_reference": "registry.invalid/witness/verifier",
+    "memory_limit": "2g",
+    "mount_manifest": [
+      {
+        "container": "/input/source",
+        "host": "/snapshot",
+        "mode": "ro"
+      }
+    ],
+    "network_mode": "none",
+    "oci_runtime_shake256_512": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "oci_runtime_version": "podman 5.4.0",
+    "open_file_limit": 256,
+    "pid_limit": 128,
+    "read_only_rootfs": true,
+    "seccomp_profile_shake256_512": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "security_options": [
+      "no-new-privileges"
+    ],
+    "selinux_label": "container_t",
+    "timeout": 600,
+    "user_namespace_mode": "private",
+    "working_directory": "/work"
+  },
+  "schema_ref": "schemas/effective_sandbox_invocation_v1.schema.json"
+}

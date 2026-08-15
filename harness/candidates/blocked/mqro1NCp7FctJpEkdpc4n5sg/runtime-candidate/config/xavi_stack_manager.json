@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "expected_user": "tbi",
+  "runtime_root": "/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3",
+  "compose_file": "compose.yaml",
+  "env_file": ".env",
+  "audit_log": "data/ops_manager/audit.jsonl",
+  "lock_file": "data/ops_manager/manager.lock",
+  "snapshot_dir": "data/ops_manager/snapshots",
+  "storage": {
+    "datastore_root": "/datastore2",
+    "srnn_db_source": "/var/www/xavi/srnn_server/db",
+    "srnn_db_target": "/datastore2/srnn_server/db",
+    "podman_graphroot_target": "/datastore2/podman/storage",
+    "podman_volumes_target": "/datastore2/podman/volumes",
+    "minimum_free_ratio": 1.15
+  },
+  "core_containers": [
+    {"name": "duotronic-postgres", "required": true, "health": "healthy", "role": "coordination/runtime PostgreSQL"},
+    {"name": "duotronic-redis", "required": true, "role": "runtime cache and queue"},
+    {"name": "duotronic-minio", "required": true, "role": "runtime object storage"},
+    {"name": "duotronic-runtime", "required": true, "health": "healthy", "role": "runtime MCP, coordination, WG-RNN"},
+    {"name": "xavi-ollama-tool-proxy", "required": false, "role": "Ollama tool proxy"},
+    {"name": "duotronic-ollama", "required": false, "role": "local model server; currently optional/offloaded"}
+  ],
+  "expected_ports": [
+    {"port": 8080, "required": true, "role": "Duotronic runtime"},
+    {"port": 8091, "required": true, "role": "rootless host operations agent"},
+    {"port": 8092, "required": true, "role": "Developer/operations MCP adapter"},
+    {"port": 5433, "required": true, "role": "Duotronic PostgreSQL loopback"},
+    {"port": 9000, "required": true, "role": "Duotronic MinIO API"},
+    {"port": 9001, "required": true, "role": "Duotronic MinIO console"},
+    {"port": 3080, "required": false, "role": "LibreChat"},
+    {"port": 8000, "required": false, "role": "code interpreter MCP"}
+  ],
+  "user_units": [
+    {"name": "xavi-dev-mcp-adapter.service", "expected": "active", "role": "operations MCP adapter"},
+    {"name": "xavi-runtime-ops-agent.service", "expected": "active", "role": "independent host operations agent"},
+    {"name": "xavi-podman-stack.service", "expected": "review", "role": "legacy/core container start wrapper; manifest may be stale"},
+    {"name": "xavi-fusion-sidecar-uds.service", "expected": "active", "role": "Fusion signed Unix-socket sidecar"},
+    {"name": "xavi-fusion-automations.timer", "expected": "active", "role": "Fusion scheduled automations"},
+    {"name": "xavi-librechat.service", "expected": "active", "role": "LibreChat compose wrapper"},
+    {"name": "xavi-searxng-fleet.service", "expected": "active", "role": "SearXNG fleet"},
+    {"name": "xavi-ollama-tunnel.service", "expected": "review", "role": "RTX Ollama rollback/fallback tunnel; direct 10.77.0.2:11434 is primary"},
+    {"name": "xavi-stack-smoke.service", "expected": "inactive", "role": "on-demand smoke test"}
+  ],
+  "review_units": [
+    {"name": "xavi-fusion-sidecar-v050.service", "reason": "versioned sidecar unit may be superseded by xavi-fusion-sidecar-uds.service"},
+    {"name": "xavi-searxng.service", "reason": "single-instance unit may be superseded by xavi-searxng-fleet.service"},
+    {"name": "xavi-podman-stack.service", "reason": "ExecStart references optional duotronic-ollama and may fail when it is intentionally absent"}
+  ],
+  "allowed_service_actions": [
+    "xavi-dev-mcp-adapter.service",
+    "xavi-runtime-ops-agent.service",
+    "xavi-fusion-sidecar-uds.service",
+    "xavi-fusion-automations.timer",
+    "xavi-librechat.service",
+    "xavi-searxng-fleet.service",
+    "xavi-ollama-tunnel.service"
+  ]
+}

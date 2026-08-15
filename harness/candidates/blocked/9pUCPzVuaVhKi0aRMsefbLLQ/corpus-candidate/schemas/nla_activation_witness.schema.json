@@ -1,0 +1,449 @@
+{
+  "$id": "https://duotronic.local/schemas/nla_activation_witness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "activation": {
+      "additionalProperties": false,
+      "properties": {
+        "capture_time_utc": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "dtype": {
+          "enum": [
+            "float16",
+            "bfloat16",
+            "float32",
+            "quantized",
+            "unknown"
+          ]
+        },
+        "norm_l2": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "redaction_status": {
+          "enum": [
+            "none",
+            "redacted",
+            "restricted"
+          ]
+        },
+        "retention_class": {
+          "enum": [
+            "ephemeral",
+            "fixture",
+            "audit_artifact",
+            "release_artifact"
+          ]
+        },
+        "transcript_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vector_ref": {
+          "type": "string"
+        },
+        "vector_shake256_512": {
+          "pattern": "^(shake256_512:)?[A-Fa-f0-9]{128}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "vector_ref",
+        "vector_shake256_512",
+        "norm_l2",
+        "dtype",
+        "capture_time_utc",
+        "retention_class"
+      ],
+      "type": "object"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "fidelity": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "contradiction_pressure_delta": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "novelty_delta": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "parser_valid": {
+          "type": "boolean"
+        },
+        "recurrence_family": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repeat_stability": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "replay_valid": {
+          "type": "boolean"
+        },
+        "sidecar_valid": {
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "failed",
+            "unscored",
+            "quarantined"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "confidence",
+        "parser_valid",
+        "sidecar_valid",
+        "replay_valid",
+        "human_review_required"
+      ],
+      "type": "object"
+    },
+    "lifecycle": {
+      "additionalProperties": false,
+      "properties": {
+        "current_state": {
+          "enum": [
+            "requested",
+            "captured",
+            "verbalized",
+            "scored",
+            "accepted",
+            "accepted_single_use_only",
+            "diagnostic_only",
+            "unscored_diagnostic",
+            "quarantined",
+            "human_review_pending",
+            "human_review_accepted",
+            "human_review_rejected",
+            "promotable",
+            "promoted_to_meta",
+            "promoted_to_hyper",
+            "expired",
+            "failed"
+          ]
+        },
+        "expiry_at": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "previous_state": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "review_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transition_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transitioned_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "current_state",
+        "transitioned_at"
+      ],
+      "type": "object"
+    },
+    "loop_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy": {
+      "additionalProperties": false,
+      "properties": {
+        "may_influence_response": {
+          "type": "boolean"
+        },
+        "may_promote_witness": {
+          "type": "boolean"
+        },
+        "may_trigger_mutation": {
+          "type": "boolean"
+        },
+        "may_write_memory": {
+          "type": "boolean"
+        },
+        "mode": {
+          "enum": [
+            "audit_only",
+            "advisory",
+            "authoritative"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "may_influence_response",
+        "may_write_memory",
+        "may_promote_witness",
+        "may_trigger_mutation"
+      ],
+      "type": "object"
+    },
+    "reconstructor": {
+      "additionalProperties": false,
+      "properties": {
+        "ar_available": {
+          "type": "boolean"
+        },
+        "ar_checkpoint_shake256_512": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ar_model_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ar_model_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cosine_similarity": {
+          "maximum": 1,
+          "minimum": -1,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "mse": {
+          "minimum": 0,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "reconstruction_vector_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reconstruction_vector_shake256_512": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "ar_available",
+        "mse",
+        "cosine_similarity"
+      ],
+      "type": "object"
+    },
+    "request_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "nla-activation-witness/v1"
+    },
+    "source_model": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "enum": [
+            "transformers",
+            "sglang",
+            "llama_server",
+            "ollama",
+            "other",
+            "unknown"
+          ]
+        },
+        "backend_capability": {
+          "enum": [
+            "hidden_states_available",
+            "hidden_states_unavailable",
+            "unknown"
+          ]
+        },
+        "d_model": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "layer_index": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "model_id": {
+          "type": "string"
+        },
+        "model_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pooling_rule": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "token_index": {
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "token_text_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "model_id",
+        "backend",
+        "layer_index",
+        "d_model"
+      ],
+      "type": "object"
+    },
+    "verbalizer": {
+      "additionalProperties": false,
+      "properties": {
+        "av_checkpoint_shake256_512": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "av_model_id": {
+          "type": "string"
+        },
+        "av_model_revision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "explanation_tags_valid": {
+          "type": "boolean"
+        },
+        "explanation_text": {
+          "type": "string"
+        },
+        "injection_scale": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "injection_token_id": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "prompt_template_hash": {
+          "type": "string"
+        },
+        "raw_generation_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sidecar_digest": {
+          "type": "string"
+        },
+        "sidecar_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "av_model_id",
+        "sidecar_digest",
+        "prompt_template_hash",
+        "explanation_text",
+        "explanation_tags_valid"
+      ],
+      "type": "object"
+    },
+    "witness_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "witness_id",
+    "loop_id",
+    "created_at",
+    "source_model",
+    "activation",
+    "verbalizer",
+    "reconstructor",
+    "fidelity",
+    "lifecycle",
+    "policy"
+  ],
+  "title": "NaturalLanguageActivationWitness",
+  "type": "object"
+}

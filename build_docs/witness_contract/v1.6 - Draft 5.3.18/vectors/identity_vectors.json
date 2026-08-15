@@ -1,0 +1,42 @@
+{
+  "meta_object_edges": [
+    {
+      "edge": {
+        "assumption_manifest_id": null,
+        "context_content_id": null,
+        "policy_id": "policy:portable-example-v1",
+        "relation_type": "supports",
+        "schema_version": "meta_object_edge/v1",
+        "source_content_id": "duoid:shake256-512:vxt-jzP6WCT2GRq9InmvTLEuONUXshUjIgwnVWdj-vuVXjugvp7w-qKtLyBx9JSz_TwO6XCsi6Bxu78RG77acg",
+        "supersedes_edge_id": null,
+        "target_content_id": "duoid:shake256-512:oXJ2mYWGVurYpZmXEHtaFEO4_4rrQ_jJsb2DpD5ZEl9dve4oZce6QNNmwquhPRyFIaOWvq4MXAw6zLwVKipBYA",
+        "valid_from": null,
+        "valid_until": null
+      },
+      "expected_id": "duoid:shake256-512:97QlFte44cQuWm0FtYT2m0TzdcuC3CumXyHY2WMPQNZoRWLFxwgpaGFwWQCHQw6ppFzgAetji8OoPaw4TCH3QA",
+      "name": "directional-support-edge"
+    }
+  ],
+  "semantic_content": [
+    {
+      "body": {
+        "claim": "theorem T compiled under governed profile",
+        "subject": "theorem:T"
+      },
+      "content_type": "evidence_claim/v1",
+      "expected_id": "duoid:shake256-512:vxt-jzP6WCT2GRq9InmvTLEuONUXshUjIgwnVWdj-vuVXjugvp7w-qKtLyBx9JSz_TwO6XCsi6Bxu78RG77acg",
+      "name": "governed-theorem-claim"
+    },
+    {
+      "body": {
+        "claim": "object A supports object B",
+        "confidence_decimal": "1.000000",
+        "subject": "edge:example"
+      },
+      "content_type": "evidence_claim/v1",
+      "expected_id": "duoid:shake256-512:oXJ2mYWGVurYpZmXEHtaFEO4_4rrQ_jJsb2DpD5ZEl9dve4oZce6QNNmwquhPRyFIaOWvq4MXAw6zLwVKipBYA",
+      "name": "support-claim"
+    }
+  ],
+  "vector_version": "identity_vectors/v1"
+}

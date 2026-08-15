@@ -1,0 +1,18 @@
+{
+  "payload": {
+    "canonical_claim": {
+      "statement": "True"
+    },
+    "claim_id": "claim:1",
+    "compiler_profile_id": "profile:1",
+    "idempotency_key": "idempotency:1",
+    "policy_decision_id": "policy:1",
+    "proof_artifact_relative_path": "Proof.lean",
+    "request_id": "request:1",
+    "source_bundle_id": "bundle:1",
+    "subject_id": "principal:1",
+    "theorem_name": "Proof.t",
+    "theorem_statement": "True"
+  },
+  "schema_ref": "schemas/proof_check_request_v1.schema.json"
+}

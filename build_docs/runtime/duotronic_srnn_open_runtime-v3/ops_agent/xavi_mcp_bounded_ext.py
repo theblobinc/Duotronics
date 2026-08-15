@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 import os
 import re
+import shlex
+import signal
 import subprocess
+import tempfile
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +18,9 @@ V3_DIR = Path(os.environ.get(
 )).resolve()
 REPO_ROOT = Path(os.environ.get("XAVI_OPS_REPO_ROOT", "/var/www/xavi/Duotronics")).resolve()
 REGISTRY_PATH = V3_DIR / "config" / "bounded_commands.json"
+MIKROTIK_VENV_PYTHON = Path("/var/www/xavi/vendor/mikrotik-mcp/.xavi-venv/bin/python")
+MIKROTIK_BRIDGE = Path("/var/www/xavi/xavi-stack-manager/bin/xavi_mikrotik_bridge.py")
+MIKROTIK_CWD = Path("/var/www/xavi/xavi-stack-manager")
 
 
 def _trim(value: str, limit: int = 60000) -> str:
@@ -31,24 +37,58 @@ def _bounded_int(value: Any, default: int, low: int, high: int) -> int:
     return max(low, min(high, n))
 
 
+def _read_capped_temp(handle: Any, limit: int = 60000) -> str:
+    handle.flush()
+    size = handle.tell()
+    if size <= 0:
+        return ""
+    if size <= limit:
+        handle.seek(0)
+        return handle.read().decode("utf-8", errors="replace")
+    half = max(1, limit // 2)
+    handle.seek(0)
+    head = handle.read(half).decode("utf-8", errors="replace")
+    handle.seek(max(0, size - half))
+    tail = handle.read(half).decode("utf-8", errors="replace")
+    return head + f"\n...[truncated {size - (half * 2)} bytes]...\n" + tail
+
+
 def _run(argv: list[str], cwd: Path | None = None, timeout: int = 120) -> dict[str, Any]:
     started = datetime.utcnow()
-    proc = subprocess.run(
-        argv,
-        cwd=str(cwd or REPO_ROOT),
-        text=True,
-        capture_output=True,
-        timeout=timeout,
-    )
-    return {
-        "argv": argv,
-        "cwd": str(cwd or REPO_ROOT),
-        "returncode": proc.returncode,
-        "duration_ms": int((datetime.utcnow() - started).total_seconds() * 1000),
-        "stdout": _trim(proc.stdout),
-        "stderr": _trim(proc.stderr),
-    }
-
+    timed_out = False
+    with tempfile.TemporaryFile() as stdout_file, tempfile.TemporaryFile() as stderr_file:
+        proc = subprocess.Popen(
+            argv,
+            cwd=str(cwd or REPO_ROOT),
+            stdout=stdout_file,
+            stderr=stderr_file,
+            start_new_session=True,
+        )
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+                proc.wait(timeout=2)
+            except Exception:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except Exception:
+                    proc.kill()
+                try:
+                    proc.wait(timeout=2)
+                except Exception:
+                    pass
+        return {
+            "argv": argv,
+            "cwd": str(cwd or REPO_ROOT),
+            "returncode": 124 if timed_out else proc.returncode,
+            "duration_ms": int((datetime.utcnow() - started).total_seconds() * 1000),
+            "stdout": _read_capped_temp(stdout_file),
+            "stderr": _read_capped_temp(stderr_file),
+            "timed_out": timed_out,
+        }
 
 def _fetch_json(url: str, timeout: int = 20) -> Any:
     with urllib.request.urlopen(url, timeout=timeout) as r:
@@ -215,8 +255,74 @@ def model_benchmark(args: dict[str, Any]) -> dict[str, Any]:
     return {"port": port, "model": model, "runs": results}
 
 
+def _mikrotik_bridge_call(argv: list[str], timeout: int = 90) -> dict[str, Any]:
+    if not MIKROTIK_VENV_PYTHON.exists():
+        raise RuntimeError(f"MikroTik bridge venv missing: {MIKROTIK_VENV_PYTHON}")
+    if not MIKROTIK_BRIDGE.exists():
+        raise RuntimeError(f"MikroTik bridge missing: {MIKROTIK_BRIDGE}")
+    result = _run([str(MIKROTIK_VENV_PYTHON), str(MIKROTIK_BRIDGE), *argv], cwd=MIKROTIK_CWD, timeout=timeout)
+    try:
+        payload = json.loads(result.get("stdout") or "{}")
+    except Exception:
+        payload = {"ok": False, "error": "MikroTik bridge returned invalid JSON", "stdout": _trim(result.get("stdout") or "", 8000)}
+    if isinstance(payload, dict):
+        payload.setdefault("bridge_returncode", result.get("returncode"))
+        if result.get("stderr"):
+            payload.setdefault("bridge_stderr", _trim(result.get("stderr") or "", 4000))
+        return payload
+    return {"ok": False, "error": "MikroTik bridge payload was not an object", "bridge_returncode": result.get("returncode")}
+
+
+def mikrotik_router_health(args: dict[str, Any]) -> dict[str, Any]:
+    return _mikrotik_bridge_call(["health"], timeout=30)
+
+
+def mikrotik_router_trust_host_key(args: dict[str, Any]) -> dict[str, Any]:
+    return _mikrotik_bridge_call(["trust-host-key"], timeout=30)
+
+
+def mikrotik_router_inventory(args: dict[str, Any]) -> dict[str, Any]:
+    allowed = {
+        "identity", "resource", "routerboard", "interfaces", "ethernet", "bridges", "bridge_ports",
+        "interface_lists", "interface_list_members", "ip_addresses", "ipv6_addresses", "routes_v4", "routes_v6",
+        "services", "dns", "dns_static", "firewall_filter", "firewall_nat", "users", "ssh", "neighbors",
+    }
+    raw = args.get("sections") or []
+    if not isinstance(raw, list):
+        raise ValueError("sections must be an array")
+    sections = [str(item) for item in raw]
+    unknown = [item for item in sections if item not in allowed]
+    if unknown:
+        raise ValueError(f"unsupported MikroTik inventory sections: {unknown}")
+    argv = ["inventory"]
+    if sections:
+        argv += ["--sections", ",".join(sections)]
+    return _mikrotik_bridge_call(argv, timeout=90)
+
+
+def mikrotik_router_export(args: dict[str, Any]) -> dict[str, Any]:
+    label = str(args.get("label", "mcp-snapshot"))
+    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,64}", label):
+        raise ValueError("invalid export label")
+    return _mikrotik_bridge_call(["export", "--label", label], timeout=60)
+
+
+def mikrotik_router_safe_apply(args: dict[str, Any]) -> dict[str, Any]:
+    action = str(args.get("action", ""))
+    allowed = {
+        "identity_set", "interface_comment_set", "ip_address_ensure", "dns_static_ensure",
+        "dns_static_remove", "service_source_set", "rule_enabled_set",
+    }
+    if action not in allowed:
+        raise ValueError(f"unsupported MikroTik safe action: {action}")
+    params = args.get("params") or {}
+    if not isinstance(params, dict):
+        raise ValueError("params must be an object")
+    return _mikrotik_bridge_call(["safe-apply", "--action", action, "--params-json", json.dumps(params, separators=(",", ":"))], timeout=120)
+
+
 def remote_node_health(args: dict[str, Any]) -> dict[str, Any]:
-    port = str(args.get("port", "18205"))
+    requested_port = str(args.get("port", "")).strip()
     model = _model_name_ok(str(args.get("model", "qwen2.5-coder:7b")))
     payload = {
         "model": model,
@@ -224,10 +330,96 @@ def remote_node_health(args: dict[str, Any]) -> dict[str, Any]:
         "stream": False,
         "options": {"num_predict": 16},
     }
+    if requested_port:
+        candidates = [("explicit-local-port", _ollama_base(requested_port), requested_port)]
+    else:
+        candidates = [
+            ("dedicated-private-ethernet", "http://10.77.0.2:11434", "11434"),
+            ("ssh-tunnel-fallback", "http://127.0.0.1:18205", "18205"),
+        ]
+    errors: list[dict[str, str]] = []
+    for transport, base_url, port in candidates:
+        try:
+            return {
+                "transport": transport,
+                "base_url": base_url,
+                "port": port,
+                "fallback_used": transport == "ssh-tunnel-fallback",
+                "tags": _fetch_json(base_url + "/api/tags", timeout=20),
+                "probe": _post_json(base_url + "/api/generate", payload, 120),
+            }
+        except Exception as exc:
+            errors.append({"transport": transport, "base_url": base_url, "error": str(exc)[:500]})
+    raise RuntimeError("remote_node_health_failed:" + json.dumps(errors, separators=(",", ":")))
+
+
+def remote_host_health(args: dict[str, Any]) -> dict[str, Any]:
+    node_id = str(args.get("node", "")).strip()
+    config_path = Path("/var/www/xavi/xavi-stack-manager/config/stack.json")
+    if not config_path.exists():
+        raise RuntimeError("stack manager config missing")
+    config = json.loads(config_path.read_text())
+    spec = next((row for row in config.get("remote_nodes", []) if str(row.get("id")) == node_id), None)
+    if spec is None:
+        raise ValueError(f"unknown remote node: {node_id}")
+    transport = spec.get("transport") or {}
+    target = str(transport.get("private_ssh_target") or spec.get("ssh_target") or "").strip()
+    if not re.fullmatch(r"[A-Za-z0-9_.@:-]{1,255}", target):
+        raise ValueError("invalid SSH target")
+    connect_timeout = _bounded_int(transport.get("connect_timeout"), 6, 2, 15)
+    script = r'''import json, os, shutil, socket, subprocess
+
+def run(argv, timeout=5):
+    try:
+        p=subprocess.run(argv,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=timeout,check=False)
+        return {"rc":p.returncode,"stdout":p.stdout.strip(),"stderr":p.stderr.strip()[:300]}
+    except Exception as exc:
+        return {"rc":-1,"stdout":"","stderr":f"{type(exc).__name__}: {exc}"}
+
+mem={}
+try:
+    for line in open("/proc/meminfo"):
+        k,v=line.split(":",1); mem[k]=int(v.strip().split()[0])*1024
+except Exception: pass
+try: load=[float(x) for x in open("/proc/loadavg").read().split()[:3]]
+except Exception: load=[]
+engines={}
+for name in ("podman","docker"):
+    engines[name]={"installed":bool(shutil.which(name))}
+    if engines[name]["installed"]:
+        engines[name]["info_rc"]=run([name,"info"],5)["rc"]
+libvirt={"installed":bool(shutil.which("virsh")),"domains":[]}
+if libvirt["installed"]:
+    r=run(["virsh","list","--all","--name"],6)
+    if r["rc"]==0: libvirt["domains"]=[x for x in r["stdout"].splitlines() if x]
+gpus=[]
+if shutil.which("nvidia-smi"):
+    r=run(["nvidia-smi","--query-gpu=name,memory.total,memory.free,utilization.gpu","--format=csv,noheader,nounits"],6)
+    if r["rc"]==0: gpus=[x for x in r["stdout"].splitlines() if x]
+print(json.dumps({"hostname":socket.gethostname(),"cpu":{"logical":os.cpu_count() or 1,"load":load},"memory":{"total_bytes":mem.get("MemTotal",0),"available_bytes":mem.get("MemAvailable",0)},"container_engines":engines,"libvirt":libvirt,"gpus":gpus,"nftables":{"installed":bool(shutil.which("nft"))},"addresses":run(["ip","-br","addr"],5)["stdout"]},sort_keys=True))'''
+    result = _run([
+        "ssh", "-o", "BatchMode=yes", "-o", f"ConnectTimeout={connect_timeout}",
+        "-o", "ServerAliveInterval=5", target,
+        "python3 -c " + shlex.quote(script),
+    ], cwd=Path("/var/www/xavi"), timeout=max(18, connect_timeout + 14))
+    payload: Any = None
+    if result.get("returncode") == 0:
+        try:
+            payload = json.loads(result.get("stdout") or "")
+        except Exception:
+            payload = {"raw": (result.get("stdout") or "")[:1000]}
     return {
-        "port": port,
-        "tags": _fetch_json(_ollama_base(port) + "/api/tags", timeout=20),
-        "probe": _post_json(_ollama_base(port) + "/api/generate", payload, 120),
+        "node": node_id,
+        "title": spec.get("title"),
+        "target": target,
+        "reachable": result.get("returncode") == 0,
+        "duration_ms": result.get("duration_ms"),
+        "transport": transport,
+        "roles": spec.get("roles") or [],
+        "scheduler_eligible": spec.get("scheduler_eligible", True),
+        "container_policy": spec.get("container_policy") or {},
+        "observed": payload,
+        "error": None if result.get("returncode") == 0 else ((result.get("stderr") or result.get("stdout") or "SSH probe failed").strip()[:1000]),
     }
 
 
@@ -267,8 +459,12 @@ def cpu_worker_policy_set(args: dict[str, Any]) -> dict[str, Any]:
             "batch_summaries",
             "small_quantized_fallback",
         ],
-        "ollama_port": "18205",
-        "notes": "CPU worker policy placeholder for runtime v3 scheduler integration.",
+        "ollama_url": "http://10.77.0.2:11434",
+        "ollama_host": "10.77.0.2",
+        "ollama_port": "11434",
+        "fallback_ollama_url": "http://127.0.0.1:18205",
+        "transport": "dedicated-private-ethernet",
+        "notes": "Direct private Ollama is primary; localhost:18205 is rollback/fallback only.",
     }
     backup = None
     if path.exists():
@@ -300,6 +496,17 @@ def bounded_command_creator(args: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("argv too long")
     cwd = str(_safe_path(str(args.get("cwd", str(REPO_ROOT)))))
     timeout = _bounded_int(args.get("timeout"), 120, 1, 1800)
+    resources = args.get("resources") or []
+    if not isinstance(resources, list) or not all(isinstance(value, str) and value.strip() for value in resources):
+        raise ValueError("resources must be an array of non-empty strings")
+    resources = list(dict.fromkeys(value.strip()[:1200] for value in resources))[:100]
+    mutating = args.get("mutating")
+    if mutating is not None and not isinstance(mutating, bool):
+        raise ValueError("mutating must be boolean when provided")
+    project_key = str(args.get("project_key", "xavi.app-backend")).strip() or "xavi.app-backend"
+    if not re.match(r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$", project_key):
+        raise ValueError("invalid project_key")
+    work_title = str(args.get("work_title", args.get("title", name))).strip()[:240]
 
     data = _load_registry()
     data.setdefault("commands", {})[name] = {
@@ -308,6 +515,10 @@ def bounded_command_creator(args: dict[str, Any]) -> dict[str, Any]:
         "argv": argv,
         "cwd": cwd,
         "timeout": timeout,
+        "mutating": mutating,
+        "resources": resources,
+        "project_key": project_key,
+        "work_title": work_title,
     }
     _save_registry(data)
     return {"ok": True, "path": str(REGISTRY_PATH), "name": name, "command": data["commands"][name]}
@@ -336,6 +547,10 @@ def bounded_command_list(args: dict[str, Any]) -> dict[str, Any]:
             "description": cmd.get("description", ""),
             "cwd": cmd.get("cwd"),
             "timeout": cmd.get("timeout"),
+            "mutating": cmd.get("mutating"),
+            "resources": cmd.get("resources", []),
+            "project_key": cmd.get("project_key", "xavi.app-backend"),
+            "work_title": cmd.get("work_title", cmd.get("title", name)),
         }
         if include_argv:
             item["argv"] = cmd.get("argv", [])
@@ -372,6 +587,27 @@ def bounded_command_run(args: dict[str, Any]) -> dict[str, Any]:
     cwd = _safe_path(cmd.get("cwd", str(REPO_ROOT)))
     timeout = _bounded_int(args.get("timeout", cmd.get("timeout", 120)), cmd.get("timeout", 120), 1, 1800)
     return {"name": name, "result": _run(argv, cwd, timeout)}
+
+
+def _owner_memory_store():
+    from xavi_owner_memory import OwnerMemory
+    return OwnerMemory()
+
+
+def owner_memory_put(args: dict[str, Any]) -> dict[str, Any]:
+    return _owner_memory_store().put(args)
+
+
+def owner_memory_get(args: dict[str, Any]) -> dict[str, Any]:
+    return _owner_memory_store().get(args)
+
+
+def owner_memory_search(args: dict[str, Any]) -> dict[str, Any]:
+    return _owner_memory_store().search(args)
+
+
+def owner_memory_list(args: dict[str, Any]) -> dict[str, Any]:
+    return _owner_memory_store().list(args)
 
 
 EXT_TOOLS = [
@@ -436,10 +672,69 @@ EXT_TOOLS = [
     {
         "name": "remote_node_health",
         "title": "Remote Node Health",
-        "description": "Probe the remote/tunnel Ollama node, normally port 18205.",
+        "description": "Probe the RTX Ollama node over dedicated private Ethernet first, with localhost:18205 SSH-tunnel fallback; an explicit port overrides automatic selection.",
         "inputSchema": {
             "type": "object",
             "properties": {"port": {"type": "string"}, "model": {"type": "string"}},
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "mikrotik_router_health",
+        "title": "MikroTik Router Health",
+        "description": "Check the pinned RB4011 RouterOS SSH management path using the dedicated Xavi key and return identity/resource status. Read-only.",
+        "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+    {
+        "name": "mikrotik_router_trust_host_key",
+        "title": "MikroTik Trust Host Key",
+        "description": "Fetch and pin the RB4011 SSH host key into Xavi's dedicated known-hosts file. Does not change RouterOS configuration.",
+        "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+    {
+        "name": "mikrotik_router_inventory",
+        "title": "MikroTik Router Inventory",
+        "description": "Read allowlisted RouterOS inventory sections such as interfaces, addresses, routes, DNS, services and firewall state. No arbitrary RouterOS command execution.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "sections": {
+                    "type": "array",
+                    "items": {"type": "string", "enum": ["identity", "resource", "routerboard", "interfaces", "ethernet", "bridges", "bridge_ports", "interface_lists", "interface_list_members", "ip_addresses", "ipv6_addresses", "routes_v4", "routes_v6", "services", "dns", "dns_static", "firewall_filter", "firewall_nat", "users", "ssh", "neighbors"]},
+                    "maxItems": 21
+                }
+            },
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "mikrotik_router_export",
+        "title": "MikroTik Router Export",
+        "description": "Create a local sanitized RouterOS configuration export with SHAKE256-512 for audit/rollback planning. Sensitive values are hidden/redacted.",
+        "inputSchema": {"type": "object", "properties": {"label": {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,64}$"}}, "additionalProperties": False},
+    },
+    {
+        "name": "mikrotik_router_safe_apply",
+        "title": "MikroTik Router Safe Apply",
+        "description": "Apply one predefined RouterOS mutation inside Safe Mode with sanitized pre/post exports; automatically roll back if the management session drops or RouterOS rejects the action. No raw command input.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "action": {"type": "string", "enum": ["identity_set", "interface_comment_set", "ip_address_ensure", "dns_static_ensure", "dns_static_remove", "service_source_set", "rule_enabled_set"]},
+                "params": {"type": "object"}
+            },
+            "required": ["action", "params"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "remote_host_health",
+        "title": "Remote Host Health",
+        "description": "Probe any registered Xavi remote host by node ID over its allowlisted SSH target and return bounded CPU, memory, container-engine, libvirt, GPU, nftables and address state; does not provide an arbitrary remote shell.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"node": {"type": "string"}},
+            "required": ["node"],
             "additionalProperties": False,
         },
     },
@@ -478,6 +773,10 @@ EXT_TOOLS = [
                 "argv": {"type": "array", "items": {"type": "string"}},
                 "cwd": {"type": "string"},
                 "timeout": {"type": "integer"},
+                "mutating": {"type": "boolean"},
+                "resources": {"type": "array", "items": {"type": "string"}},
+                "project_key": {"type": "string"},
+                "work_title": {"type": "string"},
             },
             "required": ["name", "argv"],
             "additionalProperties": False,
@@ -510,6 +809,75 @@ EXT_TOOLS = [
     },
 ]
 
+EXT_TOOLS.extend([
+    {
+        "name": "owner_memory_put",
+        "title": "Owner Memory Put",
+        "description": "Store or update owner knowledge, including restricted credentials/secrets, encrypted at rest. The normal MCP ledger records only metadata/digests for this tool. Restricted records default to recurrent-memory/retrieval/task-execution learning rather than parameter training.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "namespace": {"type": "string", "default": "owner"},
+                "label": {"type": "string"},
+                "kind": {"type": "string", "enum": ["secret","credential","fact","preference","identity","procedure","source","other"]},
+                "value": {},
+                "privacy_class": {"type": "string", "enum": ["public","internal","private","restricted"]},
+                "retention_class": {"type": "string", "enum": ["ephemeral","bounded","audit","release","owner"]},
+                "learning_modes": {"type": "array", "items": {"type": "string", "enum": ["recurrent_memory","retrieval","task_execution","parameter_training","heldout_eval"]}},
+                "source": {"type": "object"},
+                "metadata": {"type": "object"}
+            },
+            "required": ["label","value"],
+            "additionalProperties": False
+        }
+    },
+    {
+        "name": "owner_memory_get",
+        "title": "Owner Memory Get",
+        "description": "Retrieve and decrypt one owner-knowledge item for autonomous Xavi/WG-RNN use. Plaintext is returned to the authenticated caller but excluded from ordinary MCP ledger payloads.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "knowledge_id": {"type": "string"},
+                "namespace": {"type": "string", "default": "owner"},
+                "label": {"type": "string"}
+            },
+            "additionalProperties": False
+        }
+    },
+    {
+        "name": "owner_memory_search",
+        "title": "Owner Memory Search",
+        "description": "Search owner-memory metadata and provenance without decrypting values.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"},
+                "namespace": {"type": "string"},
+                "kind": {"type": "string", "enum": ["secret","credential","fact","preference","identity","procedure","source","other"]},
+                "privacy_class": {"type": "string", "enum": ["public","internal","private","restricted"]},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50}
+            },
+            "additionalProperties": False
+        }
+    },
+    {
+        "name": "owner_memory_list",
+        "title": "Owner Memory List",
+        "description": "List owner-memory metadata/provenance without decrypting values.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "namespace": {"type": "string"},
+                "kind": {"type": "string", "enum": ["secret","credential","fact","preference","identity","procedure","source","other"]},
+                "privacy_class": {"type": "string", "enum": ["public","internal","private","restricted"]},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50}
+            },
+            "additionalProperties": False
+        }
+    }
+])
+
 HANDLERS = {
     "ollama_copy_tag": ollama_copy_tag,
     "ollama_create_tag": ollama_create_tag,
@@ -517,12 +885,22 @@ HANDLERS = {
     "vscode_router_policy_set": vscode_router_policy_set,
     "model_benchmark": model_benchmark,
     "remote_node_health": remote_node_health,
+    "mikrotik_router_health": mikrotik_router_health,
+    "mikrotik_router_trust_host_key": mikrotik_router_trust_host_key,
+    "mikrotik_router_inventory": mikrotik_router_inventory,
+    "mikrotik_router_export": mikrotik_router_export,
+    "mikrotik_router_safe_apply": mikrotik_router_safe_apply,
+    "remote_host_health": remote_host_health,
     "repo_index_snapshot": repo_index_snapshot,
     "cpu_worker_policy_get": cpu_worker_policy_get,
     "cpu_worker_policy_set": cpu_worker_policy_set,
     "bounded_command_creator": bounded_command_creator,
     "bounded_command_list": bounded_command_list,
     "bounded_command_run": bounded_command_run,
+    "owner_memory_put": owner_memory_put,
+    "owner_memory_get": owner_memory_get,
+    "owner_memory_search": owner_memory_search,
+    "owner_memory_list": owner_memory_list,
 }
 
 
@@ -592,6 +970,10 @@ def _resolve_registered_command(name: str, params: dict[str, Any] | None = None)
         "argv": argv,
         "cwd": cwd,
         "timeout": timeout,
+        "mutating": cmd.get("mutating"),
+        "resources": cmd.get("resources", []),
+        "project_key": cmd.get("project_key", "xavi.app-backend"),
+        "work_title": cmd.get("work_title", cmd.get("title", name)),
     }
 
 

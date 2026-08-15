@@ -1,16 +1,29 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import math
+import threading
+from functools import wraps
 from pathlib import Path
 from typing import Any
+
+from .crypto_primitives import shake256_hex, shake256_ref
+from .meta_graph import feature_content_ids
 
 from .models import WGRNNMemoryUpdate, now_ms, stable_id
 
 
 PROMOTABLE_ACTIONS = {"memory_write", "promote_witness"}
 RISKY_ACTIONS = {"memory_write", "promote_witness", "external_action"}
+
+
+def _synchronized(method):
+    @wraps(method)
+    def wrapped(self, *args: Any, **kwargs: Any):
+        with self._lock:
+            return method(self, *args, **kwargs)
+
+    return wrapped
 
 
 def _clamp01(v: Any, default: float = 0.0) -> float:
@@ -21,8 +34,7 @@ def _clamp01(v: Any, default: float = 0.0) -> float:
 
 
 def _digest_payload(payload: Any) -> str:
-    raw = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":")).encode("utf-8")
-    return "sha256:" + hashlib.sha256(raw).hexdigest()
+    return shake256_ref(payload)
 
 
 def _digest_vector(values: list[float]) -> str:
@@ -91,6 +103,7 @@ class WGRNNRuntime:
         slot_dim: int = 32,
         num_slots: int = 64,
         data_dir: str | Path | None = None,
+        store: Any | None = None,
     ) -> None:
         self.loop_id = loop_id
         self.node_id = node_id
@@ -99,6 +112,8 @@ class WGRNNRuntime:
         self.num_slots = max(int(num_slots), 4)
         self.data_dir = Path(data_dir or "/runtime/data/wgrnn")
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.store = store
+        self._lock = threading.RLock()
         self.namespace = _namespace()
         self.h = [0.0] * self.state_dim
         self.c = [0.0] * self.state_dim
@@ -216,6 +231,7 @@ class WGRNNRuntime:
         self.ledger.append(entry)
         return entry
 
+    @_synchronized
     def snapshot(self, *, include_slots: bool = False, user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None) -> dict[str, Any]:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         if namespace != self.namespace:
@@ -241,6 +257,7 @@ class WGRNNRuntime:
             out["slots"] = self.inspect_slots()
         return out
 
+    @_synchronized
     def inspect_slots(self, *, status: str | None = None, limit: int = 128) -> list[dict[str, Any]]:
         rows = []
         for meta, slot in zip(self.slot_meta, self.memory_bank):
@@ -252,19 +269,60 @@ class WGRNNRuntime:
             rows.append(row)
         return rows[: max(1, min(int(limit), self.num_slots))]
 
+    @_synchronized
     def retrieve(self, query: str, *, top_k: int = 8, include_empty: bool = False, user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None) -> dict[str, Any]:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         if namespace != self.namespace:
             self.load_namespace(namespace)
         q = text_feature_vector(query, self.slot_dim)
+
+        # Vector similarity remains a useful retrieval signal, but it is no longer
+        # treated as the ontology. 5.3.18 semantic/meta-object overlap supplies a
+        # separate bounded ranking signal tied to witnessed candidate observations.
+        graph_query_ids = feature_content_ids(query, limit=32)
+        graph_search: dict[str, Any] = {"matches": [], "authority": "unavailable"}
+        if self.store is not None:
+            try:
+                graph_search = self.store.search_meta_graph(
+                    namespace=namespace,
+                    query_content_ids=graph_query_ids,
+                    limit=max(self.num_slots * 8, 256),
+                )
+            except Exception as exc:
+                graph_search = {
+                    "matches": [],
+                    "authority": "candidate_ranking_signal_only",
+                    "error": exc.__class__.__name__,
+                }
+        graph_by_update = {
+            str(row.get("source_update_id")): row
+            for row in (graph_search.get("matches") or [])
+            if row.get("source_update_id")
+        }
+
         results = []
         for slot, meta in zip(self.memory_bank, self.slot_meta):
             if not include_empty and meta.get("trust_status") in {"empty", None}:
                 continue
-            score = cosine_similarity(q, slot)
+            vector_score = cosine_similarity(q, slot)
+            graph_match = graph_by_update.get(str(meta.get("update_id") or "")) or {}
+            graph_score = float(graph_match.get("graph_score") or 0.0)
+            # Graph evidence can boost/reorder candidates but cannot modify trust
+            # status or create authority. Its contribution is deliberately bounded.
+            score = float(vector_score) + 0.35 * graph_score
             results.append({
                 "slot_id": meta.get("slot_id"),
                 "score": round(score, 6),
+                "vector_score": round(vector_score, 6),
+                "graph_score": round(graph_score, 6),
+                "graph_overlap_count": int(graph_match.get("overlap_count") or 0),
+                "graph_recurrence_support": int(graph_match.get("recurrence_support") or 0),
+                "graph_shared_source_recurrence_support": int(graph_match.get("shared_source_recurrence_support") or 0),
+                "graph_shared_source_recurrence_score": round(float(graph_match.get("shared_source_recurrence_score") or 0.0), 6),
+                "graph_shared_adapter_recurrence_support": int(graph_match.get("shared_adapter_recurrence_support") or 0),
+                "graph_shared_adapter_recurrence_score": round(float(graph_match.get("shared_adapter_recurrence_score") or 0.0), 6),
+                "graph_local_score": round(float(graph_match.get("local_graph_score") or 0.0), 6),
+                "graph_observation_id": graph_match.get("observation_id"),
                 "trust_status": meta.get("trust_status"),
                 "authority_t": meta.get("authority_t"),
                 "confidence": meta.get("confidence"),
@@ -273,13 +331,48 @@ class WGRNNRuntime:
                 "slot_digest": _digest_vector(slot),
             })
         results.sort(key=lambda r: (r["score"], r.get("authority_t") or 0.0), reverse=True)
-        return {"namespace": self.namespace, "query_digest": _digest_payload(query), "top_k": top_k, "results": results[: max(1, int(top_k))]}
+        return {
+            "namespace": self.namespace,
+            "query_digest": _digest_payload(query),
+            "top_k": top_k,
+            "graph_query_content_ids": graph_query_ids,
+            "graph_authority": graph_search.get("authority") or "candidate_ranking_signal_only",
+            "graph_error": graph_search.get("error"),
+            "results": results[: max(1, int(top_k))],
+        }
 
     def _slot_for(self, requested_action: str, prompt: str, namespace: str) -> int:
         key = f"{namespace}\n{requested_action}\n{prompt[:256]}"
-        digest = hashlib.sha256(key.encode()).hexdigest()
-        return int(digest[:12], 16) % self.num_slots
+        digest = shake256_hex(key)
+        base = int(digest[:12], 16) % self.num_slots
+        prompt_digest = _digest_payload(prompt)
 
+        # Recurrent updates for the same feature category should reuse a candidate
+        # slot, but a promoted slot is immutable and must never be overwritten.
+        for offset in range(self.num_slots):
+            slot_id = (base + offset) % self.num_slots
+            meta = self.slot_meta[slot_id]
+            if meta.get("prompt_digest") == prompt_digest and meta.get("trust_status") != "promoted":
+                return slot_id
+
+        # Prefer empty/rejected capacity, then quarantine, then the weakest
+        # non-promoted candidate. This keeps promoted operational knowledge stable.
+        for preferred in ({"empty", "rejected", None}, {"quarantine"}):
+            for offset in range(self.num_slots):
+                slot_id = (base + offset) % self.num_slots
+                if self.slot_meta[slot_id].get("trust_status") in preferred:
+                    return slot_id
+
+        candidates = [
+            meta for meta in self.slot_meta
+            if meta.get("trust_status") != "promoted"
+        ]
+        if not candidates:
+            raise RuntimeError("WG-RNN memory is full of promoted slots; review or expand capacity")
+        weakest = min(candidates, key=lambda meta: (float(meta.get("authority_t") or 0.0), int(meta.get("created_at_ms") or 0)))
+        return int(weakest["slot_id"])
+
+    @_synchronized
     def step(
         self,
         *,
@@ -393,10 +486,15 @@ class WGRNNRuntime:
             "activation_vector": list(self.h),
             "memory_update": update.to_dict(),
             "ledger_entry": ledger_entry,
-            "retrieval_preview": self.retrieve(prompt, top_k=3),
-            "snapshot": self.snapshot(),
+            "retrieval_preview": self.retrieve(
+                prompt, top_k=3, user_id=user_id, agent_id=agent_id, thread_id=thread_id
+            ),
+            "snapshot": self.snapshot(
+                user_id=user_id, agent_id=agent_id, thread_id=thread_id
+            ),
         }
 
+    @_synchronized
     def promote(self, *, slot_id: int, reason: str = "manual_promote", user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None) -> dict[str, Any]:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         if namespace != self.namespace:
@@ -414,6 +512,7 @@ class WGRNNRuntime:
         self._write_state()
         return {"promoted": True, "slot": meta, "ledger_entry": entry}
 
+    @_synchronized
     def reject(self, *, slot_id: int, reason: str = "manual_reject", user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None) -> dict[str, Any]:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         if namespace != self.namespace:
@@ -429,6 +528,7 @@ class WGRNNRuntime:
         self._write_state()
         return {"rejected": True, "slot": meta, "ledger_entry": entry}
 
+    @_synchronized
     def quarantine(self, *, slot_id: int, reason: str = "manual_quarantine", user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None) -> dict[str, Any]:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         if namespace != self.namespace:
@@ -443,11 +543,13 @@ class WGRNNRuntime:
         self._write_state()
         return {"quarantined": True, "slot": meta, "ledger_entry": entry}
 
+    @_synchronized
     def ledger_tail(self, *, limit: int = 50, user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None) -> dict[str, Any]:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         rows = self._read_ledger(namespace, limit=max(1, min(int(limit), 500)))
         return {"namespace": namespace, "count": len(rows), "entries": rows}
 
+    @_synchronized
     def verify_replay(self, *, user_id: str | None = None, agent_id: str | None = None, thread_id: str | None = None) -> dict[str, Any]:
         namespace = self.namespace_id(user_id, agent_id, thread_id)
         rows = self._read_ledger(namespace)

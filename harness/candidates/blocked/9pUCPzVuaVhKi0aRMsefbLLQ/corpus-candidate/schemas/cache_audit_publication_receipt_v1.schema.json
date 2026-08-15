@@ -1,0 +1,78 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_publication_receipt_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchor_state_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_record_id": {
+      "pattern": "^audit:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_signer_key_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "audit_signing_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "completed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "durably_committed",
+        "already_committed"
+      ]
+    },
+    "event_idempotency_key": {
+      "pattern": "^event:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "event_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "cache_audit_publication_receipt/v1"
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "sequence": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "event_idempotency_key",
+    "event_shake256_512",
+    "audit_record_id",
+    "segment_id",
+    "sequence",
+    "anchor_state_shake256_512",
+    "audit_signing_registry_shake256_512",
+    "audit_signer_key_id",
+    "decision",
+    "completed_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Signed Cache Audit Publication Receipt v1",
+  "type": "object"
+}

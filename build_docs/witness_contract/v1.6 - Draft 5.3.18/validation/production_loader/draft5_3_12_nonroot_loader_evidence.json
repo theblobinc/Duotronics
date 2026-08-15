@@ -1,0 +1,17 @@
+{
+  "application_loader": "not_executed",
+  "authority_loader": "not_executed",
+  "configuration_path": "/etc/witness-authority",
+  "effective_gid": 0,
+  "effective_uid": 0,
+  "execution_model": "chroot_then_setgid_setuid_actual_loaders",
+  "generated_at": "2026-08-01T22:34:14.389070+00:00",
+  "gid_map": "0          0          1",
+  "intended_service_gid": 65534,
+  "intended_service_uid": 65534,
+  "package_version": "v1.6-draft-5.3.12",
+  "reason": "intended non-root UID/GID cannot be represented: [Errno 22] Invalid argument: '/tmp/witness-loader-id-probe-ku0pzoi7/service-owned'",
+  "schema_version": "production_loader_integration_evidence/v1",
+  "status": "environment_unavailable",
+  "uid_map": "0          0          1"
+}

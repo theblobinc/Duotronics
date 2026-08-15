@@ -1,0 +1,158 @@
+{
+  "$id": "https://duotronics.local/schemas/policy_decision_evidence_extension.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "allow"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reasons"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "allowed_force": {
+      "enum": [
+        "observe",
+        "propose",
+        "assert",
+        "defer",
+        "veto",
+        "delegate",
+        "replay_verify"
+      ]
+    },
+    "authority_scope": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "local_session",
+        "tenant",
+        "repo",
+        "service",
+        "cluster",
+        "system",
+        "release",
+        "mathematical_claim",
+        "nla_training",
+        "policy",
+        "memory_write",
+        "model_promotion",
+        "truth_observer"
+      ]
+    },
+    "constraints": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "allow",
+        "deny",
+        "escalate",
+        "defer",
+        "veto"
+      ]
+    },
+    "denied_forces": {
+      "default": [],
+      "items": {
+        "enum": [
+          "observe",
+          "propose",
+          "assert",
+          "defer",
+          "veto",
+          "delegate",
+          "replay_verify"
+        ]
+      },
+      "type": "array"
+    },
+    "non_collapse_transition_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_extension_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "pragmatic_context_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "reasons": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "requested_force": {
+      "enum": [
+        "observe",
+        "propose",
+        "assert",
+        "defer",
+        "veto",
+        "delegate",
+        "replay_verify"
+      ]
+    },
+    "runtime_mode": {
+      "enum": [
+        "observe",
+        "test",
+        "simulation",
+        "shadow",
+        "audit",
+        "migration",
+        "release_candidate",
+        "production",
+        "rollback"
+      ]
+    },
+    "schema_version": {
+      "const": "policy_decision_evidence_extension/v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "policy_extension_id",
+    "policy_decision_id",
+    "pragmatic_context_id",
+    "requested_force",
+    "allowed_force",
+    "decision",
+    "authority_scope",
+    "runtime_mode",
+    "non_collapse_transition_ids",
+    "created_at"
+  ],
+  "title": "PolicyDecisionEvidenceExtension",
+  "type": "object"
+}

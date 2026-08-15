@@ -1,0 +1,780 @@
+{
+  "all_required_passed": true,
+  "authority_activation_evidence_complete": false,
+  "clean_extraction_root_identity": "b82f7d619d3e5ca028f8dac48471518bf1609aced66d34dae59d984d8d604992",
+  "duration_seconds": 14.681181,
+  "finished_at": "2026-08-01T16:02:05.616728+00:00",
+  "freeze_state": "permanently_not_frozen",
+  "generated_at": "2026-08-01T16:02:05.616728+00:00",
+  "lifecycle_policy": "living_contract_never_freeze",
+  "optional_failed": [],
+  "optional_skipped": [
+    "committed_source_provenance",
+    "external_signature",
+    "hermetic_lean_integration",
+    "oci_image_build_attestation",
+    "reproducible_inspector_build",
+    "strict_lean",
+    "strict_tlc",
+    "verifier_executable_build_attestation"
+  ],
+  "overall_status": "passed",
+  "package_version": "v1.6-draft-5.3.7",
+  "phases": [
+    {
+      "details": {
+        "active_version": "v1.6-draft-5.3.7",
+        "phase_accounting_tests": 3,
+        "required_phase_count": 49
+      },
+      "duration_seconds": 0.082108,
+      "name": "descriptor",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "cryptography": "46.0.0",
+        "node": "v24.14.0",
+        "python": "3.12.13",
+        "schema_dependencies": "vendored_hash_covered",
+        "sqlite_json1": true,
+        "yaml": "6.0.3"
+      },
+      "duration_seconds": 0.004689,
+      "name": "dependencies",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "covered": 1538,
+        "excluded_generated": 4,
+        "file_count": 1542,
+        "final_bytes_verified": true
+      },
+      "duration_seconds": 0.279268,
+      "name": "hash_closure",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "canonical_schemas_compiled_strict": 36,
+        "dependency_mode": "corpus_vendored_registry_driven",
+        "errors": [],
+        "invalid_fixtures_rejected": 0,
+        "phase": "json_schemas",
+        "schemas_compiled": 93,
+        "status": "passed",
+        "valid_fixtures_passed": 0
+      },
+      "duration_seconds": 0.33198,
+      "name": "json_schemas",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "canonical_schemas_compiled_strict": 36,
+        "dependency_mode": "corpus_vendored_registry_driven",
+        "errors": [],
+        "invalid_fixtures_rejected": 0,
+        "phase": "valid_fixtures",
+        "schemas_compiled": 93,
+        "status": "passed",
+        "valid_fixtures_passed": 37
+      },
+      "duration_seconds": 0.325142,
+      "name": "valid_fixtures",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "canonical_schemas_compiled_strict": 36,
+        "dependency_mode": "corpus_vendored_registry_driven",
+        "errors": [],
+        "invalid_fixtures_rejected": 45,
+        "phase": "invalid_fixtures",
+        "schemas_compiled": 93,
+        "status": "passed",
+        "valid_fixtures_passed": 0
+      },
+      "duration_seconds": 0.332301,
+      "name": "invalid_fixtures",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "duplicate_keys": 0,
+        "json_files": 432,
+        "yaml_files": 21
+      },
+      "duration_seconds": 0.202952,
+      "name": "json_yaml_duplicate_keys",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "executable/tests",
+          "-p",
+          "test*.py",
+          "-v"
+        ],
+        "duplicate_test_ids": [],
+        "stderr_shake256_512": "ea40deb741c6c5552a925441363967bf07f1396e7519243771f41d1c01a4505e",
+        "stdout_shake256_512": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests_discovered": 154,
+        "tests_passed": 154,
+        "tests_skipped": 0,
+        "warning_output_lines": []
+      },
+      "duration_seconds": 2.409714,
+      "name": "exact_test_discovery_count",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "executable/tests",
+          "-p",
+          "test*.py",
+          "-v"
+        ],
+        "duplicate_test_ids": [],
+        "stderr_shake256_512": "e9ffd62ba563523ad8049b59bbce8db45edbaf72f77a828c34e510320bbaf370",
+        "stdout_shake256_512": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests_discovered": 154,
+        "tests_passed": 154,
+        "tests_skipped": 0,
+        "warning_output_lines": []
+      },
+      "duration_seconds": 2.434624,
+      "name": "all_regression_tests",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "command": [
+          "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+          "-X",
+          "dev",
+          "-W",
+          "error",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "executable/tests",
+          "-p",
+          "test*.py",
+          "-v"
+        ],
+        "duplicate_test_ids": [],
+        "stderr_shake256_512": "a03e728e0135a0bb2c50120445f05bdf0f8778a9b292cae834cf82f3ab6dd96e",
+        "stdout_shake256_512": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "tests_discovered": 154,
+        "tests_passed": 154,
+        "tests_skipped": 0,
+        "warning_output_lines": []
+      },
+      "duration_seconds": 2.67227,
+      "name": "warning_free_regression_execution",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.018s\n\nOK",
+        "stdout": "",
+        "tests": 8
+      },
+      "duration_seconds": 0.156132,
+      "name": "domain_specific_rlimit_fsize",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.020s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.156226,
+      "name": "control_state_semantics",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "consistent": true,
+        "tests_discovered": 154,
+        "tests_passed": 154
+      },
+      "duration_seconds": 0.00017,
+      "name": "machine_readable_narrative_count_consistency",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "authority_objects": 5,
+        "compiler_witness_v6_binding_columns": 22,
+        "generations": [
+          "v1.6-draft-5.3.1",
+          "v1.6-draft-5.3.2",
+          "v1.6-draft-5.3.3",
+          "v1.6-draft-5.3.4",
+          "v1.6-draft-5.3.5",
+          "v1.6-draft-5.3.6",
+          "v1.6-draft-5.3.7"
+        ]
+      },
+      "duration_seconds": 0.074215,
+      "name": "sql_migration",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.201s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.290437,
+      "name": "sql_event_ledger",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.156s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.250675,
+      "name": "sql_typed_supersession",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.104s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.191557,
+      "name": "sql_immutability",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.053s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.131884,
+      "name": "sql_policy_binding",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "closure_tokens": 10,
+        "v6_authority_view_empty": true
+      },
+      "duration_seconds": 0.056074,
+      "name": "sql_v537_authority_closure",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.055s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.138055,
+      "name": "historical_snapshot_stability",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "adversarial_cases_rejected": 3,
+        "happy_pass": true
+      },
+      "duration_seconds": 0.058402,
+      "name": "replay_non_vacuity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "model": "synchronous",
+        "paths": 1,
+        "security_schemes": [
+          "MutualTLS",
+          "OAuth2"
+        ],
+        "tests": 2
+      },
+      "duration_seconds": 0.119175,
+      "name": "openapi_conformance",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "........\n----------------------------------------------------------------------\nRan 8 tests in 0.001s\n\nOK",
+        "stdout": "",
+        "tests": 8
+      },
+      "duration_seconds": 0.066216,
+      "name": "positive_baseline_runtime",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "authority_mode": "governed_profile_immutable_snapshot_structured_result",
+        "real_lean_claimed": false,
+        "stderr": "..........................\n----------------------------------------------------------------------\nRan 26 tests in 0.407s\n\nOK",
+        "stdout": "",
+        "tests": 26
+      },
+      "duration_seconds": 0.491348,
+      "name": "proof_authority_runtime",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "request_paths_hashes_environment_timestamps": "rejected",
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.091s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.174807,
+      "name": "proof_check_service_boundary",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.010s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.094699,
+      "name": "recursive_dependency_inspection",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.008s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.10883,
+      "name": "exact_oci_argv_binding",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.102467,
+      "name": "policy_resource_limit_closure",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.007s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.087215,
+      "name": "trust_boundary_schema_validation",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.0863,
+      "name": "measured_control_evidence",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.090512,
+      "name": "compile_handoff_manifest",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.023s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.1058,
+      "name": "durable_idempotency",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.090103,
+      "name": "split_resource_limits",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 1
+      },
+      "duration_seconds": 0.084441,
+      "name": "trust_artifact_attestation_registry",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.021s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.105183,
+      "name": "oci_command_dispatch",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "effective_invocation_bound": true,
+        "profile_id": "wc-hermetic-lean-v4-domain-limits",
+        "tests": 6
+      },
+      "duration_seconds": 0.104307,
+      "name": "effective_sandbox_invocation",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.092522,
+      "name": "policy_authority_binding",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.004s\n\nOK",
+        "stdout": "",
+        "tests": 5
+      },
+      "duration_seconds": 0.09413,
+      "name": "source_snapshot_limits",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.009s\n\nOK",
+        "stdout": "",
+        "tests": 2
+      },
+      "duration_seconds": 0.096832,
+      "name": "bounded_subprocess_output",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "....\n----------------------------------------------------------------------\nRan 4 tests in 0.000s\n\nOK",
+        "stdout": "",
+        "tests": 4
+      },
+      "duration_seconds": 0.100308,
+      "name": "trusted_inspector_build_contract",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": ".....\n----------------------------------------------------------------------\nRan 5 tests in 0.043s\n\nOK",
+        "stdout": "",
+        "tests": 5
+      },
+      "duration_seconds": 0.140438,
+      "name": "result_channel_isolation",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "......\n----------------------------------------------------------------------\nRan 6 tests in 0.179s\n\nOK",
+        "stdout": "",
+        "tests": 6
+      },
+      "duration_seconds": 0.263947,
+      "name": "signed_verifier_result",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.014s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.095743,
+      "name": "trust_root_loading",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.040s\n\nOK",
+        "stdout": "",
+        "tests": 3
+      },
+      "duration_seconds": 0.130863,
+      "name": "deterministic_witness_identity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "hermetic_verifier_sources": [
+          "formal/draft5_3_6/lean/WitnessAuthority/Verifier.lean",
+          "formal/draft5_3_6/lean/WitnessAuthority/InspectorMain.lean",
+          "executable/trusted_verifier/compile_lean.py",
+          "executable/trusted_verifier/verify_lean.py",
+          "executable/trusted_verifier/Containerfile"
+        ],
+        "modules_checked": [
+          "EvidenceClaimGraph",
+          "TaskDelegationAndPolicyCoreSpec",
+          "NonCollapseRuntime",
+          "LogicalObserverKernel",
+          "ProofAuthorityV2",
+          "ProofAuthorityV3",
+          "ProofAuthorityV4",
+          "ProofAuthorityV5",
+          "ProofAuthorityV6",
+          "ProofAuthorityV7",
+          "ProofAuthorityV8"
+        ],
+        "strict_tlc_claimed": false,
+        "tlc_available": false
+      },
+      "duration_seconds": 0.027791,
+      "name": "formal_manifest_coverage",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "canonical": 36,
+        "classified": 95,
+        "unknown_policy": "reject"
+      },
+      "duration_seconds": 0.002729,
+      "name": "schema_registry_authority",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "active_version": "v1.6-draft-5.3.7",
+        "entrypoints_checked": 8,
+        "formal_model": "ProofAuthorityV8",
+        "npm_version": "1.6.5-3-7"
+      },
+      "duration_seconds": 0.001004,
+      "name": "version_consistency",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "activation_ready": false,
+        "source_subtree_shake256_512": "b82f7d619d3e5ca028f8dac48471518bf1609aced66d34dae59d984d8d604992",
+        "status": "unpublished_workspace"
+      },
+      "duration_seconds": 0.521941,
+      "name": "package_provenance",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "details": {
+        "archives": [
+          {
+            "archive": "v1.6 - Draft 5.2.2.zip",
+            "file_count": 492,
+            "shake256_512": "437395d28c452f0a20937eaf562020afae2214edf01a8df2fe6dadd062201c22"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.1.zip",
+            "file_count": 560,
+            "shake256_512": "26608233721f6b56ce6dfe5dfe653029c421e72a551196e004d2b2d3d59de588"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.2.zip",
+            "file_count": 1158,
+            "shake256_512": "57daa37189dcd8c0cf8cff990850393f4feaa70aeea9736b5edabffc58a37675"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.3.zip",
+            "file_count": 1238,
+            "shake256_512": "b02165cffa8b95b41a210f06b5e734e9592472a9c29630c07bb0ea318c7c3cb1"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.4.zip",
+            "file_count": 1345,
+            "shake256_512": "df72f5a40fefecd408b33c81a75489797faa65d72de591842f1928669f2eae36"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.5.zip",
+            "file_count": 1427,
+            "shake256_512": "6a417c9363f29867b5dadafd8ac484b9e43371d451049cb7391a31669f96390c"
+          },
+          {
+            "archive": "v1.6 - Draft 5.3.6.zip",
+            "file_count": 1491,
+            "shake256_512": "1dded199d4642e51dc493e2d2abd682bc111c1e76aa3956219a0b6c8f1a94c17"
+          }
+        ]
+      },
+      "duration_seconds": 0.442209,
+      "name": "historical_package_integrity",
+      "required": true,
+      "status": "passed"
+    },
+    {
+      "duration_seconds": 0.07735,
+      "error": "strict Lean unavailable; deployment theorem authority remains disabled",
+      "name": "strict_lean",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 0.026342,
+      "error": "strict TLC unavailable; formal deployment assurance remains incomplete",
+      "name": "strict_tlc",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 0.060324,
+      "error": "approved hermetic Lean image/configuration unavailable; theorem authority remains disabled",
+      "name": "hermetic_lean_integration",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 0.000116,
+      "error": "signed oci_image build attestation absent; execution closure remains incomplete",
+      "name": "oci_image_build_attestation",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 2.8e-05,
+      "error": "signed trusted_verifier_executable build attestation absent; execution closure remains incomplete",
+      "name": "verifier_executable_build_attestation",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 2e-05,
+      "error": "signed trusted_inspector_reproducible_build_a build attestation absent; execution closure remains incomplete",
+      "name": "reproducible_inspector_build",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 2.8e-05,
+      "error": "clean committed-source provenance absent; release provenance activation remains incomplete",
+      "name": "committed_source_provenance",
+      "required": false,
+      "status": "skipped"
+    },
+    {
+      "duration_seconds": 2.4e-05,
+      "error": "external governance signature absent; package is not an external trust root",
+      "name": "external_signature",
+      "required": false,
+      "status": "skipped"
+    }
+  ],
+  "required_duplicates": [],
+  "required_failed": [],
+  "required_failed_count": 0,
+  "required_missing": [],
+  "required_missing_count": 0,
+  "required_noncanonical_status": [],
+  "required_skipped": [],
+  "required_skipped_count": 0,
+  "schema_version": "draft5_3_7_validation_report/v1",
+  "started_at": "2026-08-01T16:01:50.935547+00:00",
+  "theorem_authority_enabled_by_portable_validation": false,
+  "validation_metrics": {
+    "adversarial_fixture_count": 45,
+    "directory_count": 151,
+    "file_count": 1542,
+    "hash_covered_file_count": 1538,
+    "hash_excluded_file_count": 4,
+    "prospective_zip_entry_count": 1694,
+    "required_phase_count": 49,
+    "schema_count": 93,
+    "strict_canonical_schema_count": 36,
+    "tests_discovered": 154,
+    "tests_passed": 154,
+    "valid_fixture_count": 37
+  }
+}

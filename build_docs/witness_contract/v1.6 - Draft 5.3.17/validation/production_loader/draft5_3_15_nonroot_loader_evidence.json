@@ -1,0 +1,33 @@
+{
+  "application_loader": "passed",
+  "authority_loader": "passed",
+  "authority_profile_count": 1,
+  "cache_audit_publisher_socket_owner": 65533,
+  "cache_audit_sink": "distinct_identity_unix_socket_signed_receipt_client",
+  "configuration_path": "/etc/witness-authority",
+  "effective_gid": 65534,
+  "effective_uid": 65534,
+  "environment_probe": {
+    "effective_gid": 0,
+    "effective_uid": 0,
+    "gid_map": "0          0 4294967295",
+    "intended_service_gid": 65534,
+    "intended_service_uid": 65534,
+    "status": "available",
+    "uid_map": "0          0 4294967295"
+  },
+  "execution_model": "chroot_then_setgid_setuid_actual_loaders_private_parent_sqlite",
+  "filesystem_anchor_owner": 0,
+  "generated_at": "2026-08-02T05:05:31.090443+00:00",
+  "historical_registry_count": 0,
+  "idempotency_sqlite_connection_mode": "private_parent_absolute_path",
+  "package_version": "v1.6-draft-5.3.15",
+  "root_execution_rejection_retained": true,
+  "schema_version": "production_loader_integration_evidence/v1",
+  "sqlite_mode": "0o600",
+  "sqlite_owner": 65534,
+  "status": "passed",
+  "system_ancestor_owner": 0,
+  "trust_root_mode": "0700",
+  "trust_root_owner": 65534
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "active_version": "v1.6-draft-5.3.18",
+  "authority_activation_gate_count": 12,
+  "authority_default": "disabled",
+  "authority_domains": [
+    "sandbox-test-only",
+    "production"
+  ],
+  "canonicalization_profile": "rfc8785-no-binary-floats-v1",
+  "complete_baseline_file_count": 1968,
+  "corpus": "Duotronic Witness Contract",
+  "created_at": "2026-08-13T09:16:53-07:00",
+  "critical_extensions": [
+    "authority-domain-separation-v1",
+    "two-measurement-evidence-v1",
+    "typed-activation-evidence-graph-v1",
+    "measurement-stability-class-v1",
+    "checkpointed-evidence-segments-v1",
+    "activation-state-vector-v1"
+  ],
+  "descriptor_version": "canonical_corpus/v12",
+  "freeze_state": "permanently_not_frozen",
+  "hash_profile": "SHAKE256-512",
+  "lean_runner": "executable/formal/run_lean_build_v5318.py",
+  "lifecycle_policy": "living_contract_never_freeze",
+  "manifest": "MANIFEST_v1_6_draft_5_3_18.json",
+  "migration_runbook": "migration/5_3_17_TO_5_3_18.md",
+  "parent_corpus_root_id": "duoid:shake256-512:PwumHENNZOLdwjqnhCyzcycfDDhNmEIweoUd5Fxc46fXMpYS-7TrWGObq7xJYyDZkqYaC8wXa1cucGeKPrJBcw",
+  "parent_version": "v1.6-draft-5.3.17",
+  "primary_contract": "duotronic_witness_contract_v1_6_draft_5_3_18.md",
+  "production_eligible": false,
+  "relation_registry": "RELATION_REGISTRY_v1_6_draft_5_3_18.json",
+  "release_authority": false,
+  "release_class": "executable_authority_domain_and_evidence_graph_development_contract",
+  "runtime_checklist": "runtime/RUNTIME_MIGRATION_CHECKLIST_5_3_18.md",
+  "schema_registry": "SCHEMA_REGISTRY_v1_6_draft_5_3_18.json",
+  "status": "active_development_workspace_external_validation_pending",
+  "suite_registry": "SUITE_REGISTRY_v1_6_draft_5_3_17.json",
+  "tla_runner": "executable/formal/run_tla_model_check_v5318.py",
+  "validator": "validation/validate_5_3_18.py"
+}

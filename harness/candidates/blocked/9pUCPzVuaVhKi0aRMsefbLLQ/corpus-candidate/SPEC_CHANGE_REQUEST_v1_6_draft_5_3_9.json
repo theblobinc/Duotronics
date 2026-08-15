@@ -1,0 +1,25 @@
+{
+  "schema_version": "spec_change_request/v1",
+  "change_id": "scr:v1.6-draft-5.3.9",
+  "base_version": "v1.6-draft-5.3.8",
+  "target_version": "v1.6-draft-5.3.9",
+  "classification": "corrective_authority_path_cache_identity_sandbox_and_validation_revision",
+  "status": "implemented_portable_validation_pending_external_activation",
+  "freeze_policy": "permanently_not_frozen",
+  "source_review": "refs/review/v1.6_draft_5.3.9_update_checklist.md",
+  "changes": [
+    "reconcile the generated binding across compile-handoff producer schema and trusted consumer",
+    "resolve generated modules only through the validated host-sealed /handoff/olean search root",
+    "use keep-ID ownership validation and trusted host-mediated handoff sealing between non-root domains",
+    "align every governed inspector build and runtime surface to formal/draft5_3_6/lean",
+    "bind separately typed compile and inspection execution evidence into the signed witness",
+    "enforce warnings as errors for every submitted source module",
+    "use one monotonic request deadline and renew active owner-fenced idempotency leases",
+    "require a distinct scoped governed cache-signing authority and reject witness-key reuse",
+    "enforce completion-time database bytes exact SQLite schema integrity ancestry and canonical cached JSON",
+    "pin runtime dependencies and isolate every validator phase with progress and timeout enforcement",
+    "merge all active changes into a standalone package without embedded historical source archives",
+    "version schemas fixtures OpenAPI registry tests documentation and release metadata"
+  ],
+  "authority_effect": "theorem_promotion_and_release_authority_remain_disabled"
+}

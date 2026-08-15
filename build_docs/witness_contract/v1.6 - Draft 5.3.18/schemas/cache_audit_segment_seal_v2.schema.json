@@ -1,0 +1,82 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_segment_seal_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchor_namespace": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "anchor_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "audit_key_validity_evidence": {
+      "type": "object"
+    },
+    "audit_signing_registry_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "decision": {
+      "const": "terminal_segment_seal"
+    },
+    "previous_sealed_segment_tail_shake256_512": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "cache_audit_segment_seal/v2"
+    },
+    "sealed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "sealed_event_count": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sealed_predecessor_tail_shake256_512": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "terminal_record_sequence": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "segment_id",
+    "sealed_event_count",
+    "terminal_record_sequence",
+    "sealed_predecessor_tail_shake256_512",
+    "previous_sealed_segment_tail_shake256_512",
+    "audit_signing_registry_shake256_512",
+    "audit_key_validity_evidence",
+    "anchor_namespace",
+    "anchor_registry_shake256_512",
+    "decision",
+    "sealed_at"
+  ],
+  "title": "Governed Cache Audit Terminal Segment Seal v2",
+  "type": "object"
+}

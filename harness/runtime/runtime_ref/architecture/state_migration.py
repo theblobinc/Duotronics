@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import hashlib
 import json
+
+from runtime_ref.crypto import shake256_hex, shake256_ref
 import uuid
 from dataclasses import dataclass, field
 from typing import Callable
@@ -42,7 +43,7 @@ class StateMigrationPlan:
             },
             sort_keys=True,
         )
-        return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()[:16]
+        return shake256_ref(payload)
 
     def dry_run(self, state_snapshot: dict, *, transform_fn: Callable[[dict], dict] | None = None) -> dict:
         migrated = dict(state_snapshot)
@@ -65,8 +66,8 @@ class StateMigrationPlan:
             except Exception as exc:
                 errors.append(f"transform_failed:{exc}")
 
-        checksum_before = hashlib.sha256(json.dumps(state_snapshot, sort_keys=True, default=str).encode()).hexdigest()[:16]
-        checksum_after = hashlib.sha256(json.dumps(migrated, sort_keys=True, default=str).encode()).hexdigest()[:16]
+        checksum_before = shake256_hex(state_snapshot)
+        checksum_after = shake256_hex(migrated)
         return {
             "schema_version": "state-migration-dry-run@v1",
             "success": not errors,

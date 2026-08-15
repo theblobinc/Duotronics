@@ -1,0 +1,11 @@
+{
+  "schema_version": "complete_corpus_content_map/v12",
+  "contract_version": "v1.6-draft-5.3.18",
+  "parent_version": "v1.6-draft-5.3.17",
+  "parent_corpus_root_id": "duoid:shake256-512:PwumHENNZOLdwjqnhCyzcycfDDhNmEIweoUd5Fxc46fXMpYS-7TrWGObq7xJYyDZkqYaC8wXa1cucGeKPrJBcw",
+  "historical_baseline_file_count": 1968,
+  "parent_manifest_entry_count": 2005,
+  "retention_rule": "Every path and file identifier in the retained 5.3.17 manifest must remain byte-identical.",
+  "retention_status": "validator_pending",
+  "current_manifest": "MANIFEST_v1_6_draft_5_3_18.json"
+}

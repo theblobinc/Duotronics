@@ -1,0 +1,78 @@
+{
+  "$id": "duotronic://schemas/evidence_graph_edge/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EvidenceGraphEdge/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "evidence_graph_edge/v1"
+    },
+    "edge_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "source_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "target_content_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "relation_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{0,63}$"
+    },
+    "authority_namespace": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_profile": {
+      "enum": [
+        "sandbox-test-only",
+        "production"
+      ]
+    },
+    "production_eligible": {
+      "type": "boolean"
+    },
+    "trust_registry_snapshot_id": {
+      "type": "string",
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+    },
+    "policy_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "supersedes_edge_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "edge_content_id",
+    "source_content_id",
+    "target_content_id",
+    "relation_type",
+    "authority_namespace",
+    "authority_profile",
+    "production_eligible",
+    "trust_registry_snapshot_id",
+    "policy_id",
+    "created_at",
+    "supersedes_edge_id"
+  ]
+}

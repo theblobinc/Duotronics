@@ -1,0 +1,15 @@
+{
+  "attestations": [],
+  "authority_effect": "execution_closure_and_theorem_authority_disabled",
+  "note": "Portable source and regression evidence is not a signed deployment build attestation.",
+  "package_version": "v1.6-draft-5.3.14",
+  "required_subjects": [
+    "oci_image",
+    "trusted_verifier_executable",
+    "trusted_inspector_reproducible_build_a",
+    "trusted_inspector_reproducible_build_b",
+    "governance_signed_trusted_artifact_registry"
+  ],
+  "schema_version": "build_attestation_status/v4",
+  "status": "incomplete"
+}

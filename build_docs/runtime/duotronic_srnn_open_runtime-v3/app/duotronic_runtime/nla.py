@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 from typing import Any
 
+from .crypto_primitives import shake256_ref
 from .models import NaturalLanguageActivationWitness, now_ms, stable_id
 
 
@@ -28,8 +28,7 @@ def mse(a: list[float], b: list[float]) -> float:
 
 
 def activation_digest(v: list[float]) -> str:
-    raw = json.dumps([round(float(x), 6) for x in v], separators=(",", ":")).encode()
-    return "sha256:" + hashlib.sha256(raw).hexdigest()
+    return shake256_ref([round(float(x), 6) for x in v])
 
 
 class ActivationVerbalizer:
@@ -50,8 +49,8 @@ class ActivationVerbalizer:
             )
         return {
             "av_model": "deterministic-av-shim-v1",
-            "prompt_integrity": "sha256:" + hashlib.sha256(prompt.encode()).hexdigest(),
-            "response_integrity": "sha256:" + hashlib.sha256(response_text.encode()).hexdigest(),
+            "prompt_integrity": shake256_ref(prompt),
+            "response_integrity": shake256_ref(response_text),
             "explanation_text": text,
             "dominant_dimensions": top,
             "parser_status": "parsed" if text else "empty",

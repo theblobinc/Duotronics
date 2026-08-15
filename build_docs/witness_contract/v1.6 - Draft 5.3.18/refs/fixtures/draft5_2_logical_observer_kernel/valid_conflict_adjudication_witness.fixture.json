@@ -1,0 +1,26 @@
+{
+  "case_id": "valid_conflict_adjudication_witness",
+  "expected_status": "pass",
+  "payload": {
+    "authority_comparison_refs": [
+      "authority:fixture:1"
+    ],
+    "claim_refs": [
+      "claim:fixture:a",
+      "claim:fixture:b"
+    ],
+    "conflict_adjudication_witness_id": "adjudication:fixture:kernel",
+    "conflict_class": "factual",
+    "conflict_id": "conflict:fixture:1",
+    "created_at": "2026-05-11T00:00:00Z",
+    "evidence_comparison_refs": [
+      "comparison:fixture:1"
+    ],
+    "kernel_error_witness_id": null,
+    "non_collapse_transition_id": null,
+    "outcome": "forked",
+    "policy_decision_id": "policy:fixture:kernel",
+    "schema_version": "conflict_adjudication_witness/v1"
+  },
+  "schema_ref": "schemas/conflict_adjudication_witness.schema.json"
+}

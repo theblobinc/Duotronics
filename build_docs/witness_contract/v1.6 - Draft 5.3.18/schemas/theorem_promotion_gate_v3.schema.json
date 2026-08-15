@@ -1,0 +1,40 @@
+{
+  "$id": "https://duotronics.local/schemas/theorem_promotion_gate_v3.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "approval_event_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "authority_snapshot_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "compiler_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "promotion_gate_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "theorem_promotion_gate/v3"
+    }
+  },
+  "required": [
+    "schema_version",
+    "promotion_gate_id",
+    "compiler_witness_id",
+    "authority_snapshot_id",
+    "approval_event_id",
+    "created_at"
+  ],
+  "title": "Ledger-Bound Theorem Promotion Gate v3",
+  "type": "object"
+}

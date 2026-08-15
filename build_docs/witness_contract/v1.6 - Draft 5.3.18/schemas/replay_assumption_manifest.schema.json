@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "assumption": {
+      "additionalProperties": false,
+      "properties": {
+        "assumption_id": {
+          "type": "string"
+        },
+        "assumption_type": {
+          "enum": [
+            "semantic",
+            "cultural",
+            "metrological",
+            "computational",
+            "schema",
+            "policy",
+            "cryptographic",
+            "environmental",
+            "temporal"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "failure_mode": {
+          "enum": [
+            "block",
+            "reject",
+            "escalate",
+            "mark_inconclusive"
+          ]
+        },
+        "required_for_deep_time": {
+          "default": false,
+          "type": "boolean"
+        },
+        "scope": {
+          "enum": [
+            "claim",
+            "corpus",
+            "runtime",
+            "artifact",
+            "schema",
+            "policy",
+            "replay_package",
+            "environment"
+          ]
+        },
+        "status": {
+          "enum": [
+            "satisfied",
+            "unsatisfied",
+            "unknown",
+            "waived_with_policy"
+          ]
+        },
+        "validation_method": {
+          "enum": [
+            "schema_validation",
+            "hash_check",
+            "policy_check",
+            "human_attestation",
+            "deterministic_replay",
+            "formal_model_check",
+            "external_witness",
+            "not_validatable"
+          ]
+        }
+      },
+      "required": [
+        "assumption_id",
+        "description",
+        "assumption_type",
+        "scope",
+        "validation_method",
+        "failure_mode"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/replay_assumption_manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Replay assumption manifest with deep-time replay intent and explicit failure behavior.",
+  "properties": {
+    "computational_assumptions": {
+      "items": {
+        "$ref": "#/$defs/assumption"
+      },
+      "type": "array"
+    },
+    "cultural_assumptions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/assumption"
+      },
+      "type": "array"
+    },
+    "deep_time_intent": {
+      "enum": [
+        "none",
+        "local_replay",
+        "deep_time_replay",
+        "migration_replay",
+        "cross_version_replay"
+      ]
+    },
+    "failure_mode": {
+      "enum": [
+        "block",
+        "reject",
+        "escalate",
+        "mark_inconclusive"
+      ]
+    },
+    "manifest_id": {
+      "type": "string"
+    },
+    "manifest_shake256_512": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "metrological_assumptions": {
+      "items": {
+        "$ref": "#/$defs/assumption"
+      },
+      "type": "array"
+    },
+    "policy_assumptions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/assumption"
+      },
+      "type": "array"
+    },
+    "required_assumptions": {
+      "description": "Assumption ids that must be satisfied before deep-time replay may pass.",
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_assumptions": {
+      "items": {
+        "$ref": "#/$defs/assumption"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "replay_assumption_manifest/v1"
+    },
+    "semantic_assumptions": {
+      "items": {
+        "$ref": "#/$defs/assumption"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "semantic_assumptions",
+    "metrological_assumptions",
+    "computational_assumptions",
+    "schema_assumptions",
+    "deep_time_intent",
+    "required_assumptions",
+    "failure_mode"
+  ],
+  "title": "ReplayAssumptionManifest",
+  "type": "object"
+}

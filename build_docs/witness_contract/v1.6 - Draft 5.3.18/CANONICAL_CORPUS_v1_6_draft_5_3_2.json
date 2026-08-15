@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "descriptor_version": "canonical_corpus/v2",
+  "corpus": "Duotronic Witness Contract",
+  "active_version": "v1.6-draft-5.3.2",
+  "status": "active_development_corpus",
+  "freeze_state": "not_frozen",
+  "release_class": "corrective_authority_hardening_draft",
+  "created_at": "2026-07-31T00:00:00-07:00",
+  "primary_contract": "duotronic_witness_contract_v1_6_draft_5_3_2.md",
+  "start_here": "START_HERE.md",
+  "corpus_index": "CORPUS_INDEX_v1_6_draft_5_3_2.md",
+  "inventory": "PACKAGE_INVENTORY_v1_6_draft_5_3_2.json",
+  "checksum_manifest": "refs/manifest/CHECKSUMS_v1_6_draft_5_3_2.shake256_512",
+  "human_manifest": "refs/manifest/MANIFEST_v1_6_draft_5_3_2_complete.md",
+  "schema_registry": "refs/schema_registry_v1_6_draft_5_3_2.json",
+  "validator": "executable/validators/validate_draft5_3_2_corpus.py",
+  "schema_validator": "executable/validators/validate_draft5_3_2_schemas.mjs",
+  "canonical_openapi": "executable/openapi/draft5_3_2_evidence_language_openapi.yaml",
+  "base_sql": "executable/sql/draft5_2_schema_additions.sql",
+  "authority_migration": "migration/draft5_3_1_to_draft5_3_2.sql",
+  "authority_migrations": [
+    "migration/draft5_2_2_to_draft5_3_1.sql",
+    "migration/draft5_3_1_to_draft5_3_2.sql"
+  ],
+  "proof_authority_runtime": "executable/runtime/proof_authority.py",
+  "formal_toolchain_manifest": "refs/formal_toolchain/tla_toolchain_manifest_v1_0.json",
+  "formal_authority_profiles": [
+    "formal/draft5_3_1/ProofAuthorityV2.tla",
+    "formal/draft5_3_2/ProofAuthorityV3.tla"
+  ],
+  "mathematics_profile": "mathematics/positive_baseline_witness_integration_profile_v1_0.md",
+  "legacy_read_policy": "readable_replay_only_unless_reverified",
+  "legacy_authority_policy": "never_promote_from_pre_5_3_2_unbound_authority",
+  "required_validation_phases": [
+    "descriptor",
+    "dependencies",
+    "hash_closure",
+    "json_schemas",
+    "valid_fixtures",
+    "invalid_fixtures",
+    "sql_migration",
+    "sql_gate_adversarial",
+    "sql_immutability",
+    "replay_non_vacuity",
+    "openapi_security",
+    "positive_baseline_runtime",
+    "proof_authority_runtime",
+    "verifier_lifecycle",
+    "formal_manifest_coverage",
+    "historical_package_integrity"
+  ],
+  "optional_validation_phases": [
+    "strict_lean",
+    "strict_tlc",
+    "external_signature"
+  ],
+  "strict_release_evidence": {
+    "lean": "required_before_freeze",
+    "tlc": "required_before_freeze_for_every_manifest_module",
+    "external_signature": "required_before_freeze"
+  },
+  "signature_status": "unsigned_not_frozen"
+}

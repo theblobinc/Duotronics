@@ -1,0 +1,414 @@
+{
+  "$id": "https://duotronics.local/schemas/evidence_claim.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "claim_status": {
+            "const": "theorem"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "epistemic_status": {
+            "const": "theorem"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "force_indicator": {
+            "const": "assert"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "policy_decision_id",
+          "pragmatic_context_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "description": "Proof-backed claim creation guard.",
+        "properties": {
+          "proof_witness_refs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "status_transition_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "proof_witness_refs",
+          "status_transition_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "epistemic_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "description": "Proof-backed claim creation guard.",
+        "properties": {
+          "proof_witness_refs": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "status_transition_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "proof_witness_refs",
+          "status_transition_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "claim_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "lean_compiler_witness_refs": {
+            "minItems": 1,
+            "type": "array"
+          },
+          "theorem_promotion_gate_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "proof_witness_refs",
+          "lean_compiler_witness_refs",
+          "status_transition_id",
+          "theorem_promotion_gate_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "epistemic_status": {
+            "enum": [
+              "theorem",
+              "proof_verified"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "lean_compiler_witness_refs": {
+            "minItems": 1,
+            "type": "array"
+          },
+          "theorem_promotion_gate_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "proof_witness_refs",
+          "lean_compiler_witness_refs",
+          "status_transition_id",
+          "theorem_promotion_gate_id"
+        ]
+      }
+    }
+  ],
+  "description": "First-class atomic evidence claim. Compound claims and inference witnesses must reference these objects rather than collapsing prose into authority.",
+  "properties": {
+    "authority_scope": {
+      "enum": [
+        "none",
+        "diagnostic",
+        "local_session",
+        "tenant",
+        "repo",
+        "service",
+        "cluster",
+        "system",
+        "release",
+        "mathematical_claim",
+        "nla_training",
+        "policy",
+        "memory_write",
+        "model_promotion",
+        "truth_observer"
+      ]
+    },
+    "claim_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "claim_kind": {
+      "enum": [
+        "atomic",
+        "measurement",
+        "observation",
+        "policy_decision",
+        "proof_claim",
+        "replay_claim",
+        "nla_activation_claim",
+        "delegation_claim",
+        "human_attestation"
+      ]
+    },
+    "claim_object": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "items": {},
+          "type": "array"
+        }
+      ]
+    },
+    "claim_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "draft",
+        "observed",
+        "computed",
+        "proposed",
+        "asserted",
+        "deferred",
+        "vetoed",
+        "conjecture",
+        "theorem",
+        "replay_verified",
+        "proof_verified",
+        "policy_approved",
+        "released"
+      ]
+    },
+    "confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "delegation_chain_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "epistemic_status": {
+      "enum": [
+        "unknown",
+        "absent",
+        "invalid",
+        "observed",
+        "computed",
+        "conjecture",
+        "theorem",
+        "policy_approved",
+        "synthetic",
+        "audit_only",
+        "shadow",
+        "release_candidate",
+        "authoritative",
+        "self_trained",
+        "external_authority",
+        "human_attested",
+        "replay_verified",
+        "proof_verified"
+      ]
+    },
+    "evidence_refs": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "force_indicator": {
+      "enum": [
+        "observe",
+        "propose",
+        "assert",
+        "defer",
+        "veto",
+        "delegate",
+        "replay_verify"
+      ]
+    },
+    "inference_witness_id": {
+      "description": "Optional inference_witness/v1 that produced or justified the claim.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "issuer_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "lean_compiler_witness_refs": {
+      "default": [],
+      "description": "Required and non-empty when claim_status or epistemic_status is theorem/proof_verified in Draft 5.2.2.",
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "non_collapse_state_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "policy_decision_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "pragmatic_context_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "predicate": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "proof_witness_refs": {
+      "default": [],
+      "description": "Required and non-empty when claim_status or epistemic_status is theorem/proof_verified. Atomic claim creation cannot directly promote proof status without a recorded transition witness.",
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "runtime_mode": {
+      "enum": [
+        "observe",
+        "test",
+        "simulation",
+        "shadow",
+        "audit",
+        "migration",
+        "release_candidate",
+        "production",
+        "rollback"
+      ]
+    },
+    "schema_version": {
+      "const": "evidence_claim/v1"
+    },
+    "status_transition_id": {
+      "description": "Required for theorem/proof_verified claims; must reference claim_status_transition/v1.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "subject_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "theorem_promotion_gate_id": {
+      "description": "Required for theorem/proof_verified claims in Draft 5.2.2.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "claim_id",
+    "claim_kind",
+    "subject_ref",
+    "predicate",
+    "claim_object",
+    "claim_status",
+    "epistemic_status",
+    "force_indicator",
+    "authority_scope",
+    "runtime_mode",
+    "evidence_refs",
+    "policy_decision_id",
+    "non_collapse_state_id",
+    "created_at",
+    "issuer_principal_id"
+  ],
+  "title": "EvidenceClaim",
+  "type": "object"
+}

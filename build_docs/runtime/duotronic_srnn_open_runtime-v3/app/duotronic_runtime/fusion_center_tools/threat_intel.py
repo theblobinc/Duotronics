@@ -49,7 +49,7 @@ class PulseInfo(BaseModel):
 
 IndicatorType = Literal[
     "IPv4", "IPv6", "domain", "hostname", "URL", 
-    "FileHash-MD5", "FileHash-SHA1", "FileHash-SHA256",
+    "FileHash-MD5", "FileHash-SHA1",
     "CVE", "email"
 ]
 
@@ -77,7 +77,7 @@ async def lookup_indicator(
     - IPv4/IPv6: IP addresses
     - domain/hostname: Domain names
     - URL: Full URLs
-    - FileHash-MD5/SHA1/SHA256: File hashes
+    - FileHash-MD5/SHA1: External legacy file-hash indicators
     - CVE: Common Vulnerabilities and Exposures IDs
     - email: Email addresses
 
@@ -92,7 +92,6 @@ async def lookup_indicator(
                         - "URL": Full URL
                         - "FileHash-MD5": MD5 file hash
                         - "FileHash-SHA1": SHA1 file hash
-                        - "FileHash-SHA256": SHA256 file hash
                         - "CVE": CVE identifier
                         - "email": Email address
 

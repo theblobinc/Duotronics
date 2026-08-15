@@ -1,0 +1,129 @@
+{
+  "$id": "https://duotronics.local/schemas/verification_result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "deterministic": {
+      "const": true,
+      "type": "boolean"
+    },
+    "executed_instruction_results": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "op": {
+            "enum": [
+              "read_manifest",
+              "hash_artifact",
+              "compare_hash",
+              "validate_schema",
+              "check_policy_ref",
+              "check_delegation_chain",
+              "check_pragmatic_context",
+              "check_non_collapse_state",
+              "check_non_collapse_transition",
+              "check_replay_assumptions",
+              "check_replay_sign",
+              "execute_deterministic_replay",
+              "compare_replay_output",
+              "return_status"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pass",
+              "fail",
+              "skipped",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "op",
+          "status"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "failure_mode": {
+      "enum": [
+        "block",
+        "reject",
+        "escalate",
+        "mark_inconclusive"
+      ]
+    },
+    "grammar_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "manifest_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "replay_sign_refs": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "verification_result/v1"
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "inconclusive",
+        "error"
+      ]
+    },
+    "target_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "verification_result_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "verifier_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "verification_result_id",
+    "grammar_id",
+    "target_ref",
+    "status",
+    "deterministic",
+    "executed_instruction_results",
+    "created_at",
+    "verifier_principal_id"
+  ],
+  "title": "VerificationResult",
+  "type": "object"
+}

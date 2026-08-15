@@ -1,0 +1,32 @@
+{
+  "schema_version": "release_gate_status/v9",
+  "package_version": "v1.6-draft-5.3.11",
+  "freeze_state": "permanently_not_frozen",
+  "theorem_authority_default": "disabled",
+  "promotion_authority_default": "disabled",
+  "release_authority": false,
+  "gates": {
+    "A_recursive_lean_inspection": "portable_pass_strict_lean_pending",
+    "B_exact_oci_invocation": "portable_pass_real_image_pending",
+    "C_policy_resource_binding": "portable_pass_domain_limit_bound",
+    "D_schema_validated_trust_boundaries": "portable_pass_canonical_duplicate_rejecting_trusted_json",
+    "E_measured_runtime_controls": "portable_pass_environment_and_entrypoint_required_platform_probe_pending",
+    "F_compile_handoff_verification": "portable_pass_real_image_pending",
+    "G_durable_idempotency": "portable_pass_status_chronology_signed_stale_rows_require_new_key",
+    "H_trust_artifact_attestations": "portable_pass_external_attestations_pending",
+    "I_package_provenance": "unpublished_workspace",
+    "J_formal_validation": "strict_toolchains_pending",
+    "K_external_release_authorization": "pending"
+  },
+  "external_activation_gates": {
+    "strict_lean": "incomplete",
+    "strict_tlc": "incomplete",
+    "governed_hermetic_lean_image": "incomplete",
+    "signed_oci_image_build_attestation": "incomplete",
+    "signed_verifier_executable_attestation": "incomplete",
+    "reproducible_inspector_build_attestation": "incomplete",
+    "clean_committed_source_provenance": "incomplete",
+    "external_governance_signature_authorization": "incomplete"
+  },
+  "activation_ready": false
+}

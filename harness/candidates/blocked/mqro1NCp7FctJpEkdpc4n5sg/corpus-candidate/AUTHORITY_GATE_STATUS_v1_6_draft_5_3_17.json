@@ -1,0 +1,21 @@
+{
+  "completed_external_gates": 0,
+  "contract_version": "v1.6-draft-5.3.17",
+  "gates": [
+    {"gate": "strict_lean", "status": "incomplete"},
+    {"gate": "strict_tlc", "status": "incomplete"},
+    {"gate": "governed_hermetic_execution", "status": "incomplete"},
+    {"gate": "image_build_attestation", "status": "incomplete"},
+    {"gate": "verifier_build_attestation", "status": "incomplete"},
+    {"gate": "reproducible_inspector_build", "status": "incomplete"},
+    {"gate": "committed_source_provenance", "status": "incomplete"},
+    {"gate": "external_governance_authorization", "status": "incomplete"},
+    {"gate": "post_quantum_provider_attestation", "status": "incomplete"},
+    {"gate": "production_key_ceremony", "status": "incomplete"},
+    {"gate": "encrypted_recovery_drill", "status": "incomplete"},
+    {"gate": "mixed_version_rollback_drill", "status": "incomplete"}
+  ],
+  "portable_completion_substitutes_for_external_gates": false,
+  "required_external_gates": 12,
+  "theorem_promotion_release_authority": "disabled"
+}

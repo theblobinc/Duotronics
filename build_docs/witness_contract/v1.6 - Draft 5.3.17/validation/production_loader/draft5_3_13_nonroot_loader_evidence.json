@@ -1,0 +1,20 @@
+{
+  "application_loader": "not_executed",
+  "authority_loader": "not_executed",
+  "configuration_path": "/etc/witness-authority",
+  "environment_probe": {
+    "effective_gid": 0,
+    "effective_uid": 0,
+    "gid_map": "0          0 4294967295",
+    "intended_service_gid": 65534,
+    "intended_service_uid": 65534,
+    "status": "available",
+    "uid_map": "0          0 4294967295"
+  },
+  "execution_model": "chroot_procfs_then_setgid_setuid_actual_loaders",
+  "generated_at": "2026-08-02T02:41:53.619632+00:00",
+  "package_version": "v1.6-draft-5.3.13",
+  "reason": "production-shape chroot requires a procfs projection for fd-anchored SQLite: mount: /tmp/witness-loader-chroot-c5weo3ok/proc: permission denied.\n       dmesg(1) may have more information after failed mount system call.",
+  "schema_version": "production_loader_integration_evidence/v1",
+  "status": "environment_unavailable"
+}

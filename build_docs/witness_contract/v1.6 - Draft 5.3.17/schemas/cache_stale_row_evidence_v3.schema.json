@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/cache_stale_row_evidence_v3.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "authenticated_principal_id": {
+      "$ref": "#/$defs/id"
+    },
+    "binding_verification_result": {
+      "const": "all_request_slot_policy_source_and_compiler_witness_bindings_verified"
+    },
+    "cache_envelope_id": {
+      "pattern": "^cache:[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "cache_signed_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "cache_signer_key_id": {
+      "$ref": "#/$defs/id"
+    },
+    "cache_signer_principal_id": {
+      "$ref": "#/$defs/id"
+    },
+    "claim_content_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "claim_id": {
+      "$ref": "#/$defs/id"
+    },
+    "compiler_profile_id": {
+      "$ref": "#/$defs/id"
+    },
+    "compiler_witness_signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "current_cache_registry_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "decision": {
+      "const": "reject_preserve_row_require_new_idempotency_key"
+    },
+    "evaluated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "historical_registry_created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "historical_registry_id": {
+      "$ref": "#/$defs/id"
+    },
+    "historical_registry_signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "historical_replay_policy": {
+      "const": "authenticate_then_conflict"
+    },
+    "idempotency_key": {
+      "$ref": "#/$defs/id"
+    },
+    "policy_decision_id": {
+      "$ref": "#/$defs/id"
+    },
+    "policy_decision_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "proof_artifact_relative_path": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "type": "string"
+    },
+    "reason": {
+      "const": "authenticated_cache_signing_registry_replaced_or_rotated"
+    },
+    "registry_lineage_created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "registry_lineage_path": {
+      "items": {
+        "$ref": "#/$defs/shake256_512"
+      },
+      "minItems": 2,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "registry_lineage_signed_payload_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "registry_lineage_verified": {
+      "const": true
+    },
+    "request_id": {
+      "$ref": "#/$defs/id"
+    },
+    "request_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "schema_version": {
+      "const": "cache_stale_row_evidence/v3"
+    },
+    "signature_verified": {
+      "const": true
+    },
+    "source_bundle_id": {
+      "$ref": "#/$defs/id"
+    },
+    "stored_cache_registry_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    }
+  },
+  "required": [
+    "schema_version",
+    "cache_envelope_id",
+    "stored_cache_registry_shake256_512",
+    "current_cache_registry_shake256_512",
+    "historical_registry_id",
+    "historical_registry_signed_payload_shake256_512",
+    "registry_lineage_signed_payload_shake256_512",
+    "cache_signer_key_id",
+    "cache_signer_principal_id",
+    "authenticated_principal_id",
+    "idempotency_key",
+    "request_shake256_512",
+    "request_id",
+    "claim_id",
+    "claim_content_shake256_512",
+    "compiler_profile_id",
+    "policy_decision_id",
+    "policy_decision_shake256_512",
+    "source_bundle_id",
+    "proof_artifact_relative_path",
+    "compiler_witness_signed_payload_shake256_512",
+    "cache_signed_at",
+    "historical_registry_created_at",
+    "registry_lineage_created_at",
+    "binding_verification_result",
+    "signature_verified",
+    "registry_lineage_verified",
+    "registry_lineage_path",
+    "historical_replay_policy",
+    "decision",
+    "reason",
+    "evaluated_at"
+  ],
+  "title": "Fully Bound Authenticated Historical Cache Stale-Row Evidence v3",
+  "type": "object"
+}

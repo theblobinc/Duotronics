@@ -1,0 +1,25 @@
+FROM docker.io/library/python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/app:/app:/
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY app /app/app
+COPY ops_agent /app/ops_agent
+COPY tests /app/tests
+COPY pyproject.toml /app/pyproject.toml
+COPY config /app/config
+COPY config /runtime/config
+RUN mkdir -p /runtime/data /runtime/corpus /models
+
+EXPOSE 8080
+CMD ["python", "-m", "duotronic_runtime.main"]

@@ -1,0 +1,92 @@
+{
+  "$id": "https://duotronics.local/schemas/verifier_key_status_event_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "else": {
+        "properties": {
+          "replacement_key_id": {
+            "type": "null"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "status": {
+            "const": "superseded"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "replacement_key_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "description": "Append-only effective-dated activation, revocation, retirement, or supersession event.",
+  "properties": {
+    "authority_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "effective_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "key_status_event_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "reason": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "recorded_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "replacement_key_id": {
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "verifier_key_status_event/v1"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "revoked",
+        "retired",
+        "superseded"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "key_status_event_id",
+    "key_id",
+    "status",
+    "replacement_key_id",
+    "reason",
+    "effective_at",
+    "recorded_at",
+    "authority_principal_id"
+  ],
+  "title": "VerifierKeyStatusEventV1",
+  "type": "object"
+}

@@ -1,0 +1,17 @@
+[Unit]
+Description=Xavi Duotronic Runtime v3 Container
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3
+ExecStart=/bin/bash /var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/ops_agent/v3_maintenance/restart_runtime_only.sh
+ExecStop=-/usr/bin/podman rm -f duotronic-runtime
+TimeoutStartSec=300
+TimeoutStopSec=90
+KillMode=control-group
+
+[Install]
+WantedBy=default.target

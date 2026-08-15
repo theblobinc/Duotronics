@@ -1,0 +1,15 @@
+{
+  "payload": {
+    "evidence_shake256_512": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "lsm": {
+      "kind": "apparmor",
+      "profile": "p"
+    },
+    "observed_at": "2026-07-31T12:00:00Z",
+    "platform_id": "p",
+    "probe_status": "configured",
+    "schema_version": "platform_capability_probe/v1",
+    "supported_controls": []
+  },
+  "schema_ref": "schemas/platform_capability_probe_v1.schema.json"
+}

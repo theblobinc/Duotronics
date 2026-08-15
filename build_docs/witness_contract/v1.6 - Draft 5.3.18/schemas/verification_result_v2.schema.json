@@ -1,0 +1,155 @@
+{
+  "$defs": {
+    "result": {
+      "additionalProperties": false,
+      "properties": {
+        "instruction_id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "op": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pass",
+            "fail",
+            "skipped",
+            "error"
+          ]
+        }
+      },
+      "required": [
+        "instruction_id",
+        "op",
+        "status"
+      ],
+      "type": "object"
+    },
+    "shake256_512": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/verification_result_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "pass"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "executed_instruction_results": {
+            "items": {
+              "properties": {
+                "status": {
+                  "const": "pass"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "deterministic": {
+      "const": true
+    },
+    "executed_instruction_results": {
+      "items": {
+        "$ref": "#/$defs/result"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "grammar_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "grammar_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "manifest_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "manifest_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "satisfied_assumption_ids": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "schema_version": {
+      "const": "verification_result/v2"
+    },
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "inconclusive",
+        "error"
+      ]
+    },
+    "target_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "verification_result_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "verifier_principal_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "verification_result_id",
+    "grammar_id",
+    "grammar_shake256_512",
+    "manifest_id",
+    "manifest_shake256_512",
+    "target_ref",
+    "status",
+    "deterministic",
+    "executed_instruction_results",
+    "satisfied_assumption_ids",
+    "verifier_principal_id",
+    "created_at"
+  ],
+  "title": "VerificationResultV2",
+  "type": "object"
+}

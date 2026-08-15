@@ -1,0 +1,6 @@
+{
+  "payload": {
+    "schema_version": "lean_compile_handoff/v3"
+  },
+  "schema_ref": "schemas/lean_compile_handoff_v3.schema.json"
+}

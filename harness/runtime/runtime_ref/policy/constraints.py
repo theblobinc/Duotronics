@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-import hashlib
+from runtime_ref.crypto import shake256_ref
+
 import json
 from dataclasses import dataclass, field
 from enum import Enum
@@ -54,9 +55,9 @@ class PolicyShieldSnapshot:
     schema_version: str = "policy-shield-snapshot@v1"
     primary_objective: str = "meta_runtime_stability"
     objective_version: str = "meta_runtime_stability@v1"
-    objective_hash: str = "sha256:meta-objective"
+    objective_hash: str = shake256_ref("meta-objective")
     reducer_version: str = "meta-reducer@v1"
-    metric_bundle_hash: str = "sha256:meta-metrics"
+    metric_bundle_hash: str = shake256_ref("meta-metrics")
     hard_constraints: dict = field(
         default_factory=lambda: {
             "max_families": 20,
@@ -128,7 +129,7 @@ class PolicyShieldSnapshot:
             ],
             sort_keys=True,
         )
-        return "sha256:" + hashlib.sha256(payload.encode()).hexdigest()[:16]
+        return shake256_ref(payload)
 
     def check_hard_constraints(self, state: dict) -> list[str]:
         violations: list[str] = []

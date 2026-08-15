@@ -1,0 +1,91 @@
+                'task_id': str(row.get('task_id')),
+                'project_key': row.get('project_key'),
+                'task_kind': row.get('task_kind'),
+                'title': row.get('title'),
+                'resources': list(row.get('resources') or []),
+                'reason': 'Task is ready, dependency-complete, and currently unclaimed.',
+            })
+        if not available_tasks and not addressed_delegations:
+            action_hints.append({
+                'action': 'create_or_discover_task',
+                'reason': 'No dependency-ready unclaimed task or addressed delegation is currently visible; inspect peer context, another project, or create a backlog item before implementation.',
+            })
+
+        peer_lines = [
+            f"{row.get('agent_id')} session={row.get('session_id')} status={row.get('status')} last_seen={row.get('last_seen_at')}"
+            for row in sessions
+            if not current_session or row.get('session_id') != current_session
+        ][:10]
+        known_session_ids = {str(row.get('session_id')) for row in sessions}
+        observed_lines = [
+            f"{row.get('latest_actor')} session={row.get('session_id')} event={row.get('latest_event_type')} events={row.get('event_count')} last_seen_ms={row.get('last_seen_ms')}"
+            for row in observed_sessions
+            if str(row.get('session_id')) not in known_session_ids
+            and (not current_session or row.get('session_id') != current_session)
+        ][:10]
+        work_lines = [
+            f"{row.get('status')} work={row.get('work_id')} owner={row.get('owner_session_id')} title={row.get('title')} objective={row.get('objective')}"
+            for row in peer_work[:10]
+        ]
+        task_lines = [
+            f"{row.get('status')} task={row.get('task_id')} kind={row.get('task_kind')} priority={row.get('priority')} title={row.get('title')}"
+            for row in tasks[:12]
+        ]
+        awareness_text = '\n'.join([
+            f"Shared MCP awareness for {project_key}",
+            'Active coordination peers:',
+            *(peer_lines or ['none visible']),
+            'Other recently observed MCP sessions:',
+            *(observed_lines or ['none visible']),
+            'Peer work:',
+            *(work_lines or ['none visible']),
+            'Task backlog:',
+            *(task_lines or ['none visible']),
+        ])
+        return {
+            'schema': 'xavi-mcp-peer-awareness/v1',
+            'project_key': project_key,
+            'current_session_id': current_session,
+            'active_sessions': sessions,
+            'observed_session_activity': observed_sessions,
+            'my_work': my_work,
+            'peer_work': peer_work,
+            'my_resource_claims': my_claims,
+            'peer_resource_claims': peer_claims,
+            'tasks': tasks,
+            'available_tasks': available_tasks,
+            'delegations': delegations,
+            'recent_session_messages': messages,
+            'workers': workers,
+            'recent_events': events,
+            'action_hints': action_hints,
+            'awareness_text': awareness_text,
+            'integration_hint': 'Inject this compact snapshot into coordination.begin/preflight and MCP result context so every AI sees peer activity before choosing work.',
+        }
+
+    def compact_awareness(self, args: dict[str, Any]) -> dict[str, Any]:
+        payload = self.awareness({**dict(args or {}), 'limit': min(int((args or {}).get('limit', 12)), 20)})
+        current_session = payload.get('current_session_id')
+        return {
+            'schema': 'xavi-mcp-peer-awareness-compact/v1',
+            'project_key': payload.get('project_key'),
+            'current_session_id': current_session,
+            'active_peers': [
+                row for row in payload.get('active_sessions', [])
+                if not current_session or row.get('session_id') != current_session
+            ][:8],
+            'observed_sessions': [
+                row for row in payload.get('observed_session_activity', [])
+                if not current_session or row.get('session_id') != current_session
+            ][:8],
+            'peer_work': payload.get('peer_work', [])[:8],
+            'peer_resource_claims': payload.get('peer_resource_claims', [])[:12],
+            'available_tasks': payload.get('available_tasks', [])[:8],
+            'delegations': payload.get('delegations', [])[:8],
+            'workers': payload.get('workers', [])[:8],
+            'recent_session_messages': payload.get('recent_session_messages', [])[:6],
+            'action_hints': payload.get('action_hints', [])[:8],
+            'awareness_text': payload.get('awareness_text', ''),
+        }
+
+    def recurrent_context(self, args: dict[str, Any]) -> dict[str, Any]:

@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://duotronics.local/schemas/package_provenance_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "provenance_status": {
+            "const": "committed_clean_source"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "source_commit_sha": {
+            "type": "string"
+          },
+          "workspace_status": {
+            "const": "clean"
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "base_revision": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "change_set_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "generator_name": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "generator_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "generator_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "provenance_status": {
+      "enum": [
+        "committed_clean_source",
+        "unpublished_workspace"
+      ]
+    },
+    "schema_version": {
+      "const": "package_provenance/v1"
+    },
+    "source_commit_sha": {
+      "pattern": "^[0-9a-f]{40,64}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source_generation": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_ref": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_repository": {
+      "format": "uri",
+      "type": "string"
+    },
+    "source_subtree_path": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source_subtree_shake256_512": {
+      "$ref": "#/$defs/shake256_512"
+    },
+    "workspace_status": {
+      "enum": [
+        "clean",
+        "dirty",
+        "not_git_backed"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "provenance_status",
+    "source_repository",
+    "source_ref",
+    "source_commit_sha",
+    "source_subtree_path",
+    "source_subtree_shake256_512",
+    "generator_name",
+    "generator_version",
+    "generator_shake256_512",
+    "source_generation",
+    "base_revision",
+    "change_set_shake256_512",
+    "workspace_status",
+    "generated_at"
+  ],
+  "title": "Package Source Provenance v1",
+  "type": "object"
+}

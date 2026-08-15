@@ -1,0 +1,11 @@
+{
+  "payload": {
+    "axiom_dependencies": [
+      "propext",
+      "propext"
+    ],
+    "schema_version": "wc_lean_verifier_result/v1",
+    "status": "passed"
+  },
+  "schema_ref": "schemas/lean_verifier_result_v1.schema.json"
+}

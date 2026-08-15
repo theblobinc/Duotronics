@@ -1,0 +1,60 @@
+{
+  "$id": "duotronic://schemas/recurrent_witness_state/v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "branch_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "canonical_input_root_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "family_mass": {
+      "additionalProperties": {
+        "pattern": "^[0-9]+(?:[.][0-9]+)?$",
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "object_witness_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "previous_state_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "recurrent_witness_state/v1"
+    },
+    "state": {
+      "type": "object"
+    },
+    "state_id": {
+      "pattern": "^duoid:shake256-512:[A-Za-z0-9_-]{86}$",
+      "type": "string"
+    },
+    "update_rule_id": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "branch_id",
+    "object_witness_id",
+    "previous_state_id",
+    "update_rule_id",
+    "canonical_input_root_id",
+    "family_mass",
+    "state",
+    "state_id"
+  ],
+  "title": "RecurrentWitnessState/v1",
+  "type": "object"
+}

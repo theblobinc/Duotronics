@@ -1,0 +1,32 @@
+{
+  "payload": {
+    "baseline": 1,
+    "cell_id": "bad-cell",
+    "cell_type": "hex-cell",
+    "children": [],
+    "coefficient": 1,
+    "numeric_policy": {
+      "max_depth": 20,
+      "max_nodes": 100,
+      "overflow": "reject"
+    },
+    "operator": "global-scaled-weighted-sum",
+    "payload_domain": {
+      "kind": "integer",
+      "minimum": 0,
+      "multiple_of": 1
+    },
+    "profiles": [
+      "core-acyclic-1.2",
+      "positive-baseline-1",
+      "even-payload-1"
+    ],
+    "schema_version": "positive_baseline_cell/v1",
+    "sockets": [
+      2,
+      4
+    ],
+    "status": "VALID"
+  },
+  "schema_ref": "schemas/positive_baseline_cell_v1.schema.json"
+}

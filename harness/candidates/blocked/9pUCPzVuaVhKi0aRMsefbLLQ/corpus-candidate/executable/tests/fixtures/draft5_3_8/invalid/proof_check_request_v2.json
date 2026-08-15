@@ -1,0 +1,16 @@
+{
+  "payload": {
+    "canonical_claim": {},
+    "claim_id": "c",
+    "compiler_profile_id": "p",
+    "idempotency_key": "i",
+    "policy_decision_id": "policy",
+    "proof_artifact_relative_path": "Proof.lean",
+    "request_id": "r",
+    "source_bundle_id": "b",
+    "subject_id": "caller-controlled",
+    "theorem_name": "t",
+    "theorem_statement": "True"
+  },
+  "schema_ref": "schemas/proof_check_request_v2.schema.json"
+}

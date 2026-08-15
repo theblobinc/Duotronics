@@ -1,0 +1,110 @@
+{
+  "$id": "https://duotronics.local/schemas/schema_registry_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "const": "https://json-schema.org/draft/2020-12/schema"
+    },
+    "active_version_scope": {
+      "const": "v1.6-draft-5.3.5"
+    },
+    "entries": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "active_surface": {
+            "type": "boolean"
+          },
+          "invalid_fixtures": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "lifecycle": {
+            "enum": [
+              "canonical",
+              "legacy_compatibility",
+              "archival_historical",
+              "experimental_research",
+              "forbidden_removed"
+            ]
+          },
+          "path": {
+            "pattern": "^schemas/.+[.]schema[.](json|yaml)$",
+            "type": "string"
+          },
+          "rationale": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "schema_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "valid_fixtures": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "path",
+          "schema_id",
+          "lifecycle",
+          "active_surface",
+          "valid_fixtures",
+          "invalid_fixtures",
+          "rationale"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "registry_version": {
+      "const": "v1.6-draft-5.3.5"
+    },
+    "rules": {
+      "minProperties": 1,
+      "type": "object"
+    },
+    "strict_mode_exceptions": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "keyword": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "keyword",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "$schema",
+    "registry_version",
+    "active_version_scope",
+    "entries",
+    "rules",
+    "strict_mode_exceptions"
+  ],
+  "title": "Governed Schema Registry v1",
+  "type": "object"
+}

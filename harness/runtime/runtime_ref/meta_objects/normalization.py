@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import hashlib
 import json
+
+from runtime_ref.crypto import shake256_ref
 from typing import Any, Iterable
 
 from .ontology import get_ontology
@@ -79,7 +80,7 @@ def normalize_meta_object(given: dict[str, Any] | MetaObjectInstance) -> dict[st
         "ontology_version": ontology.version(),
         "normalization_version": "meta-bundle@v1",
     }
-    normalized["canonical_digest"] = "sha256:" + hashlib.sha256(_stable_json(normalized).encode()).hexdigest()[:16]
+    normalized["canonical_digest"] = shake256_ref(normalized)
     return normalized
 
 
@@ -119,7 +120,7 @@ def canonicalize_meta_bundle(given: dict[str, Any] | MetaObjectAssertionBundle) 
         "ontology_version": get_ontology().version(),
         "normalization_version": "meta-bundle@v1",
     }
-    canonical_bundle["bundle_hash"] = "sha256:" + hashlib.sha256(_stable_json(canonical_bundle).encode()).hexdigest()[:16]
+    canonical_bundle["bundle_hash"] = shake256_ref(canonical_bundle)
     return canonical_bundle
 
 

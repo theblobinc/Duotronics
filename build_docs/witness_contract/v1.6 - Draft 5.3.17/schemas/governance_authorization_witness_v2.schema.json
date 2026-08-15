@@ -1,0 +1,94 @@
+{
+  "$id": "https://duotronics.local/schemas/governance_authorization_witness_v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action_scope": {
+      "enum": [
+        "verifier_key_activate",
+        "verifier_key_retire",
+        "verifier_key_revoke",
+        "compiler_profile_activate",
+        "compiler_profile_revoke",
+        "promotion_gate_approve",
+        "promotion_gate_withdraw",
+        "authority_record_supersede",
+        "authority_snapshot_create",
+        "authority_snapshot_supersede",
+        "backdated_event_authorize"
+      ]
+    },
+    "authorization_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "const": "allow"
+    },
+    "governance_policy_version": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "principal_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "governance_authorization_witness/v2"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    },
+    "signer_key_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "target_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "target_type": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "valid_from": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "valid_until": {
+      "format": "date-time",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "authorization_witness_id",
+    "action_scope",
+    "target_type",
+    "target_id",
+    "principal_id",
+    "governance_policy_version",
+    "decision",
+    "valid_from",
+    "valid_until",
+    "signer_key_id",
+    "created_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Action-Specific Governance Authorization Witness v2",
+  "type": "object"
+}

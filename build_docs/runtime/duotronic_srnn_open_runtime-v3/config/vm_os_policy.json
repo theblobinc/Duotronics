@@ -1,0 +1,13 @@
+{
+  "schema": "xavi-vm-os-policy/v1",
+  "ubuntu": {
+    "track": "latest_lts",
+    "architecture": "amd64",
+    "edition": "server-cloudimg",
+    "metadata_source": "https://cloud-images.ubuntu.com/releases/streams/v1/com.ubuntu.cloud:released:download.json",
+    "require_official_sha256": true,
+    "allow_interim_releases": false,
+    "allow_development_releases": false,
+    "resolver": "ops_agent/xavi_ubuntu_lts.py"
+  }
+}

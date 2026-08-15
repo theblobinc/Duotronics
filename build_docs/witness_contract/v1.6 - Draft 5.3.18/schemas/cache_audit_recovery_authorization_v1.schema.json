@@ -1,0 +1,93 @@
+{
+  "$id": "https://duotronics.local/schemas/cache_audit_recovery_authorization_v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "enum": [
+        "reconcile_signed_dangling_tail",
+        "remove_orphan_checkpoint_temporaries",
+        "complete_interrupted_seal",
+        "complete_interrupted_successor"
+      ]
+    },
+    "authorization_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "checkpoint_sequence_before": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checkpoint_tail_before": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "decision": {
+      "const": "authorize_governed_recovery"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "log_sequence_after": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "log_tail_after": {
+      "oneOf": [
+        {
+          "pattern": "^[0-9a-f]{128}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "cache_audit_recovery_authorization/v1"
+    },
+    "segment_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "type": "string"
+    },
+    "signature": {
+      "maxLength": 6170,
+      "minLength": 6170,
+      "type": "string"
+    },
+    "signed_payload_shake256_512": {
+      "pattern": "^[0-9a-f]{128}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "segment_id",
+    "action",
+    "checkpoint_sequence_before",
+    "checkpoint_tail_before",
+    "log_sequence_after",
+    "log_tail_after",
+    "decision",
+    "created_at",
+    "expires_at",
+    "signed_payload_shake256_512",
+    "signature"
+  ],
+  "title": "Governance-Signed Cache Audit Recovery Authorization v1",
+  "type": "object"
+}

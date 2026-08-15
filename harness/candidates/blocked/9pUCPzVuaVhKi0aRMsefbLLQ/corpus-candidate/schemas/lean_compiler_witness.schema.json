@@ -1,0 +1,162 @@
+{
+  "$id": "https://duotronics.local/schemas/lean_compiler_witness.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "result": {
+            "const": "passed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "contains_admit": {
+            "const": false
+          },
+          "contains_sorry": {
+            "const": false
+          },
+          "unapproved_axiom_count": {
+            "const": 0
+          }
+        }
+      }
+    }
+  ],
+  "description": "Machine-check witness emitted by the Lean/Lake proof authority surface. A passed witness is necessary but not sufficient for theorem promotion; the proof witness and promotion gate must also match the claim hash and theorem status.",
+  "properties": {
+    "command": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "compiled_modules": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "contains_admit": {
+      "type": "boolean"
+    },
+    "contains_sorry": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "lakefile_hash": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    },
+    "lean_compiler_witness_id": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "result": {
+      "enum": [
+        "passed",
+        "failed",
+        "advisory_pass_lake_unavailable",
+        "strict_fail_lake_unavailable",
+        "failed_static_scan",
+        "failed_lake_build"
+      ]
+    },
+    "schema_version": {
+      "const": "lean_compiler_witness/v1"
+    },
+    "source_tree_hash": {
+      "pattern": "^[a-f0-9]{128}$",
+      "type": "string"
+    },
+    "stderr_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "stdout_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "theorem_statuses": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "axioms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "file_hash": {
+            "pattern": "^[a-f0-9]{128}$",
+            "type": "string"
+          },
+          "source_hash_matches": {
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "proved",
+              "failed",
+              "sorry_stub",
+              "axiom_dependent",
+              "source_hash_mismatch"
+            ]
+          },
+          "theorem_name": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "theorem_name",
+          "status",
+          "file_hash",
+          "source_hash_matches",
+          "axioms"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "toolchain": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "unapproved_axiom_count": {
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "lean_compiler_witness_id",
+    "toolchain",
+    "lakefile_hash",
+    "source_tree_hash",
+    "command",
+    "result",
+    "contains_sorry",
+    "contains_admit",
+    "unapproved_axiom_count",
+    "compiled_modules",
+    "theorem_statuses",
+    "created_at"
+  ],
+  "title": "LeanCompilerWitness",
+  "type": "object"
+}

@@ -1,0 +1,27 @@
+{
+  "payload": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "active_version_scope": "v1.6-draft-5.3.5",
+    "entries": [
+      {
+        "active_surface": true,
+        "invalid_fixtures": [
+          "fixture-invalid.json"
+        ],
+        "lifecycle": "canonical",
+        "path": "schemas/evidence_claim_v2.schema.json",
+        "rationale": "canonical",
+        "schema_id": "https://duotronics.local/schemas/evidence_claim_v2.schema.json",
+        "valid_fixtures": [
+          "fixture-valid.json"
+        ]
+      }
+    ],
+    "registry_version": "v1.6-draft-5.3.5",
+    "rules": {
+      "unknown_schema": "reject"
+    },
+    "strict_mode_exceptions": []
+  },
+  "schema_ref": "schemas/schema_registry_v1.schema.json"
+}

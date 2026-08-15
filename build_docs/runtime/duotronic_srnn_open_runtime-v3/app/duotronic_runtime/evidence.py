@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-import hashlib
+import base64
 import json
 import time
 from dataclasses import dataclass, field
 from typing import Any
 
-
-def canonical_json(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), default=str)
-
-
-def sha256_ref(value: Any) -> str:
-    return "sha256:" + hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+from .crypto_primitives import canonical_json, shake256_ref
 
 
 def now_ms() -> int:
@@ -22,7 +16,7 @@ def now_ms() -> int:
 @dataclass(frozen=True)
 class CorpusRef:
     version: str = "unresolved"
-    digest: str = "sha256:unresolved"
+    digest: str = "duoid:shake256-512:unresolved"
     manifest_ref: str = "unresolved"
 
     def to_dict(self) -> dict[str, Any]:
@@ -50,8 +44,8 @@ class WitnessEnvelope:
             "payload": self.payload,
             "created_at_ms": self.created_at_ms,
         }
-        base["payload_digest"] = sha256_ref(self.payload)
-        base["witness_id"] = self.witness_id or "witness_" + hashlib.sha256(canonical_json(base).encode("utf-8")).hexdigest()[:24]
+        base["payload_digest"] = shake256_ref(self.payload)
+        base["witness_id"] = self.witness_id or "witness_" + shake256_ref(base).rsplit(":", 1)[1][:24]
         return base
 
 
@@ -81,7 +75,7 @@ class EvidenceClaim:
             "corpus": self.corpus.to_dict(),
             "created_at_ms": self.created_at_ms,
         }
-        body["claim_digest"] = sha256_ref(body)
+        body["claim_digest"] = shake256_ref(body)
         body["claim_id"] = "claim_" + body["claim_digest"].split(":", 1)[1][:24]
         return body
 
@@ -146,8 +140,8 @@ class EvidenceKernel:
         payload = {
             "provider": provider,
             "model": model,
-            "prompt_digest": sha256_ref(prompt),
-            "output_digest": sha256_ref(response_text),
+            "prompt_digest": shake256_ref(prompt),
+            "output_digest": shake256_ref(response_text),
             "sampling_params": params or {},
             "non_collapse": {
                 "model_output_is_truth": False,
@@ -210,7 +204,7 @@ def nla_activation_witness_contract_v1(
 
     return {
         "schema_version": "nla-activation-witness/v1",
-        "witness_id": str(nla_witness.get("witness_id") or "nla_" + sha256_ref(nla_witness).split(":", 1)[1][:20]),
+        "witness_id": str(nla_witness.get("witness_id") or "nla_" + shake256_ref(nla_witness).split(":", 1)[1][:20]),
         "request_id": None,
         "loop_id": str(loop_id or nla_witness.get("loop_id") or "loop-main"),
         "created_at": created_at,
@@ -227,7 +221,7 @@ def nla_activation_witness_contract_v1(
         },
         "activation": {
             "vector_ref": str(activation.get("activation_vector_ref") or "inline:sandbox-vector"),
-            "vector_sha256": str(activation.get("activation_digest") or "sha256:" + "0" * 64),
+            "vector_shake256_512": str(activation.get("activation_digest") or "shake256-512:" + "0" * 128),
             "norm_l2": float(activation.get("norm") or 0.0),
             "dtype": "float32",
             "capture_time_utc": created_at,
@@ -238,10 +232,10 @@ def nla_activation_witness_contract_v1(
         "verbalizer": {
             "av_model_id": str(verbalizer.get("av_model") or "deterministic-av-shim-v1"),
             "av_model_revision": None,
-            "av_checkpoint_sha256": None,
+            "av_checkpoint_shake256_512": None,
             "sidecar_ref": verbalizer.get("sidecar_ref"),
-            "sidecar_digest": str(verbalizer.get("response_integrity") or verbalizer.get("prompt_integrity") or "sha256:" + "0" * 64),
-            "prompt_template_hash": str(verbalizer.get("prompt_integrity") or "sha256:" + "0" * 64),
+            "sidecar_digest": str(verbalizer.get("response_integrity") or verbalizer.get("prompt_integrity") or "shake256-512:" + "0" * 128),
+            "prompt_template_hash": str(verbalizer.get("prompt_integrity") or "shake256-512:" + "0" * 128),
             "injection_scale": None,
             "injection_token_id": None,
             "explanation_text": str(verbalizer.get("explanation_text") or ""),
@@ -252,9 +246,9 @@ def nla_activation_witness_contract_v1(
             "ar_available": reconstructor.get("mse") is not None or reconstructor.get("cosine") is not None,
             "ar_model_id": reconstructor.get("ar_model"),
             "ar_model_revision": None,
-            "ar_checkpoint_sha256": None,
+            "ar_checkpoint_shake256_512": None,
             "reconstruction_vector_ref": reconstructor.get("reconstruction_ref"),
-            "reconstruction_vector_sha256": reconstructor.get("reconstruction_digest"),
+            "reconstruction_vector_shake256_512": reconstructor.get("reconstruction_digest"),
             "mse": reconstructor.get("mse"),
             "cosine_similarity": reconstructor.get("cosine") if reconstructor.get("cosine") is not None else reconstructor.get("cosine_similarity"),
         },

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import hashlib
+import fcntl
 import json
 import os
 import re
@@ -9,8 +9,11 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from .crypto_primitives import shake256_hex, shake256_ref
+from .duotronic_bijective import positive_ordinal_payload
 
-SCHEMA_VERSION = "session-ledger-event-v1"
+
+SCHEMA_VERSION = "session-ledger-event-v2"
 SUMMARY_SCHEMA_VERSION = "session-ledger-summary-v1"
 DEFAULT_LEDGER_ROOT = Path(os.environ.get("XAVI_SESSION_LEDGER_DIR", "/runtime/data/session_ledger"))
 _SAFE_SESSION = re.compile(r"[^A-Za-z0-9_.-]+")
@@ -21,7 +24,20 @@ def _canonical_json(value: Any) -> str:
 
 
 def _digest(value: Any) -> str:
-    return "sha256:" + hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
+    return shake256_ref(value)
+
+
+def _experience_witness_id(*, session_id: str, sequence: int, event_type: str, actor: str, content_digest: str, previous_event_digest: str | None) -> str:
+    seed = {
+        "schema": "experience-event-witness-id-v1",
+        "session_id": session_id,
+        "sequence": sequence,
+        "event_type": event_type,
+        "actor": actor,
+        "content_digest": content_digest,
+        "previous_event_digest": previous_event_digest,
+    }
+    return "xevw_" + shake256_hex(_canonical_json(seed))[:40]
 
 
 def _now_ms() -> int:
@@ -32,15 +48,23 @@ def _safe_session_id(session_id: str) -> str:
     raw = str(session_id or "default").strip() or "default"
     safe = _SAFE_SESSION.sub("_", raw).strip("._-")
     if not safe:
-        safe = "session_" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+        safe = "session_" + shake256_hex(raw)[:16]
     return safe[:120]
 
 
 class SessionLedger:
     """Append-only session ledger with per-session hash chaining."""
 
-    def __init__(self, root: str | Path | None = None) -> None:
+    def __init__(self, root: str | Path | None = None, store: Any | None = None) -> None:
         self.root = Path(root) if root is not None else DEFAULT_LEDGER_ROOT
+        self._store = store
+
+    def _postgres_store(self):
+        if self._store is None:
+            from .config import get_settings
+            from .db import Store
+            self._store = Store(get_settings())
+        return self._store
 
     def _events_dir(self) -> Path:
         return self.root / "events"
@@ -71,6 +95,8 @@ class SessionLedger:
         witness_id: str | None = None,
         supersedes: list[str] | None = None,
         created_at_ms: int | None = None,
+        training_eligible: bool = True,
+        redaction: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if not str(event_type or "").strip():
             raise ValueError("event_type is required")
@@ -78,34 +104,109 @@ class SessionLedger:
             raise ValueError("actor is required")
 
         sid = str(session_id or "default").strip() or "default"
-        existing = self._read_events(sid)
-        previous = existing[-1] if existing else None
-        sequence = int(previous.get("sequence", 0)) + 1 if previous else 1
-        previous_digest = previous.get("event_digest") if previous else None
-        payload = dict(content or {})
+        lock_path = self.root / "locks" / f"{_safe_session_id(sid)}.lock"
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        with lock_path.open("a+", encoding="utf-8") as lock_file:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            existing = self._read_events(sid)
+            previous = existing[-1] if existing else None
+            sequence = int(previous.get("sequence", 0)) + 1 if previous else 1
+            previous_digest = previous.get("event_digest") if previous else None
+            payload = dict(content or {})
+            event_type_name = str(event_type).strip()
+            actor_name = str(actor).strip()
+            content_digest = _digest(payload)
+            auto_witness = witness_id is None
+            effective_witness_id = witness_id or _experience_witness_id(
+                session_id=sid,
+                sequence=sequence,
+                event_type=event_type_name,
+                actor=actor_name,
+                content_digest=content_digest,
+                previous_event_digest=previous_digest,
+            )
+            record: dict[str, Any] = {
+                "schema_version": SCHEMA_VERSION,
+                "session_id": sid,
+                "sequence": sequence,
+                "sequence_bijective": positive_ordinal_payload(sequence),
+                "event_type": event_type_name,
+                "actor": actor_name,
+                "created_at_ms": int(created_at_ms if created_at_ms is not None else _now_ms()),
+                "content": payload,
+                "content_digest": content_digest,
+                "previous_event_digest": previous_digest,
+                "witness_id": effective_witness_id,
+                "supersedes": list(supersedes or []),
+                "tags": sorted({str(tag) for tag in (tags or []) if str(tag).strip()}),
+                "training_eligible": bool(training_eligible),
+                "redaction": dict(redaction or {}),
+            }
+            record["event_digest"] = _digest(record)
+            path = self._events_path(sid)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as events_file:
+                events_file.write(_canonical_json(record) + "\n")
+                events_file.flush()
+                os.fsync(events_file.fileno())
+            self._write_index(sid, record)
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
-        record: dict[str, Any] = {
-            "schema_version": SCHEMA_VERSION,
-            "session_id": sid,
-            "sequence": sequence,
-            "event_type": str(event_type).strip(),
-            "actor": str(actor).strip(),
-            "created_at_ms": int(created_at_ms if created_at_ms is not None else _now_ms()),
-            "content": payload,
-            "content_digest": _digest(payload),
-            "previous_event_digest": previous_digest,
-            "witness_id": witness_id,
-            "supersedes": list(supersedes or []),
-            "tags": sorted({str(tag) for tag in (tags or []) if str(tag).strip()}),
+        persistence = {
+            "jsonl": True,
+            "postgres": False,
+            "postgres_error": None,
+            "witness": not auto_witness,
+            "witness_error": None,
         }
-        record["event_digest"] = _digest(record)
+        store = self._postgres_store()
+        try:
+            store.insert_session_event(
+                record,
+                training_eligible=training_eligible,
+                redaction=redaction or {},
+            )
+            persistence["postgres"] = True
+        except Exception as exc:
+            persistence["postgres_error"] = f"{type(exc).__name__}: {exc}"[:500]
 
-        path = self._events_path(sid)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8") as f:
-            f.write(_canonical_json(record) + "\n")
-        self._write_index(sid, record)
-        return record
+        if auto_witness:
+            witness = {
+                "witness_id": record["witness_id"],
+                "witness_type": "experience_event",
+                "force": "observe",
+                "observer_id": "session-ledger",
+                "status": "recorded",
+                "corpus": {
+                    "contract": "duotronic-witness-contract-v1.6-draft-5.3.18",
+                    "ledger_schema": SCHEMA_VERSION,
+                },
+                "payload_digest": record["event_digest"],
+                "payload": {
+                    "schema_version": "experience-event-witness-v1",
+                    "session_id": record["session_id"],
+                    "sequence": record["sequence"],
+                    "event_type": record["event_type"],
+                    "actor": record["actor"],
+                    "event_digest": record["event_digest"],
+                    "content_digest": record["content_digest"],
+                    "previous_event_digest": record.get("previous_event_digest"),
+                    "tags": record.get("tags", []),
+                    "training_eligible": record["training_eligible"],
+                    "redaction": record["redaction"],
+                },
+                "created_at_ms": record["created_at_ms"],
+            }
+            try:
+                store.insert_witness(witness)
+                persistence["witness"] = True
+            except Exception as exc:
+                persistence["witness_error"] = f"{type(exc).__name__}: {exc}"[:500]
+
+        return {**record, "_persistence": persistence}
+
+    def postgres_search(self, **kwargs: Any) -> dict[str, Any]:
+        return self._postgres_store().search_session_events(**kwargs)
 
     def tail(self, *, session_id: str, limit: int = 20) -> dict[str, Any]:
         limit = max(1, min(int(limit), 200))
