@@ -12,6 +12,7 @@ from .config import Settings
 from .model_capabilities import enrich_model_record, is_chat_capable
 from .prompting import DUOTRONIC_RUNTIME_SYSTEM_PROMPT, build_runtime_prompt
 from .response_normalizer import extract_model_response
+from .service_registry import ServiceRegistry
 
 
 def expand_env(value: Any) -> Any:
@@ -24,6 +25,8 @@ class ModelRegistry:
     def __init__(self, path: Path, settings: Settings) -> None:
         self.path = path
         self.settings = settings
+        service_registry_path = getattr(settings, "service_registry_path", None) or (Path(path).parent / "service_registry.json")
+        self.service_registry = ServiceRegistry(Path(service_registry_path))
         self.records = self._load()
         self._ollama_cache: list[dict[str, Any]] = []
         self._ollama_cache_ts: float = 0.0
@@ -44,7 +47,7 @@ class ModelRegistry:
                 rec["enabled"] = os.environ.get(str(enabled_env), "false").lower() in {"1", "true", "yes", "on"}
             else:
                 rec["enabled"] = bool(rec.get("enabled", True))
-            out.append(enrich_model_record(rec))
+            out.append(enrich_model_record(self.service_registry.annotate_model(rec)))
         return out
 
     def _discover_ollama_models(self) -> list[dict[str, Any]]:
@@ -59,7 +62,6 @@ class ModelRegistry:
         for base in [
             configured_base,
             "http://ollama:11434",
-            "http://host.containers.internal:11434",
         ]:
             if base and base not in candidates:
                 candidates.append(base)
@@ -69,7 +71,7 @@ class ModelRegistry:
         for base in candidates:
             try:
                 timeout = httpx.Timeout(5.0, connect=2.0)
-                with httpx.Client(timeout=timeout) as client:
+                with httpx.Client(timeout=timeout, trust_env=False) as client:
                     r = client.get(f"{base}/api/tags")
                     r.raise_for_status()
                     data = r.json()
@@ -187,7 +189,7 @@ class ModelRegistry:
             if name and name not in existing_names:
                 records.append(enrich_model_record(record))
                 existing_names.add(name)
-        return [enrich_model_record(record) for record in records]
+        return [enrich_model_record(self.service_registry.annotate_model(record)) for record in records]
 
     def _model_tag(self, record: dict[str, Any]) -> str:
         return str(record.get("model") or record.get("name") or "").strip()
@@ -337,7 +339,7 @@ class ModelProvider:
             pool=10.0,
         )
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
+            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
                 r = await client.post(
                     f"{base.rstrip('/')}/api/generate",
                     json={
@@ -421,80 +423,308 @@ class ModelProvider:
         }
 
 
+def _ollama_failover_plan(
+    settings: Settings,
+    model: dict[str, Any],
+    *,
+    health_timeout_seconds: float = 1.5,
+) -> dict[str, Any]:
+    """Resolve configured Ollama failover aliases against commissioned live nodes.
+
+    This is routing evidence, not proof of execution. Actual execution is only
+    recorded after a request succeeds. Generic aliases without an explicit
+    fallback chain remain single-route and do not pay a health-probe penalty.
+    """
+    requested = dict(model or {})
+    requested_alias = str(requested.get("name") or requested.get("model") or "ollama").strip()
+    metadata = requested.get("metadata") if isinstance(requested.get("metadata"), dict) else {}
+    fallback_names = [
+        str(item).strip()
+        for item in (metadata.get("fallback_model_names") or [])
+        if str(item).strip()
+    ]
+    registry = ModelRegistry(settings.model_registry_path, settings)
+    service_registry = registry.service_registry
+    configured = {
+        str(item.get("name") or ""): item
+        for item in registry.records
+        if isinstance(item, dict) and str(item.get("name") or "")
+    }
+
+    ordered: list[dict[str, Any]] = [requested]
+    preflight_attempts: list[dict[str, Any]] = []
+    for fallback_name in fallback_names:
+        fallback = configured.get(fallback_name)
+        if fallback is None:
+            preflight_attempts.append({
+                "alias": fallback_name,
+                "status": "skipped",
+                "reason": "fallback_alias_not_configured",
+            })
+            continue
+        if str(fallback.get("provider") or "") != "ollama" or not bool(fallback.get("enabled", True)):
+            preflight_attempts.append({
+                "alias": fallback_name,
+                "status": "skipped",
+                "reason": "fallback_alias_not_enabled_ollama",
+            })
+            continue
+        ordered.append(dict(fallback))
+
+    health: dict[str, Any] | None = None
+    health_error: str | None = None
+    if fallback_names:
+        try:
+            health = service_registry.service_health(
+                service="ollama",
+                timeout_seconds=max(0.2, min(float(health_timeout_seconds or 1.5), 5.0)),
+            )
+        except Exception as exc:
+            health_error = exc.__class__.__name__
+
+    health_by_node = {
+        str(row.get("node_id") or ""): row
+        for row in ((health or {}).get("observations") or [])
+        if isinstance(row, dict) and str(row.get("node_id") or "")
+    }
+    routes: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+    for route_record in ordered:
+        route_record = service_registry.annotate_model(route_record)
+        base = str(route_record.get("base_url") or settings.ollama_host or "").strip().rstrip("/")
+        model_name = str(route_record.get("model") or settings.ollama_default_model or "").strip()
+        alias = str(route_record.get("name") or model_name or "ollama").strip()
+        if not base or not model_name:
+            preflight_attempts.append({"alias": alias, "status": "skipped", "reason": "missing_base_or_model"})
+            continue
+
+        owner = service_registry.endpoint_owner(base)
+        node_id = str((route_record.get("metadata") or {}).get("node_id") or "").strip() or None
+        if owner is not None:
+            owner_node, _, _ = owner
+            node_id = node_id or str(owner_node.get("id") or "").strip() or None
+
+        live = health_by_node.get(node_id or "") if health is not None and node_id else None
+        if health is not None and owner is not None:
+            if live is None or not bool(live.get("healthy")):
+                preflight_attempts.append({
+                    "alias": alias,
+                    "model": model_name,
+                    "node_id": node_id,
+                    "status": "skipped",
+                    "reason": "ollama_service_unhealthy_or_unobserved",
+                })
+                continue
+            observed_endpoint = str(live.get("endpoint") or "").strip().rstrip("/")
+            if observed_endpoint:
+                base = observed_endpoint
+
+        key = (str(node_id or ""), model_name, base)
+        if key in seen:
+            continue
+        seen.add(key)
+        routes.append({
+            "alias": alias,
+            "model": model_name,
+            "base_url": base,
+            "node_id": node_id,
+            "record": route_record,
+            "health": live,
+        })
+
+    return {
+        "schema_version": "ollama-failover-plan-v1",
+        "requested_alias": requested_alias,
+        "requested_model": str(requested.get("model") or settings.ollama_default_model or ""),
+        "fallback_model_names": fallback_names,
+        "routes": routes,
+        "preflight_attempts": preflight_attempts,
+        "service_health_digest": (health or {}).get("observation_digest"),
+        "service_health_error": health_error,
+    }
+
+
+def _ollama_routing_result(plan: dict[str, Any], selected: dict[str, Any], attempts: list[dict[str, Any]]) -> dict[str, Any]:
+    requested_alias = str(plan.get("requested_alias") or "")
+    selected_alias = str(selected.get("alias") or "")
+    return {
+        "schema_version": "ollama-routing-witness-v1",
+        "requested_alias": requested_alias,
+        "requested_model": plan.get("requested_model"),
+        "selected_alias": selected_alias,
+        "selected_model": selected.get("model"),
+        "selected_node_id": selected.get("node_id"),
+        "selected_base_url": selected.get("base_url"),
+        "failover_used": bool(requested_alias and selected_alias and requested_alias != selected_alias),
+        "attempts": attempts,
+        "service_health_digest": plan.get("service_health_digest"),
+        "service_health_error": plan.get("service_health_error"),
+    }
+
+
+def _ollama_retryable_status(response: httpx.Response) -> bool:
+    status = int(response.status_code)
+    if status >= 500 or status == 404:
+        return True
+    if status == 400:
+        body = str(response.text or "").lower()
+        return "model" in body and ("not found" in body or "does not exist" in body)
+    return False
+
+
 async def stream_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, Any]] | None = None, tools: list[dict[str, Any]] | None = None) -> AsyncIterator[dict[str, Any]]:
-    """Yield normalized chunks from Ollama /api/chat streaming JSON lines."""
-    base = model.get("base_url") or settings.ollama_host
-    name = model.get("model") or settings.ollama_default_model
+    """Yield Ollama chat chunks with failover only before the first token.
+
+    A dead/unavailable primary may be replaced by an explicitly configured
+    fallback route before output begins. Once any chunk has been yielded, a later
+    backend failure is terminal so responses from different models are never
+    spliced together.
+    """
     chat_messages = messages or [{"role": "user", "content": prompt}]
+    interactive_timeout = float(getattr(settings, "ollama_timeout_seconds", 180.0))
     timeout = httpx.Timeout(
-        connect=10.0,
-        read=float(getattr(settings, "ollama_timeout_seconds", 180.0)),
-        write=30.0,
-        pool=10.0,
+        connect=min(5.0, interactive_timeout),
+        read=interactive_timeout,
+        write=min(10.0, interactive_timeout),
+        pool=min(5.0, interactive_timeout),
     )
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        async with client.stream(
-            "POST",
-            f"{str(base).rstrip('/')}/api/chat",
-            json={
-                "model": name,
-                "messages": chat_messages,
-                "stream": True,
-                "think": False,
-                "options": options or {
-                    "temperature": 0.15,
-                    "top_p": 0.85,
-                    "repeat_penalty": 1.08,
-                },
-                **({"tools": tools} if tools else {}),
+    plan = _ollama_failover_plan(
+        settings,
+        model,
+        health_timeout_seconds=min(1.5, max(0.2, interactive_timeout)),
+    )
+    attempts = list(plan.get("preflight_attempts") or [])
+    last_error = "no_eligible_ollama_route"
+
+    for route in plan.get("routes") or []:
+        base = str(route.get("base_url") or "").rstrip("/")
+        name = str(route.get("model") or "")
+        alias = str(route.get("alias") or name)
+        body: dict[str, Any] = {
+            "model": name,
+            "messages": chat_messages,
+            "stream": True,
+            "think": False,
+            "options": options or {
+                "temperature": 0.15,
+                "top_p": 0.85,
+                "repeat_penalty": 1.08,
             },
-        ) as response:
-            response.raise_for_status()
-            async for line in response.aiter_lines():
-                if not line:
-                    continue
-                try:
-                    data = json.loads(line)
-                except Exception:
-                    continue
-                message = data.get("message") if isinstance(data, dict) else None
-                if isinstance(message, dict):
-                    # Preserve token whitespace exactly for streamed chunks. The
-                    # general response normalizer trims strings, which is fine for
-                    # completed responses but corrupts streaming by turning chunks
-                    # like " mass" into "mass" before LibreChat concatenates them.
-                    text = str(message.get("content") or "")
-                    reasoning = str(
-                        message.get("thinking")
-                        or message.get("reasoning")
-                        or message.get("reasoning_content")
-                        or ""
-                    )
-                else:
-                    text = str(data.get("response") or "")
-                    reasoning = str(data.get("thinking") or data.get("reasoning") or "")
-                native_tool_calls = message.get("tool_calls") if isinstance(message, dict) else None
-                yield {
-                    "raw": data,
-                    "response_text": text,
-                    "reasoning_text": reasoning,
-                    "tool_calls": native_tool_calls or [],
-                    "done": bool(data.get("done")),
-                    "done_reason": data.get("done_reason"),
-                    "model": name,
-                }
+        }
+        if tools:
+            body["tools"] = tools
+        yielded_any = False
+        started = time.perf_counter()
+        try:
+            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
+                async with client.stream("POST", f"{base}/api/chat", json=body) as response:
+                    if response.is_error:
+                        body_text = (await response.aread()).decode("utf-8", errors="ignore")
+                        latency_ms = round((time.perf_counter() - started) * 1000.0, 2)
+                        attempts.append({
+                            "alias": alias,
+                            "model": name,
+                            "node_id": route.get("node_id"),
+                            "base_url": base,
+                            "status": "http_error",
+                            "status_code": int(response.status_code),
+                            "latency_ms": latency_ms,
+                        })
+                        last_error = f"http_{int(response.status_code)}:{alias}:{name}:{base}"
+                        retryable = int(response.status_code) >= 500 or int(response.status_code) == 404 or (
+                            int(response.status_code) == 400
+                            and "model" in body_text.lower()
+                            and ("not found" in body_text.lower() or "does not exist" in body_text.lower())
+                        )
+                        if retryable:
+                            continue
+                        response.raise_for_status()
+
+                    attempts.append({
+                        "alias": alias,
+                        "model": name,
+                        "node_id": route.get("node_id"),
+                        "base_url": base,
+                        "status": "stream_started",
+                        "status_code": int(response.status_code),
+                        "latency_ms": round((time.perf_counter() - started) * 1000.0, 2),
+                    })
+                    routing = _ollama_routing_result(plan, route, attempts)
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            data = json.loads(line)
+                        except Exception:
+                            continue
+                        message = data.get("message") if isinstance(data, dict) else None
+                        if isinstance(message, dict):
+                            # Preserve token whitespace exactly; completed response
+                            # normalization trims strings and would corrupt streaming.
+                            text = str(message.get("content") or "")
+                            reasoning = str(
+                                message.get("thinking")
+                                or message.get("reasoning")
+                                or message.get("reasoning_content")
+                                or ""
+                            )
+                        else:
+                            text = str(data.get("response") or "")
+                            reasoning = str(data.get("thinking") or data.get("reasoning") or "")
+                        native_tool_calls = message.get("tool_calls") if isinstance(message, dict) else None
+                        yielded_any = True
+                        yield {
+                            "raw": data,
+                            "response_text": text,
+                            "reasoning_text": reasoning,
+                            "tool_calls": native_tool_calls or [],
+                            "done": bool(data.get("done")),
+                            "done_reason": data.get("done_reason"),
+                            "model": name,
+                            "provider_routing": routing,
+                        }
+                    return
+        except httpx.TimeoutException as exc:
+            if yielded_any:
+                raise RuntimeError(f"ollama_stream_timeout_after_output:{name}:{base}") from exc
+            last_error = f"timeout:{alias}:{name}:{base}"
+            attempts.append({
+                "alias": alias,
+                "model": name,
+                "node_id": route.get("node_id"),
+                "base_url": base,
+                "status": "timeout",
+            })
+            continue
+        except httpx.HTTPStatusError as exc:
+            if yielded_any:
+                raise RuntimeError(f"ollama_stream_http_error_after_output:{name}:{base}:{exc.response.status_code}") from exc
+            raise RuntimeError(f"ollama_stream_http_error:{name}:{base}:{exc.response.status_code}") from exc
+        except httpx.HTTPError as exc:
+            if yielded_any:
+                raise RuntimeError(f"ollama_stream_transport_error_after_output:{name}:{base}:{exc.__class__.__name__}") from exc
+            last_error = f"transport:{alias}:{name}:{base}:{exc.__class__.__name__}"
+            attempts.append({
+                "alias": alias,
+                "model": name,
+                "node_id": route.get("node_id"),
+                "base_url": base,
+                "status": "transport_error",
+                "error": exc.__class__.__name__,
+            })
+            continue
+
+    raise RuntimeError(f"ollama_stream_failover_exhausted:{plan.get('requested_alias')}:{last_error}")
 
 
 async def complete_ollama_generate(settings: Settings, *, prompt: str, model: dict[str, Any], options: dict[str, Any] | None = None, messages: list[dict[str, Any]] | None = None, tools: list[dict[str, Any]] | None = None, timeout_seconds: float | None = None) -> dict[str, Any]:
-    """Return one direct Ollama chat completion for OpenAI-v1-compatible clients.
+    """Return one direct Ollama chat completion with witnessed LAN failover.
 
-    Use Ollama /api/chat instead of /api/generate so each model receives its
-    native chat-template structure. This prevents raw prompt/template artifacts,
-    smashed-together role labels, and hidden runtime/policy prompt leakage in
-    LibreChat, Continue, Roo, and VS Code clients.
+    Use Ollama /api/chat so models receive native chat-template structure. An
+    explicit alias fallback chain may move execution to another commissioned,
+    healthy Ollama node. The returned routing witness names the backend that
+    actually answered; a planned route is never presented as execution fact.
     """
-    base = model.get("base_url") or settings.ollama_host
-    name = model.get("model") or settings.ollama_default_model
     chat_messages = messages or [{"role": "user", "content": prompt}]
     interactive_timeout = float(timeout_seconds) if timeout_seconds is not None else float(getattr(settings, "ollama_timeout_seconds", 180.0))
     timeout = httpx.Timeout(
@@ -503,47 +733,109 @@ async def complete_ollama_generate(settings: Settings, *, prompt: str, model: di
         write=min(10.0, interactive_timeout),
         pool=min(5.0, interactive_timeout),
     )
-    try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            r = await client.post(
-                f"{base.rstrip('/')}/api/chat",
-                json={
+    plan = _ollama_failover_plan(
+        settings,
+        model,
+        health_timeout_seconds=min(1.5, max(0.2, interactive_timeout)),
+    )
+    attempts = list(plan.get("preflight_attempts") or [])
+    last_error = "no_eligible_ollama_route"
+
+    for route in plan.get("routes") or []:
+        base = str(route.get("base_url") or "").rstrip("/")
+        name = str(route.get("model") or "")
+        alias = str(route.get("alias") or name)
+        body: dict[str, Any] = {
+            "model": name,
+            "messages": chat_messages,
+            "stream": False,
+            "think": False,
+            "options": options or {
+                "temperature": 0.15,
+                "top_p": 0.85,
+                "repeat_penalty": 1.08,
+            },
+        }
+        if tools:
+            body["tools"] = tools
+        started = time.perf_counter()
+        try:
+            async with httpx.AsyncClient(timeout=timeout, trust_env=False) as client:
+                r = await client.post(f"{base}/api/chat", json=body)
+            latency_ms = round((time.perf_counter() - started) * 1000.0, 2)
+            if r.is_error:
+                attempts.append({
+                    "alias": alias,
                     "model": name,
-                    "messages": chat_messages,
-                    "stream": False,
-                    "think": False,
-                    "options": options or {
-                        "temperature": 0.15,
-                        "top_p": 0.85,
-                        "repeat_penalty": 1.08,
-                    },
-                },
-                **({"tools": tools} if tools else {}),
-            )
-            r.raise_for_status()
+                    "node_id": route.get("node_id"),
+                    "base_url": base,
+                    "status": "http_error",
+                    "status_code": int(r.status_code),
+                    "latency_ms": latency_ms,
+                })
+                last_error = f"http_{int(r.status_code)}:{alias}:{name}:{base}"
+                if _ollama_retryable_status(r):
+                    continue
+                r.raise_for_status()
             data = r.json()
-    except httpx.TimeoutException as exc:
-        raise RuntimeError(f"ollama_timeout:{name}:{base}") from exc
-    except httpx.HTTPStatusError as exc:
-        raise RuntimeError(f"ollama_http_error:{name}:{base}:{exc.response.status_code}") from exc
-    except httpx.HTTPError as exc:
-        raise RuntimeError(f"ollama_transport_error:{name}:{base}:{exc.__class__.__name__}") from exc
-    normalized = extract_model_response(data)
-    return {
-        "model": model | {"model": name},
-        "response_text": normalized["response_text"],
-        "reasoning_text": normalized["reasoning_text"],
-        "tool_calls": normalized["tool_calls"],
-        "capabilities_observed": normalized["capabilities_observed"],
-        "provider_native_fields": normalized["native_fields"],
-        "provider_status": "ollama_direct",
-        "provider_metrics": {
-            "total_duration": data.get("total_duration"),
-            "load_duration": data.get("load_duration"),
-            "prompt_eval_count": data.get("prompt_eval_count"),
-            "prompt_eval_duration": data.get("prompt_eval_duration"),
-            "eval_count": data.get("eval_count"),
-            "eval_duration": data.get("eval_duration"),
-            "done_reason": data.get("done_reason"),
-        },
-    }
+            attempts.append({
+                "alias": alias,
+                "model": name,
+                "node_id": route.get("node_id"),
+                "base_url": base,
+                "status": "completed",
+                "status_code": int(r.status_code),
+                "latency_ms": latency_ms,
+            })
+        except httpx.TimeoutException:
+            latency_ms = round((time.perf_counter() - started) * 1000.0, 2)
+            last_error = f"timeout:{alias}:{name}:{base}"
+            attempts.append({
+                "alias": alias,
+                "model": name,
+                "node_id": route.get("node_id"),
+                "base_url": base,
+                "status": "timeout",
+                "latency_ms": latency_ms,
+            })
+            continue
+        except httpx.HTTPStatusError as exc:
+            raise RuntimeError(f"ollama_http_error:{name}:{base}:{exc.response.status_code}") from exc
+        except httpx.HTTPError as exc:
+            latency_ms = round((time.perf_counter() - started) * 1000.0, 2)
+            last_error = f"transport:{alias}:{name}:{base}:{exc.__class__.__name__}"
+            attempts.append({
+                "alias": alias,
+                "model": name,
+                "node_id": route.get("node_id"),
+                "base_url": base,
+                "status": "transport_error",
+                "error": exc.__class__.__name__,
+                "latency_ms": latency_ms,
+            })
+            continue
+
+        normalized = extract_model_response(data)
+        selected_record = dict(route.get("record") or model) | {"model": name, "base_url": base}
+        routing = _ollama_routing_result(plan, route, attempts)
+        return {
+            "model": selected_record,
+            "response_text": normalized["response_text"],
+            "reasoning_text": normalized["reasoning_text"],
+            "tool_calls": normalized["tool_calls"],
+            "capabilities_observed": normalized["capabilities_observed"],
+            "provider_native_fields": normalized["native_fields"],
+            "provider_status": "ollama_direct_failover" if routing["failover_used"] else "ollama_direct",
+            "provider_routing": routing,
+            "provider_metrics": {
+                "total_duration": data.get("total_duration"),
+                "load_duration": data.get("load_duration"),
+                "prompt_eval_count": data.get("prompt_eval_count"),
+                "prompt_eval_duration": data.get("prompt_eval_duration"),
+                "eval_count": data.get("eval_count"),
+                "eval_duration": data.get("eval_duration"),
+                "done_reason": data.get("done_reason"),
+            },
+        }
+
+    raise RuntimeError(f"ollama_failover_exhausted:{plan.get('requested_alias')}:{last_error}")

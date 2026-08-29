@@ -28,14 +28,18 @@ promotion is distinct from theorem/release/authority promotion; the latter is
 never inferred merely from model output, passing tests or this module.
 """
 
+import base64
 import json
 import mimetypes
 import os
 import re
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
+
+import httpx
 
 from .duotronic_bijective import (
     REFERENCE_SHAKE256_512 as BIJECTIVE_REFERENCE_SHAKE256_512,
@@ -46,6 +50,8 @@ from .duotronic_bijective import (
 from .crypto_primitives import shake256_file, shake256_ref
 from .meta_graph import build_information_graph
 from .session_ledger import SessionLedger
+from .artifact_extract import DEFAULT_MAX_BYTES as DEFAULT_EXTRACTION_MAX_BYTES, DEFAULT_MAX_CHARS as DEFAULT_EXTRACTION_MAX_CHARS, extract_artifact_text
+from .media_preflight import preflight_media
 
 AUTONOMY_SCHEMA = "xavi-wgrnn-autonomy/v1"
 CONTRACT_REF = "Witness Contract v1.6 Draft 5.3.18"
@@ -92,6 +98,19 @@ _TEXT_EXTENSIONS = {
     ".md", ".txt", ".json", ".jsonl", ".yaml", ".yml", ".py", ".rs", ".ts", ".tsx", ".js", ".jsx",
     ".sql", ".lean", ".tla", ".toml", ".csv", ".xml", ".html", ".css", ".ini", ".cfg", ".log",
 }
+_TRANSCRIBABLE_MEDIA_PREFIXES = ("audio/", "video/")
+_TRANSCRIBABLE_MEDIA_EXTENSIONS = {
+    ".aac", ".aiff", ".alac", ".flac", ".m4a", ".mka", ".mp3", ".ogg", ".opus", ".wav", ".wma",
+    ".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".ts", ".webm", ".wmv",
+}
+_DEFAULT_TRANSCRIPTION_MAX_BYTES = 512 * 1024 * 1024
+_DEFAULT_TRANSCRIPTION_TIMEOUT_SECONDS = 1800.0
+_IMAGE_MEDIA_PREFIXES = ("image/",)
+_IMAGE_MEDIA_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
+_DEFAULT_VISION_MAX_BYTES = 8 * 1024 * 1024
+_DEFAULT_VISION_TIMEOUT_SECONDS = 90.0
+_VISION_SCHEMA_VERSION = "xavi-image-understanding/v1"
+_VISION_PROMPT_VERSION = "xavi-training-image-factual-v1"
 ACTION_EVENT_TYPES = {
     "mcp_call_start", "cli_command", "tool_call", "code_patch", "code_candidate", "workflow_action", "deployment_action",
     "delegated_tool_action",
@@ -274,6 +293,7 @@ class AutonomyStack:
         self.experiments_path = self.root / "self_experiments.jsonl"
         self.experiment_results_path = self.root / "self_experiment_results.jsonl"
         self.training_dir = self.root / "training"
+        self._vision_lock = threading.Lock()
 
     def provenance(self) -> dict[str, Any]:
         return {
@@ -1030,6 +1050,296 @@ class AutonomyStack:
             "recurrent_learning": event.get("recurrent_learning"),
         }
 
+    @staticmethod
+    def _is_transcribable_media(source: Path, mime_type: str) -> bool:
+        normalized_mime = str(mime_type or "").lower()
+        return normalized_mime.startswith(_TRANSCRIBABLE_MEDIA_PREFIXES) or source.suffix.lower() in _TRANSCRIBABLE_MEDIA_EXTENSIONS
+
+    @staticmethod
+    def _is_image_media(source: Path, mime_type: str) -> bool:
+        normalized_mime = str(mime_type or "").lower()
+        return normalized_mime.startswith(_IMAGE_MEDIA_PREFIXES) or source.suffix.lower() in _IMAGE_MEDIA_EXTENSIONS
+
+    def _understand_image(
+        self,
+        source: Path,
+        *,
+        mime_type: str,
+        timeout_seconds: float = _DEFAULT_VISION_TIMEOUT_SECONDS,
+    ) -> dict[str, Any]:
+        """Describe one local image through a live pressure-aware private-LAN vision worker.
+
+        Vision output is machine-derived candidate evidence. The original artifact digest
+        remains the authoritative source identity and model output never self-promotes.
+        """
+        registry = getattr(self.kernel, "service_registry", None)
+        if registry is None:
+            return {"schema_version": _VISION_SCHEMA_VERSION, "status": "unavailable", "reason": "service_registry_unavailable"}
+        candidates_report = registry.scheduler_candidates(
+            service="vision",
+            require_live=True,
+            live_timeout_seconds=3.0,
+            observe_pressure=True,
+            pressure_timeout_seconds=2.0,
+            limit=1,
+        )
+        candidates = [row for row in candidates_report.get("candidates") or [] if isinstance(row, dict)]
+        if not candidates:
+            return {
+                "schema_version": _VISION_SCHEMA_VERSION,
+                "status": "unavailable",
+                "reason": "no_live_vision_candidate",
+                "registry_digest": candidates_report.get("registry_digest"),
+                "pressure_observation_digest": (candidates_report.get("pressure_observation") or {}).get("observation_digest"),
+            }
+        candidate = candidates[0]
+        node_id = str(candidate.get("node_id") or "")
+        endpoint = str(candidate.get("service_endpoint") or "").rstrip("/")
+        if not endpoint:
+            return {"schema_version": _VISION_SCHEMA_VERSION, "status": "unavailable", "reason": "candidate_missing_endpoint", "node_id": node_id or None}
+        service_record: dict[str, Any] = {}
+        try:
+            node = next((row for row in registry.nodes() if str(row.get("id") or "") == node_id), None)
+            if isinstance(node, dict):
+                services = node.get("services") if isinstance(node.get("services"), dict) else {}
+                configured = services.get("vision") if isinstance(services.get("vision"), dict) else {}
+                service_record = dict(configured)
+        except Exception:
+            service_record = {}
+        inference_path = str(service_record.get("inference_path") or "/api/generate")
+        if not inference_path.startswith("/"):
+            inference_path = "/" + inference_path
+        model = str(service_record.get("model") or "minicpm-v:latest")
+        try:
+            num_predict = max(48, min(int(service_record.get("num_predict", 192)), 512))
+        except (TypeError, ValueError):
+            num_predict = 192
+        try:
+            temperature = max(0.0, min(float(service_record.get("temperature", 0.0)), 1.0))
+        except (TypeError, ValueError):
+            temperature = 0.0
+        timeout_value = max(10.0, min(float(timeout_seconds or _DEFAULT_VISION_TIMEOUT_SECONDS), 300.0))
+        prompt = (
+            "Analyze this image as local training material. Describe the important visual content factually, "
+            "transcribe any clearly visible text, and explicitly state uncertainty instead of guessing. "
+            "Do not infer hidden identities or unsupported context. Return concise plain text only."
+        )
+        started = time.perf_counter()
+        queue_wait_seconds = 0.0
+        try:
+            raw = source.read_bytes()
+            payload = {
+                "model": model,
+                "prompt": prompt,
+                "images": [base64.b64encode(raw).decode("ascii")],
+                "stream": False,
+                "keep_alive": "2m",
+                "options": {"temperature": temperature, "num_predict": num_predict},
+            }
+            lock_started = time.perf_counter()
+            with self._vision_lock:
+                queue_wait_seconds = round(time.perf_counter() - lock_started, 3)
+                with httpx.Client(timeout=httpx.Timeout(timeout_value, connect=min(timeout_value, 5.0)), trust_env=False) as client:
+                    response = client.post(endpoint + inference_path, json=payload)
+                    response.raise_for_status()
+                    response_payload = response.json()
+            text = str(response_payload.get("response") or response_payload.get("text") or "").strip()
+            if not text:
+                raise ValueError("vision_response_missing_text")
+            return {
+                "schema_version": _VISION_SCHEMA_VERSION,
+                "status": "ok",
+                "text": text,
+                "text_digest": _digest(text),
+                "node_id": node_id,
+                "endpoint": endpoint,
+                "transport": candidate.get("transport"),
+                "internet_required": bool(candidate.get("internet_required", False)),
+                "scheduler_score": candidate.get("score"),
+                "scheduler_base_score": candidate.get("base_score"),
+                "pressure": candidate.get("pressure"),
+                "pressure_observation_digest": candidate.get("pressure_observation_digest")
+                    or (candidates_report.get("pressure_observation") or {}).get("observation_digest"),
+                "protocol": service_record.get("protocol"),
+                "model": model,
+                "prompt_version": _VISION_PROMPT_VERSION,
+                "queue_wait_seconds": queue_wait_seconds,
+                "wall_seconds": round(time.perf_counter() - started, 3),
+            }
+        except Exception as exc:
+            http_status = None
+            http_error = None
+            if isinstance(exc, httpx.HTTPStatusError):
+                try:
+                    http_status = int(exc.response.status_code)
+                except Exception:
+                    http_status = None
+                try:
+                    body = exc.response.json()
+                    if isinstance(body, dict) and body.get("error") is not None:
+                        http_error = str(body.get("error"))[:256]
+                    elif body is not None:
+                        http_error = str(body)[:256]
+                except Exception:
+                    try:
+                        http_error = str(exc.response.text or "")[:256] or None
+                    except Exception:
+                        http_error = None
+            return {
+                "schema_version": _VISION_SCHEMA_VERSION,
+                "status": "failed",
+                "reason": "vision_request_failed",
+                "error": exc.__class__.__name__,
+                "http_status": http_status,
+                "http_error": http_error,
+                "node_id": node_id,
+                "endpoint": endpoint,
+                "transport": candidate.get("transport"),
+                "internet_required": bool(candidate.get("internet_required", False)),
+                "scheduler_score": candidate.get("score"),
+                "pressure": candidate.get("pressure"),
+                "model": model,
+                "prompt_version": _VISION_PROMPT_VERSION,
+                "queue_wait_seconds": queue_wait_seconds,
+                "wall_seconds": round(time.perf_counter() - started, 3),
+            }
+
+    def _transcribe_media(
+        self,
+        source: Path,
+        *,
+        mime_type: str,
+        timeout_seconds: float = _DEFAULT_TRANSCRIPTION_TIMEOUT_SECONDS,
+    ) -> dict[str, Any]:
+        """Transcribe one local media artifact through a live scheduler-selected LAN service.
+
+        Selection is deliberately delegated to ServiceRegistry so liveness and current
+        node pressure are observed before a potentially expensive transcription job.
+        The returned transcript is machine-derived candidate evidence; it never gains
+        authority merely because the worker returned successfully.
+        """
+        registry = getattr(self.kernel, "service_registry", None)
+        if registry is None:
+            return {
+                "schema_version": "xavi-media-transcription/v1",
+                "status": "unavailable",
+                "reason": "service_registry_unavailable",
+            }
+
+        candidates_report = registry.scheduler_candidates(
+            service="transcription",
+            require_live=True,
+            live_timeout_seconds=3.0,
+            observe_pressure=True,
+            pressure_timeout_seconds=2.0,
+            limit=1,
+        )
+        candidates = [row for row in candidates_report.get("candidates") or [] if isinstance(row, dict)]
+        if not candidates:
+            return {
+                "schema_version": "xavi-media-transcription/v1",
+                "status": "unavailable",
+                "reason": "no_live_transcription_candidate",
+                "registry_digest": candidates_report.get("registry_digest"),
+                "pressure_observation_digest": (candidates_report.get("pressure_observation") or {}).get("observation_digest"),
+            }
+
+        candidate = candidates[0]
+        node_id = str(candidate.get("node_id") or "")
+        endpoint = str(candidate.get("service_endpoint") or "").rstrip("/")
+        if not endpoint:
+            return {
+                "schema_version": "xavi-media-transcription/v1",
+                "status": "unavailable",
+                "reason": "candidate_missing_endpoint",
+                "node_id": node_id or None,
+            }
+
+        service_record: dict[str, Any] = {}
+        try:
+            node = next((row for row in registry.nodes() if str(row.get("id") or "") == node_id), None)
+            if isinstance(node, dict):
+                services = node.get("services") if isinstance(node.get("services"), dict) else {}
+                configured = services.get("transcription") if isinstance(services.get("transcription"), dict) else {}
+                service_record = dict(configured)
+        except Exception:
+            service_record = {}
+
+        inference_path = str(service_record.get("inference_path") or "/inference")
+        if not inference_path.startswith("/"):
+            inference_path = "/" + inference_path
+        response_format = str(service_record.get("response_format") or "json")
+        timeout_value = max(30.0, min(float(timeout_seconds or _DEFAULT_TRANSCRIPTION_TIMEOUT_SECONDS), 7200.0))
+        started = time.perf_counter()
+        response: Any | None = None
+        try:
+            with source.open("rb") as media_fh, httpx.Client(
+                timeout=httpx.Timeout(timeout_value, connect=min(timeout_value, 5.0)),
+                trust_env=False,
+            ) as client:
+                response = client.post(
+                    endpoint + inference_path,
+                    files={"file": (source.name, media_fh, mime_type or "application/octet-stream")},
+                    data={"response_format": response_format},
+                )
+                response.raise_for_status()
+                payload = response.json()
+            text = str(payload.get("text") or payload.get("transcription") or payload.get("transcript") or "").strip()
+            if not text:
+                raise ValueError("transcription_response_missing_text")
+            return {
+                "schema_version": "xavi-media-transcription/v1",
+                "status": "ok",
+                "text": text,
+                "text_digest": _digest(text),
+                "node_id": node_id,
+                "endpoint": endpoint,
+                "transport": candidate.get("transport"),
+                "internet_required": bool(candidate.get("internet_required", False)),
+                "scheduler_score": candidate.get("score"),
+                "scheduler_base_score": candidate.get("base_score"),
+                "pressure": candidate.get("pressure"),
+                "pressure_observation_digest": candidate.get("pressure_observation_digest")
+                    or (candidates_report.get("pressure_observation") or {}).get("observation_digest"),
+                "protocol": service_record.get("protocol"),
+                "model": service_record.get("model"),
+                "model_sha256": service_record.get("model_sha256"),
+                "image": service_record.get("image"),
+                "image_id": service_record.get("image_id"),
+                "wall_seconds": round(time.perf_counter() - started, 3),
+            }
+        except Exception as exc:
+            error_response = getattr(exc, "response", None) or response
+            http_status = getattr(error_response, "status_code", None) if error_response is not None else None
+            http_error = None
+            if error_response is not None:
+                try:
+                    error_payload = error_response.json()
+                    if isinstance(error_payload, dict):
+                        http_error = error_payload.get("error") or error_payload.get("detail") or error_payload.get("message")
+                except Exception:
+                    try:
+                        http_error = getattr(error_response, "text", None)
+                    except Exception:
+                        http_error = None
+            if http_error is not None:
+                http_error = str(http_error).strip()[:1000] or None
+            return {
+                "schema_version": "xavi-media-transcription/v1",
+                "status": "failed",
+                "reason": "transcription_request_failed",
+                "error": exc.__class__.__name__,
+                "http_status": int(http_status) if http_status is not None else None,
+                "http_error": http_error,
+                "node_id": node_id,
+                "endpoint": endpoint,
+                "transport": candidate.get("transport"),
+                "internet_required": bool(candidate.get("internet_required", False)),
+                "scheduler_score": candidate.get("score"),
+                "pressure": candidate.get("pressure"),
+                "wall_seconds": round(time.perf_counter() - started, 3),
+            }
+
     def ingest_artifact(
         self,
         *,
@@ -1039,6 +1349,9 @@ class AutonomyStack:
         derived_records: list[dict[str, Any]] | None = None,
         metadata: dict[str, Any] | None = None,
         training_eligible: bool = True,
+        auto_transcribe: bool = True,
+        auto_extract: bool = True,
+        auto_vision: bool = True,
         session_id: str = "media-ingest",
     ) -> dict[str, Any]:
         source = Path(path).expanduser().resolve()
@@ -1047,9 +1360,91 @@ class AutonomyStack:
         size = source.stat().st_size
         source_digest = _file_shake256(source)
         mime_type = mimetypes.guess_type(source.name)[0] or "application/octet-stream"
+        artifact_metadata = dict(metadata or {})
         text = derived_text
-        if text is None and source.suffix.lower() in _TEXT_EXTENSIONS and size <= 4 * 1024 * 1024:
-            text = source.read_text(encoding="utf-8", errors="replace")
+        extraction: dict[str, Any] | None = None
+        transcription: dict[str, Any] | None = None
+        vision: dict[str, Any] | None = None
+        media_preflight: dict[str, Any] | None = None
+        media_mime = str(mime_type or "").lower().startswith(_TRANSCRIBABLE_MEDIA_PREFIXES)
+        image_media = self._is_image_media(source, mime_type)
+        if text is None and auto_extract and not media_mime and not image_media:
+            try:
+                extraction_max_bytes = int(artifact_metadata.get("extraction_max_bytes", DEFAULT_EXTRACTION_MAX_BYTES))
+            except (TypeError, ValueError):
+                extraction_max_bytes = DEFAULT_EXTRACTION_MAX_BYTES
+            try:
+                extraction_max_chars = int(artifact_metadata.get("extraction_max_chars", DEFAULT_EXTRACTION_MAX_CHARS))
+            except (TypeError, ValueError):
+                extraction_max_chars = DEFAULT_EXTRACTION_MAX_CHARS
+            result = extract_artifact_text(source, mime_type=mime_type, max_bytes=extraction_max_bytes, max_chars=extraction_max_chars)
+            candidate_text = result.get("text")
+            extraction = {key: value for key, value in result.items() if key != "text"}
+            if isinstance(candidate_text, str) and candidate_text.strip():
+                text = candidate_text.strip()
+
+
+        if text is None and auto_vision and image_media:
+            try:
+                vision_max_bytes = int(artifact_metadata.get("vision_max_bytes", _DEFAULT_VISION_MAX_BYTES))
+            except (TypeError, ValueError):
+                vision_max_bytes = _DEFAULT_VISION_MAX_BYTES
+            vision_max_bytes = max(1, vision_max_bytes)
+            try:
+                vision_timeout = float(artifact_metadata.get("vision_timeout_seconds", _DEFAULT_VISION_TIMEOUT_SECONDS))
+            except (TypeError, ValueError):
+                vision_timeout = _DEFAULT_VISION_TIMEOUT_SECONDS
+            if size > vision_max_bytes:
+                vision = {
+                    "schema_version": _VISION_SCHEMA_VERSION,
+                    "status": "deferred",
+                    "reason": "artifact_exceeds_synchronous_vision_limit",
+                    "bytes": size,
+                    "max_bytes": vision_max_bytes,
+                }
+            else:
+                result = self._understand_image(source, mime_type=mime_type, timeout_seconds=vision_timeout)
+                candidate_text = result.get("text")
+                vision = {key: value for key, value in result.items() if key != "text"}
+                if isinstance(candidate_text, str) and candidate_text.strip():
+                    text = candidate_text.strip()
+
+        if text is None and auto_transcribe and self._is_transcribable_media(source, mime_type):
+            try:
+                max_bytes = int(artifact_metadata.get("transcription_max_bytes", _DEFAULT_TRANSCRIPTION_MAX_BYTES))
+            except (TypeError, ValueError):
+                max_bytes = _DEFAULT_TRANSCRIPTION_MAX_BYTES
+            max_bytes = max(1, max_bytes)
+            try:
+                transcription_timeout = float(
+                    artifact_metadata.get("transcription_timeout_seconds", _DEFAULT_TRANSCRIPTION_TIMEOUT_SECONDS)
+                )
+            except (TypeError, ValueError):
+                transcription_timeout = _DEFAULT_TRANSCRIPTION_TIMEOUT_SECONDS
+            if size > max_bytes:
+                transcription = {
+                    "schema_version": "xavi-media-transcription/v1",
+                    "status": "deferred",
+                    "reason": "artifact_exceeds_synchronous_transcription_limit",
+                    "bytes": size,
+                    "max_bytes": max_bytes,
+                }
+            else:
+                media_preflight = preflight_media(source, mime_type=mime_type)
+                if str(media_preflight.get("status") or "") == "invalid":
+                    transcription = {
+                        "schema_version": "xavi-media-transcription/v1",
+                        "status": "invalid",
+                        "reason": str(media_preflight.get("reason") or "media_container_invalid"),
+                        "preflight": media_preflight,
+                    }
+                else:
+                    result = self._transcribe_media(source, mime_type=mime_type, timeout_seconds=transcription_timeout)
+                    candidate_text = result.get("text")
+                    transcription = {key: value for key, value in result.items() if key != "text"}
+                    transcription["preflight"] = media_preflight
+                    if isinstance(candidate_text, str) and candidate_text.strip():
+                        text = candidate_text.strip()
 
         artifact = {
             "schema_version": "source-media-artifact/v1",
@@ -1060,8 +1455,15 @@ class AutonomyStack:
             "mime_type": mime_type,
             "bytes": size,
             "source_digest": source_digest,
-            "metadata": metadata or {},
+            "metadata": artifact_metadata,
             "training_eligible": bool(training_eligible),
+            "auto_transcribe": bool(auto_transcribe),
+            "auto_extract": bool(auto_extract),
+            "auto_vision": bool(auto_vision),
+            "extraction": extraction,
+            "transcription": transcription,
+            "vision": vision,
+            "media_preflight": media_preflight,
             "derived_text_digest": _digest(text) if text is not None else None,
             "derived_record_count": len(derived_records or []),
             "created_at_ms": _now_ms(),
@@ -1086,8 +1488,25 @@ class AutonomyStack:
             chunks: list[tuple[str, dict[str, Any]]] = []
             if text is not None:
                 chunk_size = 12_000
+                if transcription and transcription.get("status") == "ok":
+                    text_derivation = "transcript"
+                elif vision and vision.get("status") == "ok":
+                    text_derivation = "image-description"
+                elif extraction and extraction.get("status") == "ok":
+                    text_derivation = "extracted-text"
+                elif derived_text is not None:
+                    text_derivation = "provided-derived-text"
+                else:
+                    text_derivation = "derived-text"
                 for offset in range(0, len(text), chunk_size):
-                    chunks.append((text[offset: offset + chunk_size], {"derivation": "text-or-transcript", "offset": offset}))
+                    chunk_meta: dict[str, Any] = {"derivation": text_derivation, "offset": offset}
+                    if extraction and extraction.get("status") == "ok":
+                        chunk_meta["extraction"] = extraction
+                    if transcription and transcription.get("status") == "ok":
+                        chunk_meta["transcription"] = transcription
+                    if vision and vision.get("status") == "ok":
+                        chunk_meta["vision"] = vision
+                    chunks.append((text[offset: offset + chunk_size], chunk_meta))
             for record in derived_records or []:
                 content = str(record.get("content") or record.get("text") or "")
                 if content:
@@ -1098,7 +1517,7 @@ class AutonomyStack:
                     "repository_id": repository_id,
                     "path": source.name,
                     "chunk_index": index,
-                    "language": (metadata or {}).get("language"),
+                    "language": artifact_metadata.get("language"),
                     "content_digest": _digest(content),
                     "source_digest": source_digest,
                     "content": content,
@@ -1110,16 +1529,30 @@ class AutonomyStack:
                 final = self.kernel.store.finalize_source_generation(generation_id=generation_id, status="completed", keep_generations=4)
                 source_index = {"upsert": upsert, "finalize": final}
 
+        event_tags = ["source", "media", str(source_kind), "candidate-training"]
+        if extraction is not None:
+            event_tags.append("extraction:" + str(extraction.get("status") or "unknown"))
+        if transcription is not None:
+            event_tags.append("transcription:" + str(transcription.get("status") or "unknown"))
+        if vision is not None:
+            event_tags.append("vision:" + str(vision.get("status") or "unknown"))
         event = self.record_event(
             session_id=session_id,
             event_type="source_media_ingest",
             actor="autonomy-stack",
-            content={"artifact": artifact, "source_index": source_index, "witness_id": witness.get("witness_id")},
-            tags=["source", "media", str(source_kind), "candidate-training"],
+            content={
+                "artifact": artifact,
+                "source_index": source_index,
+                "extraction": extraction,
+                "transcription": transcription,
+                "vision": vision,
+                "witness_id": witness.get("witness_id"),
+            },
+            tags=event_tags,
             witness_id=witness.get("witness_id"),
             training_eligible=training_eligible,
         )
-        return {"artifact": row, "source_index": source_index, "event": event}
+        return {"artifact": row, "source_index": source_index, "extraction": extraction, "transcription": transcription, "vision": vision, "event": event}
 
     def record_datalake_observation(
         self,

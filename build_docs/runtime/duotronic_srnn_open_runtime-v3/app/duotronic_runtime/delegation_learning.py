@@ -67,6 +67,10 @@ def normalize_delegated_run(
     result = run.get("result")
     result_digest = _text(run.get("result_digest"), 160) or (_digest(result) if result is not None else None)
     error = _text(run.get("error"), 4000) or None
+    resource_hints = run.get("resource_hints") if isinstance(run.get("resource_hints"), dict) else {}
+    scheduler = resource_hints.get("scheduler") if isinstance(resource_hints.get("scheduler"), dict) else {}
+    selected = scheduler.get("selected") if isinstance(scheduler.get("selected"), dict) else {}
+    scheduler_digest = _digest(scheduler) if scheduler else None
     body = {
         "schema_version": SCHEMA_VERSION,
         "worker_id": worker_id,
@@ -78,6 +82,17 @@ def normalize_delegated_run(
         "objective": _text(run.get("objective"), 4000) or None,
         "tool_name": tool_name,
         "tool_args_digest": _text(run.get("tool_args_digest"), 160) or (_digest(run.get("tool_args")) if run.get("tool_args") is not None else None),
+        "scheduler_digest": scheduler_digest,
+        "scheduler": {
+            "registry_digest": scheduler.get("registry_digest"),
+            "status": scheduler.get("status"),
+            "offline_only": scheduler.get("offline_only"),
+            "require_live": scheduler.get("require_live"),
+            "live_observation_digest": scheduler.get("live_observation_digest"),
+            "selected_node_id": selected.get("node_id"),
+            "selected_score": selected.get("score"),
+            "filters": scheduler.get("filters") or {},
+        } if scheduler else None,
         "result_digest": result_digest,
         "status": status,
         "success": success,
@@ -92,7 +107,11 @@ def events_for_delegated_run(run: dict[str, Any], *, ordinal: int) -> list[dict[
     """Return normalized action/observation event specifications for AutonomyStack."""
 
     experience = normalize_delegated_run(run, ordinal=ordinal)
+    scheduler = experience.get("scheduler") if isinstance(experience.get("scheduler"), dict) else {}
+    selected_node_id = _text(scheduler.get("selected_node_id"), 200) or None
     common_tags = ["delegation", "wgrnn-worker", experience["tool_name"]]
+    if selected_node_id:
+        common_tags.append(f"backend:{selected_node_id}")
     action = {
         "event_type": "delegated_tool_action",
         "actor": "agent:wgrnn",
@@ -103,6 +122,8 @@ def events_for_delegated_run(run: dict[str, Any], *, ordinal: int) -> list[dict[
             "worker_id": experience["worker_id"],
             "tool_name": experience["tool_name"],
             "tool_args_digest": experience["tool_args_digest"],
+            "scheduler_digest": experience.get("scheduler_digest"),
+            "selected_node_id": selected_node_id,
             "experience_digest": experience["experience_digest"],
             "ordinal": experience["ordinal"],
         },
@@ -121,6 +142,8 @@ def events_for_delegated_run(run: dict[str, Any], *, ordinal: int) -> list[dict[
             "success": experience["success"],
             "result_digest": experience["result_digest"],
             "error": experience["error"],
+            "scheduler_digest": experience.get("scheduler_digest"),
+            "selected_node_id": selected_node_id,
             "experience_digest": experience["experience_digest"],
             "ordinal": experience["ordinal"],
         },

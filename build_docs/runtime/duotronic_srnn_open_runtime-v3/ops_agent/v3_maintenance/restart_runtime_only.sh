@@ -7,6 +7,7 @@ HOST_CORPUS_DIR="${HOST_CORPUS_DIR:-$REPO_ROOT/build_docs/witness_contract/v1.6 
 HOST_CORPUS_HISTORY_DIR="${HOST_CORPUS_HISTORY_DIR:-$REPO_ROOT/build_docs/witness_contract}"
 HOST_RUNTIME_DATA_DIR="${HOST_RUNTIME_DATA_DIR:-/datastore2/xavi/data/duotronic-runtime/runtime-data}"
 HOST_DATALAKE_DIR="${HOST_DATALAKE_DIR:-/datastore2/xavi/data}"
+HOST_TRAIN_DIR="${HOST_TRAIN_DIR:-/datastore2/xavi/train}"
 RUNTIME_IMAGE="${RUNTIME_IMAGE:-localhost/duotronic-srnn-runtime-host:v3}"
 PROJECT_ARACHNID_SECRET_FILE="${PROJECT_ARACHNID_SECRET_FILE:-/var/www/xavi/Duotronics/secrets/project-arachnid.json}"
 ARACHNID_MOUNT_ARGS=()
@@ -23,6 +24,15 @@ if [ -f "$XAVI_SANDBOX_AGENT_SECRET_FILE" ]; then
     -e XAVI_SANDBOX_AGENT_URL=http://192.168.123.10:8765
     -e XAVI_SANDBOX_AGENT_KEY_FILE=/run/secrets/xavi-sandbox-1-agent.key
     -v "$XAVI_SANDBOX_AGENT_SECRET_FILE:/run/secrets/xavi-sandbox-1-agent.key:ro,Z"
+  )
+fi
+BROWSER_WORKER_SECRET_FILE="${XAVI_BROWSER_WORKER_SECRET_FILE:-/datastore2/xavi/tools/browser-runtime/worker.key}"
+BROWSER_WORKER_MOUNT_ARGS=()
+if [ -f "$BROWSER_WORKER_SECRET_FILE" ]; then
+  BROWSER_WORKER_MOUNT_ARGS=(
+    -e XAVI_BROWSER_WORKER_URL=http://10.77.0.1:8767/run
+    -e XAVI_BROWSER_WORKER_KEY_FILE=/run/secrets/xavi-browser-worker.key
+    -v "$BROWSER_WORKER_SECRET_FILE:/run/secrets/xavi-browser-worker.key:ro,Z"
   )
 fi
 LOCK_FILE="${XAVI_RECOVERY_LOCK_FILE:-${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/xavi-podman-recovery.lock}"
@@ -47,10 +57,19 @@ podman run \
   --env-file "$V3_DIR/.env" \
   "${ARACHNID_MOUNT_ARGS[@]}" \
   "${SANDBOX_AGENT_MOUNT_ARGS[@]}" \
+  "${BROWSER_WORKER_MOUNT_ARGS[@]}" \
   -e CORPUS_DIR=/runtime/corpus \
   -e CORPUS_HISTORY_DIR=/runtime/corpus-history \
   -e RUNTIME_DATA_DIR=/runtime/data \
   -e XAVI_DATALAKE_ROOT=/data-lake \
+  -e XAVI_TRAIN_ROOT=/train \
+  -e XAVI_TRAIN_INGEST_ENABLED=${XAVI_TRAIN_INGEST_ENABLED:-1} \
+  -e XAVI_TRAIN_SCAN_SECONDS=${XAVI_TRAIN_SCAN_SECONDS:-120} \
+  -e XAVI_TRAIN_BACKLOG_SCAN_SECONDS=${XAVI_TRAIN_BACKLOG_SCAN_SECONDS:-3} \
+  -e XAVI_TRAIN_SETTLE_SECONDS=${XAVI_TRAIN_SETTLE_SECONDS:-30} \
+  -e XAVI_TRAIN_MAX_FILES_PER_SCAN=${XAVI_TRAIN_MAX_FILES_PER_SCAN:-4} \
+  -e XAVI_TRAIN_PARALLEL_WORKERS=${XAVI_TRAIN_PARALLEL_WORKERS:-3} \
+  -e XAVI_TRAIN_MODALITY_SCHEDULE=${XAVI_TRAIN_MODALITY_SCHEDULE:-extraction,transcription,extraction,vision,witness} \
   -e MODEL_REGISTRY_PATH=/runtime/config/models.json \
   -e MODULE_REGISTRY_PATH=/runtime/config/modules.json \
   -e POLICY_PACK_PATH=/runtime/config/policy_pack.json \
@@ -61,6 +80,7 @@ podman run \
   -v "$V3_DIR/corpus/skills:/runtime/corpus/skills:ro,Z" \
   -v "$HOST_RUNTIME_DATA_DIR:/runtime/data:Z" \
   -v "$HOST_DATALAKE_DIR:/data-lake:ro,Z" \
+  -v "$HOST_TRAIN_DIR:/train:ro,Z" \
   -v "$V3_DIR/config:/runtime/config:Z" \
   -v "$REPO_ROOT/build_docs/runtime/models/gguf:/models:Z" \
   -v "$V3_DIR/formal:/runtime/formal:Z" \

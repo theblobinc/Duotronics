@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import time
+from html import unescape
 from contextlib import nullcontext
 from typing import Any, Iterable
 
@@ -236,6 +237,7 @@ CREATE TABLE IF NOT EXISTS session_transcript_events (
   content JSONB NOT NULL DEFAULT '{}'::jsonb,
   training_eligible BOOLEAN NOT NULL DEFAULT TRUE,
   redaction JSONB NOT NULL DEFAULT '{}'::jsonb,
+  search_vector TSVECTOR,
   ingested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (session_id, sequence)
 );
@@ -466,6 +468,16 @@ class Store:
 
         with self.connect() as conn:
             conn.execute(SCHEMA_SQL)
+            # Keep startup DDL short. Historical transcript-vector population is
+            # deliberately NOT done while this relation-level migration lock is
+            # held; backfill_session_search_vectors() commits small batches later.
+            conn.execute("ALTER TABLE session_transcript_events ADD COLUMN IF NOT EXISTS search_vector TSVECTOR")
+            conn.commit()
+
+        with self.connect() as conn:
+            # Search-index creation is deliberately separate from startup
+            # migration. A normal GIN build can block transcript writers; use
+            # ensure_session_search_index() to build it CONCURRENTLY instead.
             conn.execute(COORDINATION_SCHEMA_SQL)
             conn.execute(SESSION_DELEGATION_SCHEMA_SQL)
             conn.execute(PROJECT_TASK_SCHEMA_SQL)
@@ -659,6 +671,15 @@ class Store:
             )
             conn.commit()
 
+    def get_evidence_witness(self, witness_id: str) -> dict[str, Any] | None:
+        """Fetch one durable evidence witness by runtime-owned witness id."""
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM evidence_witnesses WHERE witness_id=%s",
+                (str(witness_id),),
+            ).fetchone()
+        return dict(row) if row is not None else None
+
     def insert_evidence_claim(self, claim: dict[str, Any]) -> None:
         with self.connect() as conn:
             conn.execute(
@@ -747,23 +768,30 @@ class Store:
         training_eligible: bool = True,
         redaction: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        supersedes_json = json.dumps(record.get("supersedes", []))
+        tags_json = json.dumps(record.get("tags", []))
+        content_json = json.dumps(record.get("content", {}))
+        redaction_json = json.dumps(redaction or {})
+        search_text = " ".join((
+            str(record.get("event_type") or ""), str(record.get("actor") or ""),
+            tags_json, content_json,
+        ))
         with self.connect() as conn:
             conn.execute(
                 """
                 INSERT INTO session_transcript_events
                 (session_id, sequence, event_digest, previous_event_digest, content_digest,
                  event_type, actor, created_at_ms, witness_id, supersedes, tags, content,
-                 training_eligible, redaction)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                 training_eligible, redaction, search_vector)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,to_tsvector('simple', %s))
                 ON CONFLICT (event_digest) DO NOTHING
                 """,
                 (
                     record["session_id"], record["sequence"], record["event_digest"],
                     record.get("previous_event_digest"), record["content_digest"],
                     record["event_type"], record["actor"], record["created_at_ms"],
-                    record.get("witness_id"), json.dumps(record.get("supersedes", [])),
-                    json.dumps(record.get("tags", [])), json.dumps(record.get("content", {})),
-                    bool(training_eligible), json.dumps(redaction or {}),
+                    record.get("witness_id"), supersedes_json, tags_json, content_json,
+                    bool(training_eligible), redaction_json, search_text,
                 ),
             )
             conn.commit()
@@ -811,6 +839,258 @@ class Store:
         with self.connect() as conn:
             rows = conn.execute(sql, tuple(params)).fetchall()
         return {"schema_version": "postgres-transcript-search-v1", "count": len(rows), "events": [dict(r) for r in rows]}
+
+    def ensure_session_search_index(self) -> dict[str, Any]:
+        """Build the transcript GIN index without blocking normal writers.
+
+        PostgreSQL requires CREATE INDEX CONCURRENTLY outside a transaction, so
+        this maintenance operation uses a short-lived autocommit connection.
+        """
+        with psycopg.connect(self.settings.database_url, row_factory=dict_row, autocommit=True) as conn:
+            conn.execute(
+                "CREATE INDEX CONCURRENTLY IF NOT EXISTS session_transcript_search_gin "
+                "ON session_transcript_events USING GIN(search_vector)"
+            )
+            row = conn.execute(
+                "SELECT indexname,indexdef FROM pg_indexes "
+                "WHERE tablename='session_transcript_events' AND indexname='session_transcript_search_gin'"
+            ).fetchone()
+        return {
+            "schema_version": "session-search-index-v1",
+            "index": "session_transcript_search_gin",
+            "present": row is not None,
+            "concurrent": True,
+        }
+
+    def backfill_session_search_vectors(self, *, batch_size: int = 500, max_batches: int | None = None) -> dict[str, Any]:
+        """Populate historical transcript search vectors without blocking writers.
+
+        Each batch locks only selected rows, uses SKIP LOCKED, and commits before
+        proceeding. This is safe to run while WG-RNN continues ingesting events.
+        """
+        size = min(max(int(batch_size), 25), 5000)
+        batch_cap = None if max_batches is None else max(1, int(max_batches))
+        batches = 0
+        updated = 0
+        while batch_cap is None or batches < batch_cap:
+            with self.connect() as conn:
+                rows = conn.execute(
+                    """
+                    WITH batch AS (
+                      SELECT ctid
+                      FROM session_transcript_events
+                      WHERE search_vector IS NULL
+                      ORDER BY created_at_ms, sequence
+                      LIMIT %s
+                      FOR UPDATE SKIP LOCKED
+                    )
+                    UPDATE session_transcript_events e
+                    SET search_vector=to_tsvector('simple',
+                        coalesce(e.event_type,'') || ' ' || coalesce(e.actor,'') || ' ' ||
+                        coalesce(e.tags::text,'') || ' ' || coalesce(e.content::text,''))
+                    FROM batch
+                    WHERE e.ctid=batch.ctid
+                    RETURNING e.session_id,e.sequence
+                    """,
+                    (size,),
+                ).fetchall()
+                conn.commit()
+            count = len(rows)
+            batches += 1
+            updated += count
+            if count < size:
+                break
+        with self.connect() as conn:
+            remaining = conn.execute(
+                "SELECT count(*) AS n FROM session_transcript_events WHERE search_vector IS NULL"
+            ).fetchone()["n"]
+        return {
+            "schema_version": "session-search-backfill-v1",
+            "batch_size": size,
+            "batches": batches,
+            "updated": updated,
+            "remaining": int(remaining),
+            "complete": int(remaining) == 0,
+        }
+
+    def search_reference_corpus(
+        self,
+        *,
+        query: str,
+        session_id: str | None = None,
+        event_type: str = "source_training_chunk",
+        tag: str | None = None,
+        source_path_prefix: str | None = None,
+        adapter: str | None = None,
+        mime_type: str | None = None,
+        limit: int = 20,
+        preview_chars: int = 900,
+    ) -> dict[str, Any]:
+        """Search witnessed, training-eligible local reference chunks.
+
+        This path is deliberately WAN-independent: it searches the canonical
+        PostgreSQL transcript/witness ledger and never invokes web search,
+        cloud embeddings, or an external vector service.
+        """
+        raw_query = str(query or "").strip()
+        if not raw_query:
+            raise ValueError("query is required")
+        terms: list[str] = []
+        seen: set[str] = set()
+        for token in re.findall(r"[A-Za-z0-9_]+", raw_query.lower()):
+            if token and token not in seen:
+                terms.append(token)
+                seen.add(token)
+            if len(terms) >= 32:
+                break
+        if not terms:
+            raise ValueError("query contains no searchable terms")
+
+        ts_query = " & ".join(terms)
+        clauses = [
+            "e.training_eligible=TRUE",
+            # Keep the candidate query on the GIN-indexed column. Historical
+            # NULL vectors are handled by the online backfill maintenance path.
+            "e.search_vector @@ q.tsq",
+        ]
+        params: list[Any] = [ts_query, raw_query.lower()]
+        if event_type:
+            clauses.append("e.event_type=%s")
+            params.append(str(event_type))
+        if session_id:
+            clauses.append("e.session_id=%s")
+            params.append(str(session_id))
+        if tag:
+            clauses.append("e.tags ? %s")
+            params.append(str(tag))
+        if source_path_prefix:
+            clauses.append("COALESCE(e.content->>'source_path','') LIKE %s")
+            params.append(str(source_path_prefix).rstrip("/") + "%")
+        if adapter:
+            clauses.append("e.content->>'adapter'=%s")
+            params.append(str(adapter))
+        if mime_type:
+            clauses.append("e.content->>'mime_type'=%s")
+            params.append(str(mime_type))
+        requested_limit = min(max(int(limit), 1), 100)
+        candidate_limit = min(max(requested_limit * 6, requested_limit), 100)
+        params.append(candidate_limit)
+
+        sql = """
+            WITH q AS (
+              SELECT to_tsquery('simple', %s) AS tsq, %s::text AS phrase
+            ), candidates AS MATERIALIZED (
+              SELECT e.session_id,e.sequence,e.event_digest,e.content_digest,e.event_type,e.actor,
+                     e.created_at_ms,e.witness_id,e.tags,e.training_eligible,e.search_vector,
+                     e.content->>'artifact_id' AS artifact_id,
+                     e.content->>'source_path' AS source_path,
+                     e.content->>'source_digest' AS source_digest,
+                     e.content->>'chunk_index' AS chunk_index,
+                     e.content->>'adapter' AS adapter,
+                     e.content->>'mime_type' AS mime_type,
+                     e.content->>'derivation' AS derivation,
+                     e.content->'metadata' AS metadata,
+                     COALESCE(e.content->>'content', e.content::text) AS reference_text
+              FROM session_transcript_events e
+              CROSS JOIN q
+              WHERE """ + " AND ".join(clauses) + " LIMIT %s\n            )\n            SELECT c.session_id,c.sequence,c.event_digest,c.content_digest,c.event_type,c.actor,\n                   c.created_at_ms,c.witness_id,c.tags,c.training_eligible,\n                   c.artifact_id,c.source_path,c.source_digest,c.chunk_index,c.adapter,c.mime_type,\n                   c.derivation,c.metadata,c.reference_text,\n                   ts_rank(c.search_vector, q.tsq)\n                     + CASE WHEN position(q.phrase in lower(c.reference_text)) > 0 THEN 2.0 ELSE 0.0 END\n                     + CASE WHEN position(q.phrase in lower(COALESCE(c.source_path,''))) > 0 THEN 3.0 ELSE 0.0 END AS rank\n            FROM candidates c\n            CROSS JOIN q\n            ORDER BY rank DESC, c.created_at_ms DESC, c.sequence DESC"
+        fallback_used = False
+        with self.connect() as conn:
+            rows = conn.execute(sql, tuple(params)).fetchall()
+            if len(rows) < requested_limit and len(terms) > 1:
+                fallback_params = list(params)
+                fallback_params[0] = " | ".join(terms)
+                extra_rows = conn.execute(sql, tuple(fallback_params)).fetchall()
+                seen_events = {str(row.get("event_digest") or "") for row in rows}
+                for extra in extra_rows:
+                    digest = str(extra.get("event_digest") or "")
+                    if digest and digest in seen_events:
+                        continue
+                    rows.append(extra)
+                    if digest:
+                        seen_events.add(digest)
+                fallback_used = bool(extra_rows)
+
+        requested_preview = min(max(int(preview_chars), 120), 2000)
+        preview_limit = min(requested_preview, max(120, 9000 // max(requested_limit, 1)))
+        references: list[dict[str, Any]] = []
+        seen_content: set[str] = set()
+        seen_preview: set[str] = set()
+        per_source: dict[str, int] = {}
+        for row in rows:
+            item = dict(row)
+            raw_text = str(item.pop("reference_text", ""))
+            text = unescape(raw_text)
+            html_cleaned = False
+            if "<" in text and ">" in text:
+                # Display-only cleanup. Canonical evidence remains the immutable
+                # witnessed event identified by event/content/source digests.
+                text = re.sub(r"(?is)<(script|style)\b[^>]*>.*?</\1>", " ", text)
+                text = re.sub(r"(?i)<br\s*/?>|</(?:p|div|li|section|article|h[1-6])>", "\n", text)
+                text = re.sub(r"(?s)<[^>]+>", " ", text)
+                html_cleaned = True
+            text = re.sub(r"[\t\r\f\v ]+", " ", text)
+            text = re.sub(r"\n\s*\n+", "\n", text).strip()
+            if not text:
+                continue
+
+            content_key = str(item.get("source_digest") or item.get("content_digest") or "")
+            source_key = str(item.get("source_path") or item.get("artifact_id") or item.get("session_id") or "")
+            # Facebook exports can be duplicated under timestamped export roots.
+            # Treat the same relative export path as one source family for
+            # display diversity without mutating or collapsing provenance.
+            source_family = re.sub(r"^.*?/extracted/[^/]+/", "", source_key) if "/extracted/" in source_key else source_key
+            normalized_key = re.sub(r"\s+", " ", text).lower()[:640]
+            if content_key and content_key in seen_content:
+                continue
+            if normalized_key and normalized_key in seen_preview:
+                continue
+            # Avoid one giant export/message file drowning out independent
+            # remembered contexts while still allowing two distinct chunks.
+            if source_family and per_source.get(source_family, 0) >= 1:
+                continue
+
+            lower = text.lower()
+            positions = [lower.find(term) for term in terms if lower.find(term) >= 0]
+            center = min(positions) if positions else 0
+            start = max(0, center - preview_limit // 4)
+            end = min(len(text), start + preview_limit)
+            if end - start < preview_limit and start > 0:
+                start = max(0, end - preview_limit)
+            item["rank"] = float(item.get("rank") or 0.0)
+            item.update({
+                "content_preview": text[start:end],
+                "preview_start": start,
+                "preview_end": end,
+                "content_chars": len(text),
+                "raw_content_chars": len(raw_text),
+                "preview_truncated": start > 0 or end < len(text),
+                "preview_representation": "html-stripped-display-only" if html_cleaned else "plaintext-display-only",
+            })
+            references.append(item)
+            if content_key:
+                seen_content.add(content_key)
+            if normalized_key:
+                seen_preview.add(normalized_key)
+            if source_family:
+                per_source[source_family] = per_source.get(source_family, 0) + 1
+            if len(references) >= requested_limit:
+                break
+        return {
+            "schema_version": "reference-corpus-search-v1",
+            "query": raw_query,
+            "query_terms": terms,
+            "match_mode": "gin_bounded_candidates_phrase_ranked_diversified",
+            "term_policy": "all_terms_then_any_term_fallback",
+            "fallback_used": fallback_used,
+            "offline_only": True,
+            "storage": "local-postgresql-witness-ledger",
+            "candidate_count": len(rows),
+            "count": len(references),
+            "display_cleanup": "html-unescape-strip-tags-whitespace",
+            "canonical_evidence_unchanged": True,
+            "references": references,
+        }
 
     def begin_source_generation(
         self,

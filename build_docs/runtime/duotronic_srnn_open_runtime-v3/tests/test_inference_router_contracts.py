@@ -75,7 +75,7 @@ def test_routes_code_generation_to_code_capable_model():
     assert route["selected"]["route_kind"] == "model"
     assert route["selected"]["name"] == "ollama:qwen2.5-coder:7b"
     assert "code_generation" in route["selected"]["capabilities"]
-    assert route["route_digest"].startswith("duoid:shake256-512:")
+    assert route["route_digest"].startswith("shake256-512:")
 
 
 def test_routes_code_interpreter_to_witnessed_tool_contract():
@@ -128,3 +128,91 @@ def test_inference_route_mcp_schema_exposes_route_inputs():
     assert '"capability": {"type": ["string", "null"]}' in mcp
     assert '"needs_tools": {"type": "boolean", "default": False}' in mcp
     assert '"max_candidates": {"type": "integer", "minimum": 1, "maximum": 32, "default": 8}' in mcp
+
+
+def test_commissioned_lan_model_is_preferred_over_equivalent_local_model():
+    report = {
+        "models": [
+            {
+                "name": "local-chat",
+                "provider": "ollama",
+                "model": "qwen2.5:3b",
+                "enabled": True,
+                "capabilities": ["chat", "text_generation"],
+                "modalities": ["text"],
+            },
+            {
+                "name": "lan-chat",
+                "provider": "ollama",
+                "model": "qwen2.5:3b",
+                "enabled": True,
+                "capabilities": ["chat", "text_generation"],
+                "modalities": ["text"],
+                "metadata": {
+                    "node_id": "tbi-production-3",
+                    "node_status": "commissioned",
+                    "transport": "dedicated-private-ethernet",
+                    "scheduler_eligible": True,
+                    "lan_preferred": True,
+                    "internet_required": False,
+                },
+            },
+        ],
+        "tool_contracts": {},
+        "backends": {},
+    }
+    route = plan_inference_route(report, {"task": "chat", "prefer_remote": True})
+    selected = route["selected"]
+    assert selected["name"] == "lan-chat"
+    assert selected["node_id"] == "tbi-production-3"
+    assert selected["transport"] == "dedicated-private-ethernet"
+    assert selected["lan_preferred"] is True
+    assert selected["internet_required"] is False
+    assert selected["scheduler_eligible"] is True
+
+
+def test_pending_scheduler_ineligible_remote_is_penalized():
+    report = {
+        "models": [
+            {
+                "name": "commissioned-local",
+                "provider": "ollama",
+                "model": "qwen2.5:3b",
+                "enabled": True,
+                "capabilities": ["chat", "text_generation"],
+                "modalities": ["text"],
+            },
+            {
+                "name": "vm1-pending",
+                "provider": "ollama",
+                "model": "qwen2.5:3b",
+                "enabled": True,
+                "capabilities": ["chat", "text_generation"],
+                "modalities": ["text"],
+                "metadata": {
+                    "node_id": "vm1",
+                    "node_status": "pending-private-address",
+                    "transport": "dedicated-private-ethernet-pending",
+                    "scheduler_eligible": False,
+                    "lan_preferred": True,
+                    "internet_required": False,
+                },
+            },
+        ],
+        "tool_contracts": {},
+        "backends": {},
+    }
+    route = plan_inference_route(report, {"task": "chat", "prefer_remote": True})
+    assert route["selected"]["name"] == "commissioned-local"
+    pending = next(item for item in route["candidates"] if item["name"] == "vm1-pending")
+    assert pending["scheduler_eligible"] is False
+    assert pending["node_status"] == "pending-private-address"
+
+
+def test_remote_detection_no_longer_hardcodes_prod3_ip():
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "app/duotronic_runtime/inference_router.py").read_text()
+    marker_line = next(line for line in source.splitlines() if line.startswith("REMOTE_MARKERS ="))
+    assert "10.77.0.2" not in marker_line
+    assert 'metadata.get("node_id")' in source

@@ -8,6 +8,8 @@ from typing import Any
 from fastapi import HTTPException
 from psycopg.types.json import Jsonb
 
+from .crypto_primitives import shake256_ref
+
 
 SESSION_DELEGATION_SCHEMA_SQL = r"""
 CREATE TABLE IF NOT EXISTS mcp_session_messages (
@@ -210,12 +212,17 @@ class SessionDelegationService:
     DEFAULT_WGRNN_TOOLS = (
         "runtime.health",
         "runtime.models",
+        "runtime.service_registry",
+        "runtime.service_health",
+        "runtime.node_pressure",
+        "runtime.service_candidates",
         "runtime.capabilities",
         "runtime.autonomy_status",
         "runtime.autonomy_continuation",
         "runtime.autonomy_schedule",
         "runtime.autonomy_research",
         "runtime.session_search",
+        "runtime.reference_search",
         "runtime.session_find",
         "runtime.session_tail",
         "runtime.transcript_search",
@@ -283,8 +290,9 @@ class SessionDelegationService:
     def _safe_wgrnn_tool(name: str) -> bool:
         prefixes = ("runtime.session_", "runtime.transcript_", "coordination.")
         exact = {
-            "runtime.health", "runtime.models", "runtime.capabilities",
+            "runtime.health", "runtime.models", "runtime.service_registry", "runtime.service_health", "runtime.node_pressure", "runtime.service_candidates", "runtime.capabilities",
             "runtime.autonomy_status", "runtime.autonomy_continuation", "runtime.autonomy_schedule", "runtime.autonomy_research",
+            "runtime.reference_search",
         }
         if name in exact:
             return True
@@ -388,6 +396,77 @@ class SessionDelegationService:
             raise HTTPException(404, "message not found for this session")
         return dict(row)
 
+    def _resolve_resource_hints(self, value: Any) -> dict[str, Any]:
+        hints = dict(value) if isinstance(value, dict) else {}
+        scheduler_keys = {
+            "node_id", "backend_node", "role", "backend_role", "service", "backend_service",
+            "prefer_gpu", "minimum_memory_gib", "min_memory_gib", "require_backend", "require_live", "live_timeout_seconds", "candidate_limit",
+        }
+        if not any(key in hints for key in scheduler_keys):
+            return hints
+
+        def _truthy(raw: Any) -> bool:
+            if isinstance(raw, str):
+                return raw.strip().lower() in {"1", "true", "yes", "on"}
+            return bool(raw)
+
+        node_id = _safe_text(hints.get("node_id") or hints.get("backend_node"), "", 200) or None
+        role = _safe_text(hints.get("role") or hints.get("backend_role"), "", 200) or None
+        service = _safe_text(hints.get("service") or hints.get("backend_service"), "", 200) or None
+        prefer_gpu = _truthy(hints.get("prefer_gpu", False))
+        require_backend = _truthy(hints.get("require_backend", False))
+        require_live = _truthy(hints.get("require_live", False))
+        try:
+            live_timeout_seconds = max(0.2, min(float(hints.get("live_timeout_seconds") or 2.0), 10.0))
+        except (TypeError, ValueError):
+            raise HTTPException(422, "resource_hints live_timeout_seconds must be numeric")
+        try:
+            minimum_memory_gib = max(
+                float(hints.get("minimum_memory_gib") or 0.0),
+                float(hints.get("min_memory_gib") or 0.0),
+                0.0,
+            )
+        except (TypeError, ValueError):
+            raise HTTPException(422, "resource_hints memory floor must be numeric")
+        try:
+            candidate_limit = max(1, min(int(hints.get("candidate_limit") or 4), 16))
+        except (TypeError, ValueError):
+            raise HTTPException(422, "resource_hints candidate_limit must be an integer")
+
+        resolved = self.kernel.service_registry.scheduler_candidates(
+            node_id=node_id,
+            role=role,
+            service=service,
+            prefer_gpu=prefer_gpu,
+            minimum_memory_gib=minimum_memory_gib,
+            require_live=require_live,
+            live_timeout_seconds=live_timeout_seconds,
+            observe_pressure=True,
+            pressure_timeout_seconds=min(live_timeout_seconds, 1.5),
+            limit=candidate_limit,
+        )
+        candidates = list(resolved.get("candidates") or [])
+        selected = candidates[0] if candidates else None
+        registry_report = self.kernel.service_registry.report()
+        hints["scheduler"] = {
+            "schema_version": "wgrnn-delegation-scheduler-v1",
+            "offline_only": True,
+            "registry_digest": registry_report.get("registry_digest"),
+            "filters": resolved.get("filters") or {},
+            "selected": selected,
+            "candidate_count": int(resolved.get("count") or 0),
+            "excluded": list(resolved.get("excluded") or []),
+            "require_backend": require_backend,
+            "require_live": require_live,
+            "live_observation_digest": ((resolved.get("live_observation") or {}).get("observation_digest") if isinstance(resolved.get("live_observation"), dict) else None),
+            "pressure_observation_digest": ((resolved.get("pressure_observation") or {}).get("observation_digest") if isinstance(resolved.get("pressure_observation"), dict) else None),
+            "pressure_observed_count": int((resolved.get("pressure_observation") or {}).get("observed_count") or 0) if isinstance(resolved.get("pressure_observation"), dict) else 0,
+            "status": "selected" if selected else "no-match",
+        }
+        if require_backend and selected is None:
+            raise HTTPException(422, "no commissioned backend LAN node satisfies required resource_hints")
+        return hints
+
     def assign(self, args: dict[str, Any]) -> dict[str, Any]:
         delegator = _safe_text(args.get("session_id"), "", 200)
         objective = _safe_text(args.get("objective"), "", 20000)
@@ -406,6 +485,7 @@ class SessionDelegationService:
         parent_work_id = _uuid(args.get("parent_work_id"))
         capabilities = _clean_array(args.get("required_capabilities"))
         project_key = _project(args.get("project_key"))
+        resource_hints = self._resolve_resource_hints(args.get("resource_hints") or {})
         self._ensure_session(delegator, _safe_text(args.get("agent_id"), "agent:mcp", 200), client_name=_safe_text(args.get("client_name"), "mcp-client", 120))
         with self.store.connect() as conn:
             target = conn.execute("SELECT session_id FROM coordination_agent_sessions WHERE session_id=%s", (delegate_session,)).fetchone()
@@ -422,7 +502,7 @@ class SessionDelegationService:
                 INSERT INTO mcp_delegations(work_id,parent_work_id,project_key,delegator_session_id,delegate_session_id,delegate_kind,objective,required_capabilities,resource_hints,acceptance,payload,status)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'offered') RETURNING *
                 """,
-                (work_id, parent_work_id, project_key, delegator, delegate_session, kind, objective, capabilities, Jsonb(args.get("resource_hints") or {}), Jsonb(args.get("acceptance") or {}), Jsonb(args.get("payload") or {})),
+                (work_id, parent_work_id, project_key, delegator, delegate_session, kind, objective, capabilities, Jsonb(resource_hints), Jsonb(args.get("acceptance") or {}), Jsonb(args.get("payload") or {})),
             ).fetchone()
             delegation_id = str(row["delegation_id"])
             tool_name = _safe_text(args.get("tool_name"), "", 200)
@@ -434,7 +514,7 @@ class SessionDelegationService:
             conn.commit()
         if kind == "session":
             try:
-                self.send_message({"session_id": delegator, "recipient_session_id": delegate_session, "project_key": project_key, "work_id": work_id, "delegation_id": delegation_id, "message_type": "request", "subject": "Delegated work", "body": objective, "payload": {"required_capabilities": capabilities, "resource_hints": args.get("resource_hints") or {}, "acceptance": args.get("acceptance") or {}}})
+                self.send_message({"session_id": delegator, "recipient_session_id": delegate_session, "project_key": project_key, "work_id": work_id, "delegation_id": delegation_id, "message_type": "request", "subject": "Delegated work", "body": objective, "payload": {"required_capabilities": capabilities, "resource_hints": resource_hints, "acceptance": args.get("acceptance") or {}}})
             except Exception:
                 pass
         return dict(row) | {"work_id": work_id}
@@ -545,6 +625,7 @@ class SessionDelegationService:
                         "run_id": str(run_payload.get("run_id") or ""),
                         "result_digest": run_payload.get("result_digest"),
                         "learning": learning,
+                        "scheduler": (run_payload.get("resource_hints") or {}).get("scheduler"),
                     },
                 })
                 return {"delivery": "durable-inbox", "message_id": str(message.get("message_id") or "")}
@@ -555,7 +636,7 @@ class SessionDelegationService:
             with self.store.connect() as conn:
                 run = conn.execute(
                     """
-                    SELECT r.*,d.work_id,d.objective,d.project_key,d.delegator_session_id
+                    SELECT r.*,d.work_id,d.objective,d.project_key,d.delegator_session_id,d.resource_hints
                     FROM mcp_delegated_tool_runs r
                     JOIN mcp_delegations d ON d.delegation_id=r.delegation_id
                     WHERE r.worker_id=%s AND r.status='queued' AND d.status IN ('offered','accepted','running')
@@ -598,6 +679,7 @@ class SessionDelegationService:
                     "project_key": str(run["project_key"]),
                     "objective": str(run["objective"]),
                     "delegator_session_id": str(run["delegator_session_id"]),
+                    "resource_hints": dict(run["resource_hints"] or {}),
                     "tool_name": tool_name,
                     "tool_args": tool_args,
                     "status": "completed",
@@ -613,6 +695,7 @@ class SessionDelegationService:
                     "status": "completed",
                     "result_digest": result_digest,
                     "learning": learning,
+                    "scheduler": (completed_payload.get("resource_hints") or {}).get("scheduler"),
                     "handoff": handoff,
                 })
             except Exception as exc:
@@ -628,6 +711,7 @@ class SessionDelegationService:
                     "project_key": str(run["project_key"]),
                     "objective": str(run["objective"]),
                     "delegator_session_id": str(run["delegator_session_id"]),
+                    "resource_hints": dict(run["resource_hints"] or {}),
                     "tool_name": tool_name,
                     "tool_args": tool_args,
                     "status": "failed",
@@ -642,6 +726,7 @@ class SessionDelegationService:
                     "status": "failed",
                     "error": exc.__class__.__name__,
                     "learning": learning,
+                    "scheduler": (failed_payload.get("resource_hints") or {}).get("scheduler"),
                     "handoff": handoff,
                 })
         return {"worker_id": self.WGRNN_WORKER_ID, "processed": processed, "count": len(processed)}

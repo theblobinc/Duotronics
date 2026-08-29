@@ -16,7 +16,7 @@ def plan_operation_witnessed(tools_runtime: Any, payload: dict[str, Any] | None 
     """
     model_records = models if models is not None else tools_runtime.kernel.model_provider.registry.list_models()
     report = tools_runtime.capability_report(models=model_records)
-    plan = plan_operation(report, payload or {})
+    plan = plan_operation(report, payload or {}, service_registry=tools_runtime.kernel.service_registry)
     route = plan.get("route") or {}
     witness_payload = {
         "plan_digest": plan.get("plan_digest"),

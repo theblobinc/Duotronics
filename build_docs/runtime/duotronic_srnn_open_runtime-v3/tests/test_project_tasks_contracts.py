@@ -120,6 +120,21 @@ class SharedProjectTaskBoardContracts(unittest.TestCase):
         self.assertIn('s.last_seen_at AS owner_last_seen_at', source)
         self.assertIn("'awareness_text'", source)
 
+
+    def test_claim_next_can_atomically_filter_explicit_wgrnn_contract_and_allowlist(self):
+        import inspect
+        source = inspect.getsource(ProjectTaskService.claim_next)
+        tools = {item['name']: item for item in project_task_tool_manifest()}
+        schema = tools['task.claim_next']['input_schema']['properties']
+        self.assertIn('allowed_tools', schema)
+        self.assertIn('require_wgrnn_contract', schema)
+        self.assertIn("context->'wgrnn_delegation'", source)
+        self.assertIn("->>'tool_name'", source)
+        self.assertIn('= ANY(%s::text[])', source)
+        self.assertIn('FOR UPDATE SKIP LOCKED', source)
+        self.assertIn('wgrnn_allowlist_empty', source)
+
+
     def test_blocked_update_releases_task_ownership_for_other_agents(self):
         import inspect
         source = inspect.getsource(ProjectTaskService.update)

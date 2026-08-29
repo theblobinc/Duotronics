@@ -53,3 +53,63 @@ def test_wgrnn_kernel_chat_finalize_writes_candidate_memory(tmp_path: Path) -> N
     assert finalized["kernel_turn"]["promotion"] == "not_promoted"
     assert finalized["wgrnn"]["memory_update"]["trust_status"] in {"candidate", "quarantine"}
     assert finalized["witness_chain"][-1]["witness_type"] == "KernelTurnResultWitness"
+
+
+def test_reference_query_prefers_salient_local_terms() -> None:
+    query = WGRNNKernelChat._reference_query(
+        "Do you remember the blue disco ball pattern from my Facebook posts?",
+        identity={"user_name": "local-user"},
+    )
+    assert "blue" in query
+    assert "disco" in query
+    assert "ball" in query
+    assert "facebook" in query
+    assert "remember" not in query
+
+
+def test_reference_recall_is_selective_and_offline() -> None:
+    class FakeStore:
+        def __init__(self) -> None:
+            self.calls = []
+
+        def search_reference_corpus(self, **kwargs):
+            self.calls.append(kwargs)
+            return {
+                "storage": "local-postgresql-witness-ledger",
+                "references": [{
+                    "source_path": "/data-lake/social/facebook/posts/example.html",
+                    "artifact_id": "artifact_test",
+                    "event_digest": "shake256-512:event",
+                    "witness_id": "witness_test",
+                    "content_preview": "A blue disco ball appeared in this older post.",
+                    "rank": 1.0,
+                }],
+            }
+
+    class FakeKernel:
+        def __init__(self) -> None:
+            self.store = FakeStore()
+
+    chat = object.__new__(WGRNNKernelChat)
+    chat.kernel = FakeKernel()
+
+    skipped = chat._retrieve_reference_corpus(
+        "Hello there",
+        memory={"results": []},
+        identity={"user_name": "local-user"},
+    )
+    assert skipped["status"] == "skipped"
+    assert skipped["offline_only"] is True
+    assert chat.kernel.store.calls == []
+
+    recalled = chat._retrieve_reference_corpus(
+        "Do you remember the blue disco ball pattern from my Facebook posts?",
+        memory={"results": []},
+        identity={"user_name": "local-user"},
+    )
+    assert recalled["status"] == "ok"
+    assert recalled["offline_only"] is True
+    assert recalled["count"] == 1
+    assert recalled["references"][0]["witness_id"] == "witness_test"
+    assert len(chat.kernel.store.calls) == 1
+    assert chat.kernel.store.calls[0]["event_type"] == "source_training_chunk"

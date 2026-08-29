@@ -198,6 +198,10 @@
       "description": "Fast WG-RNN interactive chat coordinator.",
       "metadata": {
         "xavi_role": "wgrnn_chat_primary",
+        "fallback_model_names": [
+          "wgrnn-chat-starcoder-fallback",
+          "wgrnn-chat-local-fallback"
+        ],
         "recommended_for": [
           "chat",
           "interactive",
@@ -212,13 +216,35 @@
       "base_url": "http://10.77.0.2:11434",
       "enabled": true,
       "default": false,
-      "description": "WG-RNN interactive chat fallback.",
+      "description": "WG-RNN same-accelerator interactive chat fallback.",
       "metadata": {
         "xavi_role": "wgrnn_chat_fallback",
+        "fallback_model_names": [
+          "wgrnn-chat-local-fallback"
+        ],
         "recommended_for": [
           "chat",
           "fallback",
           "wgrnn"
+        ]
+      }
+    },
+    {
+      "name": "wgrnn-chat-local-fallback",
+      "provider": "ollama",
+      "model": "qwen2.5-coder:3b",
+      "base_url": "http://ollama:11434",
+      "enabled": true,
+      "default": false,
+      "description": "WG-RNN offline same-host fallback on tbi-production-4.",
+      "metadata": {
+        "xavi_role": "wgrnn_chat_local_fallback",
+        "hardware_tier": "local_balanced",
+        "recommended_for": [
+          "chat",
+          "fallback",
+          "wgrnn",
+          "offline"
         ]
       }
     }

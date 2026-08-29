@@ -189,3 +189,39 @@ def test_session_ledger_mcp_search_surface_is_wired():
     assert '"name": "runtime.session_find"' in mcp
     assert 'if tool in {"runtime.session_search", "runtime.session_find"}' in mcp
     assert "return SessionLedger().search(" in mcp
+
+
+def test_reference_corpus_search_surface_is_local_and_witnessed():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    db = (root / "app/duotronic_runtime/db.py").read_text()
+    mcp = (root / "app/duotronic_runtime/http_mcp.py").read_text()
+    api = (root / "app/duotronic_runtime/api.py").read_text()
+
+    assert "def search_reference_corpus(" in db
+    assert "session_transcript_search_gin" in db
+    assert '"offline_only": True' in db
+    assert '"name": "runtime.reference_search"' in mcp
+    assert 'if tool == "runtime.reference_search"' in mcp
+    assert '@app.post("/v1/autonomy/reference/search")' in api
+
+
+def test_reference_search_migration_is_writer_friendly() -> None:
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    db = (root / "app/duotronic_runtime/db.py").read_text()
+    migrate = db.split("    def migrate(self) -> None:", 1)[1].split("    def insert_run_bundle", 1)[0]
+
+    assert "backfill_session_search_vectors" in db
+    assert "FOR UPDATE SKIP LOCKED" in db
+    assert "CREATE INDEX CONCURRENTLY IF NOT EXISTS session_transcript_search_gin" in db
+    assert "CREATE INDEX IF NOT EXISTS session_transcript_search_gin" not in migrate
+    assert "UPDATE session_transcript_events\n                SET search_vector" not in migrate
+    search = db.split("    def search_reference_corpus(", 1)[1].split("    def begin_source_generation", 1)[0]
+    assert "e.search_vector @@ q.tsq" in search
+    assert " ILIKE " not in search
+    assert "candidate_limit" in search
+    assert "html-stripped-display-only" in search
+    assert '"canonical_evidence_unchanged": True' in search

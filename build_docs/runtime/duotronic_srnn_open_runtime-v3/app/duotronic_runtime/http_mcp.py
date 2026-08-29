@@ -147,6 +147,125 @@ def _tool_manifest() -> list[dict[str, Any]]:
             "input_schema": {"type": "object", "properties": {}},
         },
         {
+            "name": "runtime.browser_test",
+            "description": "Run a server-side Playwright UI/browser test in Chromium, Firefox, or both. Supports navigation, structured actions/assertions, diagnostics, cookies, and optional screenshots. Browser runs are operational evidence and are not automatically promoted to training data.",
+            "read_only": False,
+            "input_schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                    "url": {"type": "string", "minLength": 1},
+                    "browser": {"type": "string", "enum": ["chromium", "firefox", "both"], "default": "both"},
+                    "wait_until": {"type": "string", "enum": ["commit", "domcontentloaded", "load", "networkidle"], "default": "domcontentloaded"},
+                    "timeout_ms": {"type": "integer", "minimum": 1000, "maximum": 120000, "default": 20000},
+                    "headless": {"type": "boolean", "default": True},
+                    "ignore_https_errors": {"type": "boolean", "default": False},
+                    "viewport": {
+                        "type": "object",
+                        "properties": {
+                            "width": {"type": "integer", "minimum": 320, "maximum": 3840, "default": 1440},
+                            "height": {"type": "integer", "minimum": 240, "maximum": 2160, "default": 1000}
+                        },
+                        "additionalProperties": False
+                    },
+                    "headers": {"type": "object", "additionalProperties": {"type": "string"}, "default": {}},
+                    "cookies": {"type": "array", "maxItems": 50, "items": {"type": "object"}, "default": []},
+                    "actions": {
+                        "type": "array", "maxItems": 50, "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type": {"type": "string", "enum": ["wait_for_selector", "click", "fill", "press", "hover", "check", "uncheck", "select_option", "wait_for_timeout"]},
+                                "selector": {"type": "string"}, "value": {}, "key": {"type": "string"},
+                                "state": {"type": "string", "enum": ["attached", "detached", "visible", "hidden"]},
+                                "ms": {"type": "integer", "minimum": 0, "maximum": 30000},
+                                "timeout_ms": {"type": "integer", "minimum": 500, "maximum": 120000},
+                                "continue_on_error": {"type": "boolean", "default": False}
+                            },
+                            "additionalProperties": False
+                        }
+                    },
+                    "assertions": {
+                        "type": "array", "maxItems": 50, "default": [],
+                        "items": {
+                            "type": "object",
+                            "required": ["type"],
+                            "properties": {
+                                "type": {"type": "string", "enum": ["selector_exists", "selector_visible", "selector_text_contains", "body_contains", "body_not_contains", "title_contains", "url_contains", "url_matches", "status_equals", "no_page_errors", "no_failed_requests"]},
+                                "selector": {"type": "string"}, "value": {}
+                            },
+                            "additionalProperties": False
+                        }
+                    },
+                    "screenshot": {"type": "boolean", "default": False},
+                    "full_page_screenshot": {"type": "boolean", "default": True},
+                    "watch_responses": {
+                        "type": "array", "maxItems": 30, "default": [],
+                        "items": {"type": "string", "maxLength": 500}
+                    },
+                    "body_text_limit": {"type": "integer", "minimum": 0, "maximum": 50000, "default": 12000},
+                    "user_agent": {"type": "string"}
+                },
+                "additionalProperties": False
+            },
+        },
+        {
+            "name": "runtime.service_registry",
+            "description": "Return the offline Xavi backend LAN node/service registry and scheduler-readiness state. Public endpoints are bootstrap metadata only.",
+            "read_only": True,
+            "input_schema": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
+        {
+            "name": "runtime.service_health",
+            "description": "Actively probe configured commissioned services over loopback/private LAN only. Keeps current liveness separate from static commissioning.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "node_id": {"type": ["string", "null"]},
+                    "service": {"type": ["string", "null"]},
+                    "timeout_seconds": {"type": "number", "minimum": 0.2, "maximum": 10, "default": 2}
+                },
+                "additionalProperties": False
+            },
+        },
+        {
+            "name": "runtime.node_pressure",
+            "description": "Observe current CPU/RAM/GPU and Ollama process pressure from commissioned offline nodes. Observation only; never grants commissioning or authority.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "node_id": {"type": ["string", "null"]},
+                    "timeout_seconds": {"type": "number", "minimum": 0.2, "maximum": 5, "default": 1.5}
+                },
+                "additionalProperties": False
+            },
+        },
+        {
+            "name": "runtime.service_candidates",
+            "description": "Select commissioned offline backend-LAN candidates by role/service/capacity, optionally requiring current private service health. Uncommissioned nodes are returned only as exclusions.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "node_id": {"type": ["string", "null"]},
+                    "role": {"type": ["string", "null"]},
+                    "service": {"type": ["string", "null"]},
+                    "prefer_gpu": {"type": "boolean", "default": False},
+                    "minimum_memory_gib": {"type": "number", "minimum": 0, "default": 0},
+                    "min_memory_gib": {"type": ["number", "null"], "minimum": 0},
+                    "require_live": {"type": "boolean", "default": False},
+                    "live_timeout_seconds": {"type": "number", "minimum": 0.2, "maximum": 10, "default": 2},
+                    "observe_pressure": {"type": "boolean", "default": True},
+                    "pressure_timeout_seconds": {"type": "number", "minimum": 0.2, "maximum": 5, "default": 1.5},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 64, "default": 8}
+                },
+                "additionalProperties": False
+            },
+        },
+        {
             "name": "runtime.capabilities",
             "description": "Return normalized model, provider, tool, modality, and backend capability inventory.",
             "read_only": True,
@@ -414,6 +533,27 @@ def _tool_manifest() -> list[dict[str, Any]]:
                     "tag": {"type": ["string", "null"]},
                     "tool_name": {"type": ["string", "null"]},
                     "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20},
+                },
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "runtime.reference_search",
+            "description": "Search the locally witnessed training/reference corpus with PostgreSQL full-text ranking. Does not use the public internet.",
+            "read_only": True,
+            "input_schema": {
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                    "query": {"type": "string", "minLength": 1},
+                    "session_id": {"type": ["string", "null"]},
+                    "event_type": {"type": ["string", "null"], "default": "source_training_chunk"},
+                    "tag": {"type": ["string", "null"]},
+                    "source_path_prefix": {"type": ["string", "null"]},
+                    "adapter": {"type": ["string", "null"]},
+                    "mime_type": {"type": ["string", "null"]},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20},
+                    "preview_chars": {"type": "integer", "minimum": 120, "maximum": 2000, "default": 900},
                 },
                 "additionalProperties": False,
             },
@@ -713,9 +853,23 @@ def _resources(kernel: RuntimeKernel | None = None) -> list[dict[str, str]]:
     ]
 
 
+def _session_delegation_service(kernel: RuntimeKernel) -> SessionDelegationService:
+    """Reuse the governed session/delegation service for this runtime kernel.
+
+    Its constructor applies additive schema setup. Reconstructing it for every MCP
+    request repeated DDL on the hot path and could block behind PostgreSQL schema
+    locks. The RuntimeKernel is process-long, so cache the service on that kernel.
+    """
+    service = getattr(kernel, "_session_delegation_service", None)
+    if service is None:
+        service = SessionDelegationService(kernel)
+        setattr(kernel, "_session_delegation_service", service)
+    return service
+
+
 async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> dict[str, Any]:
     if tool.startswith(("session.", "delegation.", "worker.")):
-        return await SessionDelegationService(kernel).call(tool, args)
+        return await _session_delegation_service(kernel).call(tool, args)
 
     if tool.startswith("task."):
         task_result = ProjectTaskService(kernel.store).dispatch(tool, args)
@@ -777,6 +931,46 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
     if tool == "runtime.models":
         return {"items": kernel.model_provider.registry.list_models()}
 
+    if tool == "runtime.browser_test":
+        import asyncio
+        from .browser_runtime import run_browser_test
+
+        return await asyncio.to_thread(run_browser_test, args)
+
+    if tool == "runtime.service_registry":
+        return kernel.service_registry.report()
+
+    if tool == "runtime.service_health":
+        return kernel.service_registry.service_health(
+            node_id=args.get("node_id"),
+            service=args.get("service"),
+            timeout_seconds=float(args.get("timeout_seconds", 2.0) or 2.0),
+        )
+
+    if tool == "runtime.node_pressure":
+        return kernel.service_registry.node_pressure(
+            node_id=args.get("node_id"),
+            timeout_seconds=float(args.get("timeout_seconds", 1.5) or 1.5),
+        )
+
+    if tool == "runtime.service_candidates":
+        minimum_memory_gib = max(
+            float(args.get("minimum_memory_gib", 0.0) or 0.0),
+            float(args.get("min_memory_gib", 0.0) or 0.0),
+        )
+        return kernel.service_registry.scheduler_candidates(
+            node_id=args.get("node_id"),
+            role=args.get("role"),
+            service=args.get("service"),
+            prefer_gpu=bool(args.get("prefer_gpu", False)),
+            minimum_memory_gib=minimum_memory_gib,
+            require_live=bool(args.get("require_live", False)),
+            live_timeout_seconds=float(args.get("live_timeout_seconds", 2.0) or 2.0),
+            observe_pressure=bool(args.get("observe_pressure", True)),
+            pressure_timeout_seconds=float(args.get("pressure_timeout_seconds", 1.5) or 1.5),
+            limit=int(args.get("limit", 8) or 8),
+        )
+
     if tool == "runtime.capabilities":
         tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
         return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
@@ -795,7 +989,7 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
         payload = profile_payload(profile, mode="route", overrides=overrides)
         tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
         report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
-        route = plan_inference_route(report, payload)
+        route = plan_inference_route(report, payload, service_registry=kernel.service_registry)
         return {"schema_version": "client-profile-route-v1", "profile": profile, "payload": payload, "route": route}
 
     if tool == "runtime.client_profile_operation":
@@ -820,7 +1014,7 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
 
         tools_runtime = ToolRuntime(settings=kernel.settings, kernel=kernel)
         report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
-        return plan_inference_route(report, args)
+        return plan_inference_route(report, args, service_registry=kernel.service_registry)
 
     if tool == "runtime.operation_plan":
         from .operation_runtime import plan_operation_witnessed
@@ -980,7 +1174,6 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
         )
 
     if tool == "runtime.autonomy_research":
-        from .tool_services import ToolRuntime
         import asyncio
 
         query = str(args.get("query") or "").strip()
@@ -1194,6 +1387,19 @@ async def _call_tool(kernel: RuntimeKernel, tool: str, args: dict[str, Any]) -> 
             tag=args.get("tag"),
             tool_name=args.get("tool_name"),
             limit=_safe_limit(args, default=20),
+        )
+
+    if tool == "runtime.reference_search":
+        return kernel.store.search_reference_corpus(
+            query=str(args.get("query") or ""),
+            session_id=args.get("session_id"),
+            event_type=str(args.get("event_type") or "source_training_chunk"),
+            tag=args.get("tag"),
+            source_path_prefix=args.get("source_path_prefix"),
+            adapter=args.get("adapter"),
+            mime_type=args.get("mime_type"),
+            limit=_safe_limit(args, default=20),
+            preview_chars=max(120, min(int(args.get("preview_chars", 900)), 2000)),
         )
 
     if tool == "runtime.session_tail":

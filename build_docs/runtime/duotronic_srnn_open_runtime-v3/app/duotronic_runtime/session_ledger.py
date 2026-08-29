@@ -84,6 +84,31 @@ class SessionLedger:
                     events.append(json.loads(line))
         return events
 
+    def _read_last_event(self, session_id: str) -> dict[str, Any] | None:
+        """Read only the final non-empty JSONL record for append-chain continuity."""
+        path = self._events_path(session_id)
+        if not path.exists() or path.stat().st_size == 0:
+            return None
+        with path.open("rb") as f:
+            f.seek(0, os.SEEK_END)
+            pos = f.tell()
+            buffer = b""
+            while pos > 0:
+                step = min(65536, pos)
+                pos -= step
+                f.seek(pos)
+                buffer = f.read(step) + buffer
+                lines = buffer.splitlines()
+                if pos > 0 and lines:
+                    buffer = lines[0]
+                    lines = lines[1:]
+                for raw in reversed(lines):
+                    if raw.strip():
+                        return json.loads(raw.decode("utf-8"))
+            if buffer.strip():
+                return json.loads(buffer.decode("utf-8"))
+        return None
+
     def append(
         self,
         *,
@@ -108,8 +133,7 @@ class SessionLedger:
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         with lock_path.open("a+", encoding="utf-8") as lock_file:
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
-            existing = self._read_events(sid)
-            previous = existing[-1] if existing else None
+            previous = self._read_last_event(sid)
             sequence = int(previous.get("sequence", 0)) + 1 if previous else 1
             previous_digest = previous.get("event_digest") if previous else None
             payload = dict(content or {})

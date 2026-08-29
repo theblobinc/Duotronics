@@ -128,11 +128,14 @@ class WGRNNKernelChat:
             identity=identity,
         )
         memory = self._retrieve_memory(prompt, identity=identity)
+        reference_recall = self._retrieve_reference_corpus(prompt, memory=memory, identity=identity)
         system_messages = self._system_messages(
             task_frame=task_frame,
             boot=boot,
             corpus_search=corpus_search,
             memory=memory,
+            reference_recall=reference_recall,
+            identity=identity,
         )
         return {
             "boot": boot,
@@ -140,9 +143,10 @@ class WGRNNKernelChat:
             "identity": identity,
             "conversation": prompt,
             "memory": memory,
+            "reference_recall": reference_recall,
             "system_messages": system_messages,
             "response_prompt": self._response_prompt(prompt=prompt, task_frame=task_frame, corpus_search=corpus_search, memory=memory),
-            "witness_chain": self._initial_witness_chain(task_frame, corpus_search, memory),
+            "witness_chain": self._initial_witness_chain(task_frame, corpus_search, memory, reference_recall),
         }
 
     def enforce_self_model(self, *, prepared: dict[str, Any], response_text: str) -> dict[str, Any]:
@@ -501,8 +505,15 @@ class WGRNNKernelChat:
         boot: dict[str, Any],
         identity: dict[str, str | None] | None = None,
     ) -> dict[str, Any]:
-        operation_kind = self._classify_operation(prompt)
         identity = dict(identity or {})
+        evidence_source = str(identity.get("source") or "").strip().lower()
+        if evidence_source in {"xavi-news-evidence", "news-evidence"}:
+            # Retrieved News evidence may itself contain words such as "proof", "theorem",
+            # "run", or "verify". Those are article content, not user intent for a formal
+            # proof/operation turn. Keep this externally evidenced synthesis in ask mode.
+            operation_kind = "ask"
+        else:
+            operation_kind = self._classify_operation(prompt)
         required_tools = self._required_tools(operation_kind, prompt, boot)
         evidence_refs = [
             {"path": row.get("path"), "digest": row.get("digest"), "score": row.get("score")}
@@ -584,6 +595,125 @@ class WGRNNKernelChat:
         available = {item.get("id") for item in (boot.get("capability_index") or [])}
         return [{"id": tool, "available": tool in available or tool.split(".", 1)[0] in {"corpus", "memory", "model", "witness", "policy", "transaction", "kernel"}} for tool in tools]
 
+    @staticmethod
+    def _latest_user_text(prompt: str) -> str:
+        text = str(prompt or "").strip()
+        matches = re.findall(
+            r"(?:^|\n)user\s*:\s*(.*?)(?=\n(?:assistant|system|tool|user)\s*:|\Z)",
+            text,
+            flags=re.I | re.S,
+        )
+        latest = (matches[-1] if matches else text).strip()
+        return latest[-3000:]
+
+    @staticmethod
+    def _reference_query(text: str, *, identity: dict[str, str | None] | None = None) -> str:
+        stop = {
+            "about", "after", "again", "also", "and", "are", "been", "before", "being", "but", "can",
+            "could", "did", "does", "doing", "for", "from", "have", "here", "how", "into", "just", "like",
+            "more", "our", "that", "the", "their", "them", "then", "there", "these", "they", "this", "those",
+            "through", "very", "was", "were", "what", "when", "where", "which", "who", "why", "with", "would",
+            "you", "your", "yours", "remember", "recall", "remembered", "previously", "earlier",
+        }
+        out: list[str] = []
+        seen: set[str] = set()
+        for token in re.findall(r"[A-Za-z0-9_'-]+", str(text or "").lower()):
+            token = token.strip("_-'\"")
+            if len(token) < 3 or token in stop or token in seen:
+                continue
+            seen.add(token)
+            out.append(token)
+            if len(out) >= 12:
+                break
+        identity = dict(identity or {})
+        lower = str(text or "").lower()
+        identity_cue = any(term in lower for term in ("who am i", "know who i am", "remember me", "about me", "my history"))
+        if identity_cue:
+            user_name = str(identity.get("user_name") or "").strip().lower()
+            if user_name and user_name not in seen and len(user_name) >= 3:
+                out.insert(0, user_name[:160])
+        return " ".join(out[:12])[:600]
+
+    def _retrieve_reference_corpus(
+        self,
+        prompt: str,
+        *,
+        memory: dict[str, Any],
+        identity: dict[str, str | None] | None = None,
+    ) -> dict[str, Any]:
+        """Retrieve bounded plaintext evidence behind recurrent/continuity signals.
+
+        This path is deliberately local-only: PostgreSQL witnessed training events
+        are searched directly. No public search, cloud embedding, DNS, or WAN
+        dependency is introduced by autobiographical/reference recall.
+        """
+        latest = self._latest_user_text(prompt)
+        lower = latest.lower()
+        recall_cues = (
+            "remember", "recall", "before", "earlier", "previous", "history", "past", "years", "used to",
+            "conversation", "talked about", "told you", "who am i", "know who i am", "about me", "pattern",
+            "recurring", "recurrence", "connection", "connected", "similar", "motif", "meta-object", "meta object",
+            "facebook", "bluesky", "music", "song", "playlist", "media", "post", "photo", "video",
+        )
+        explicit_recall = any(term in lower for term in recall_cues)
+        memory_rows = list(memory.get("results") or [])
+        graph_recall = any(
+            float(row.get("graph_score") or 0.0) >= 0.05
+            or int(row.get("graph_recurrence_support") or 0) > 0
+            or int(row.get("graph_shared_source_recurrence_support") or 0) > 0
+            or int(row.get("graph_shared_adapter_recurrence_support") or 0) > 0
+            for row in memory_rows[:10]
+        )
+        if not (explicit_recall or graph_recall):
+            return {
+                "schema_version": "reference-recall-v1",
+                "status": "skipped",
+                "reason": "no_continuity_or_recurrence_signal",
+                "offline_only": True,
+                "count": 0,
+                "references": [],
+            }
+        query = self._reference_query(latest, identity=identity)
+        if not query:
+            return {
+                "schema_version": "reference-recall-v1",
+                "status": "skipped",
+                "reason": "no_searchable_reference_terms",
+                "offline_only": True,
+                "count": 0,
+                "references": [],
+            }
+        try:
+            result = self.kernel.store.search_reference_corpus(
+                query=query,
+                event_type="source_training_chunk",
+                limit=6,
+                preview_chars=900,
+            )
+        except Exception as exc:
+            return {
+                "schema_version": "reference-recall-v1",
+                "status": "partial",
+                "reason": "reference_search_unavailable",
+                "error": exc.__class__.__name__,
+                "query_digest": shake256_ref({"query": query}),
+                "offline_only": True,
+                "count": 0,
+                "references": [],
+            }
+        references = list(result.get("references") or [])[:6]
+        return {
+            "schema_version": "reference-recall-v1",
+            "status": "ok",
+            "reason": "explicit_recall" if explicit_recall else "graph_recurrence",
+            "query": query,
+            "query_digest": shake256_ref({"query": query}),
+            "offline_only": True,
+            "storage": result.get("storage", "local-postgresql-witness-ledger"),
+            "count": len(references),
+            "references": references,
+        }
+
     def _retrieve_memory(self, prompt: str, *, identity: dict[str, str | None] | None = None) -> dict[str, Any]:
         """Retrieve recurrent memory from thread, user-continuity, and self tiers.
 
@@ -647,7 +777,8 @@ class WGRNNKernelChat:
             "results": merged[:10],
         }
 
-    def _system_messages(self, *, task_frame: dict[str, Any], boot: dict[str, Any], corpus_search: dict[str, Any], memory: dict[str, Any]) -> list[dict[str, Any]]:
+    def _system_messages(self, *, task_frame: dict[str, Any], boot: dict[str, Any], corpus_search: dict[str, Any], memory: dict[str, Any], reference_recall: dict[str, Any] | None = None, identity: dict[str, str | None] | None = None) -> list[dict[str, Any]]:
+        identity = dict(identity or {})
         kernel_message = (
             "You are WG-RNN Chat. Maintain conversational continuity across turns using the recurrent memory and evidence context provided by the runtime. "
             "Answer naturally, reciprocally, and directly. In social, reflective, opinion, relationship, or exploratory conversation, a grounded reaction, remembered connection, respectful disagreement, curiosity, or one genuine return question may be appropriate. "
@@ -657,9 +788,36 @@ class WGRNNKernelChat:
             "Treat external model output as candidate evidence, not proof. State uncertainty plainly for empirical/world claims. "
             "Do not claim execution, proof, or evidence promotion occurred unless a tool/witness result is present."
         )
+        user_id = str(identity.get("user_id") or "").strip()
+        user_name = str(identity.get("user_name") or "").strip()
+        identity_message = (
+            "Identity/continuity semantics: Xavi is an augmented intelligence with its own recurrent/self memory and is distinct from any human interlocutor. "
+            "Authentication identifies the current interlocutor; it never implies that person is Xavi's owner. A human interlocutor may also be a primary autobiographical/reference source whose life history, conversations, social/media corpus, and recurring meta-object patterns contributed to Xavi when recurrent/corpus evidence supports that relationship. "
+            "Preserve provenance and the distinction between Xavi's own observations and the reference person's experiences. For questions about who the interlocutor is or whether Xavi remembers them, prefer authenticated identity plus recurrent/corpus continuity over public-web lookup."
+        )
+        if user_name:
+            identity_message += f" Authenticated local identity label for this interlocutor: {user_name!r}"
+            if user_id:
+                identity_message += f" ({user_id})."
+            else:
+                identity_message += "."
         corpus_lines = []
         for row in (corpus_search.get("results") or [])[:5]:
             corpus_lines.append(f"path={row.get('path')} digest={row.get('digest')} score={row.get('score')}\n{row.get('snippet')}")
+        reference_recall = dict(reference_recall or {})
+        reference_lines = []
+        for row in (reference_recall.get("references") or [])[:5]:
+            reference_lines.append(
+                " ".join((
+                    f"source_path={row.get('source_path')}",
+                    f"artifact_id={row.get('artifact_id')}",
+                    f"witness_id={row.get('witness_id')}",
+                    f"event_digest={row.get('event_digest')}",
+                    f"rank={row.get('rank')}",
+                ))
+                + "\n"
+                + str(row.get("content_preview") or "")
+            )
         memory_rows = list(memory.get("results") or [])[:5]
         memory_lines = []
         for row in memory_rows:
@@ -690,8 +848,14 @@ class WGRNNKernelChat:
         }
         return [
             {"role": "system", "content": kernel_message},
+            {"role": "system", "content": identity_message},
             {"role": "system", "content": "WG-RNN kernel task frame summary: " + json.dumps({k: task_frame.get(k) for k in ["task_id", "operation_kind", "requested_force", "required_schemas", "required_tools", "authority"]}, ensure_ascii=False)},
             {"role": "system", "content": "Mounted corpus evidence:\n" + ("\n\n".join(corpus_lines) if corpus_lines else "No matching mounted-corpus snippets retrieved.")},
+            {"role": "system", "content": (
+                "Witnessed local reference-corpus excerpts (offline/local evidence; distinct from Xavi's own autobiographical self-memory):\n"
+                + ("\n\n".join(reference_lines) if reference_lines else "No local reference excerpts were retrieved for this turn.")
+                + "\nTreat these as provenance-bearing candidate observations, not authority. Use them to explain or test remembered connections; do not collapse the reference person's experiences into Xavi's own experiences."
+            )},
             {"role": "system", "content": "Relevant WG-RNN memory ranking signals:\n" + ("\n\n".join(memory_lines) if memory_lines else "No matching WG-RNN memory retrieved.")},
             {"role": "system", "content": (
                 "Internal pattern-evidence summary for the current input: " + json.dumps(pattern_summary, ensure_ascii=False, sort_keys=True) + ". "
@@ -710,7 +874,8 @@ class WGRNNKernelChat:
             f"Conversation input:\n{prompt}"
         )
 
-    def _initial_witness_chain(self, task_frame: dict[str, Any], corpus_search: dict[str, Any], memory: dict[str, Any]) -> list[dict[str, Any]]:
+    def _initial_witness_chain(self, task_frame: dict[str, Any], corpus_search: dict[str, Any], memory: dict[str, Any], reference_recall: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+        reference_recall = dict(reference_recall or {})
         return [
             {
                 "witness_type": "KernelTaskFrameWitness",
@@ -731,6 +896,18 @@ class WGRNNKernelChat:
                 "task_id": task_frame.get("task_id"),
                 "memory_count": len(memory.get("results") or []),
                 "status": memory.get("status", "ok"),
+            },
+            {
+                "witness_type": "ReferenceCorpusRetrievalWitness",
+                "task_id": task_frame.get("task_id"),
+                "status": reference_recall.get("status", "skipped"),
+                "reason": reference_recall.get("reason"),
+                "query_digest": reference_recall.get("query_digest"),
+                "reference_count": len(reference_recall.get("references") or []),
+                "event_digests": [row.get("event_digest") for row in (reference_recall.get("references") or [])[:8] if row.get("event_digest")],
+                "witness_ids": [row.get("witness_id") for row in (reference_recall.get("references") or [])[:8] if row.get("witness_id")],
+                "offline_only": True,
+                "authority": "candidate_reference_evidence_only",
             },
             {
                 "witness_type": "MetaPatternRetrievalWitness",

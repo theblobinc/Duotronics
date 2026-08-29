@@ -18,6 +18,7 @@ from .nla import NLAWitnessFactory
 from .turbo_quant_service import TurboQuantSidecar
 from .policy import PolicyEngine
 from .providers import ModelProvider
+from .service_registry import ServiceRegistry
 from .response_grounding import ground_response
 from .self_development import SelfDevelopmentController
 from .autonomy_stack import AutonomyStack
@@ -32,6 +33,7 @@ class RuntimeKernel:
         if initialize_schema:
             self.store.migrate()
         self.pq_keys = PQKeyManager(self.settings.runtime_data_dir / "crypto" / "pq_keys")
+        self.service_registry = ServiceRegistry(self.settings.service_registry_path)
         self.model_provider = ModelProvider(self.settings)
         self.model_orchestrator = ModelOrchestrator(
             self.settings.model_orchestrator_path,
@@ -70,6 +72,7 @@ class RuntimeKernel:
         self.self_development = SelfDevelopmentController()
         self.autonomy = AutonomyStack(self)
         self.consensus = ObserverConsensusEngine(self)
+        service_registry_report = self.service_registry.report()
 
         # Health/liveness must never rescan or rehash the mounted corpus.
         # All of these values are safe startup snapshots. Expensive live
@@ -89,6 +92,12 @@ class RuntimeKernel:
                 "llama_cpp_enabled": self.settings.llama_cpp_enabled,
             },
             "models_count": len(self.model_provider.registry.list_models()),
+            "service_registry": {
+                "digest": service_registry_report.get("registry_digest"),
+                "node_count": service_registry_report.get("node_count"),
+                "scheduler_ready_count": service_registry_report.get("scheduler_ready_count"),
+                "offline_only": True,
+            },
             "modules_count": len(self.modules.list()),
             "formal_observers": self.formal.status(),
         }
@@ -113,6 +122,7 @@ class RuntimeKernel:
             "corpus": corpus.get("corpus_ref"),
             "corpus_file_count": corpus.get("file_count"),
             "models": self.model_provider.registry.list_models(),
+            "service_registry": self.service_registry.report(),
             "modules": self.modules.list(),
             "formal_observers": self.formal.status(),
         })

@@ -22,7 +22,7 @@ import time
 import uuid
 from pathlib import Path
 
-VERSION = "1.3.0"
+VERSION = "1.5.0"
 EVIDENCE_ROOT = Path("/var/lib/xavi-ops-root/evidence")
 EVIDENCE_LOG = EVIDENCE_ROOT / "evidence.jsonl"
 EVIDENCE_HEAD = EVIDENCE_ROOT / "head.shake256_512"
@@ -46,6 +46,30 @@ OP_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 ALLOWED_SYSTEMCTL_ACTIONS = {
     "start", "stop", "restart", "reload", "enable", "disable",
     "is-active", "is-enabled", "reset-failed",
+}
+BACKEND_LAN_CIDR = "10.77.0.0/24"
+UFW_PATH = Path("/usr/sbin/ufw")
+MANAGED_FILE_MAX_BYTES = 64 * 1024 * 1024
+ALLOWED_MANAGED_SOURCE_ROOTS = (
+    Path("/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3/data/privileged_staging/managed-files"),
+    Path("/var/www/xavi/updates/privileged_staging/managed-files"),
+)
+ALLOWED_MANAGED_TARGET_ROOTS = (
+    Path("/var/www/xavi"),
+    Path("/home/tbi"),
+    Path("/datastore1"),
+    Path("/datastore2"),
+    Path("/etc"),
+    Path("/usr/local"),
+    Path("/opt"),
+    Path("/srv"),
+    Path("/var/lib/xavi-ops-root"),
+    Path("/var/backups/xavi-ops-root"),
+)
+MANAGED_FILE_DENY = {
+    Path("/etc/shadow"),
+    Path("/etc/gshadow"),
+    Path("/etc/security/opasswd"),
 }
 
 
@@ -160,6 +184,16 @@ def cidr(value: str) -> str:
         raise UsageError(f"invalid CIDR: {value!r}") from exc
 
 
+def tcp_port(value: str) -> int:
+    try:
+        port = int(value)
+    except ValueError as exc:
+        raise UsageError(f"TCP port must be an integer: {value!r}") from exc
+    if not 1 <= port <= 65535:
+        raise UsageError(f"TCP port out of range: {port}")
+    return port
+
+
 def unit(value: str) -> str:
     if not UNIT_RE.fullmatch(value):
         raise UsageError(f"invalid unit name: {value!r}")
@@ -257,6 +291,223 @@ def acl_restore(op_id: str) -> None:
     run(["/usr/bin/setfacl", f"--restore={backup}"])
     _audit_artifact("acl-restore", restored_from_operation_id=op_id, backup=str(backup))
     print(json.dumps({"ok": True, "operation": "acl-restore", "restored_from_operation_id": op_id, "backup": str(backup)}, separators=(",", ":")))
+
+
+def apt_nvidia_580_transition() -> None:
+    """Complete the Ubuntu/NVIDIA 535 -> 580 transition without a generic root shell."""
+    global _CURRENT_OP_ID
+    if not _CURRENT_OP_ID:
+        _CURRENT_OP_ID = uuid.uuid4().hex
+    op_id = _CURRENT_OP_ID
+    rollback_dir = ROLLBACK_ROOT / op_id
+    rollback_dir.mkdir(parents=True, exist_ok=True)
+    os.chown(rollback_dir, 0, 0)
+    os.chmod(rollback_dir, 0o700)
+
+    query = subprocess.run(
+        ["/usr/bin/dpkg-query", "-W", "-f=${binary:Package}\\t${db:Status-Abbrev}\\t${Version}\\n"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if query.returncode != 0:
+        raise SystemExit(query.returncode)
+
+    snapshot = rollback_dir / "nvidia-packages.before.txt"
+    snapshot.write_text(query.stdout)
+    os.chown(snapshot, 0, 0)
+    os.chmod(snapshot, 0o600)
+
+    packages: list[str] = []
+    for line in query.stdout.splitlines():
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        package, state = parts[0], parts[1]
+        base = package.split(":", 1)[0]
+        if state[:2] not in {"ii", "iU", "iF", "iH"}:
+            continue
+        if "535" not in base:
+            continue
+        if not (
+            base.startswith("nvidia-")
+            or base.startswith("libnvidia-")
+            or base.startswith("linux-modules-nvidia-")
+            or base.startswith("linux-objects-nvidia-")
+            or base.startswith("xserver-xorg-video-nvidia-")
+        ):
+            continue
+        packages.append(package)
+    packages = sorted(set(packages))
+    # Resume-safe: after a partial/previous transition the 535 packages may
+    # already be gone. In that state continue with the 580 install/configure
+    # stages rather than treating an empty purge set as an error.
+
+    policy = subprocess.run(
+        ["/usr/bin/apt-cache", "policy", "nvidia-driver-580"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    candidate = ""
+    for line in policy.stdout.splitlines():
+        if line.strip().startswith("Candidate:"):
+            candidate = line.split(":", 1)[1].strip()
+            break
+    if policy.returncode != 0 or not candidate or candidate == "(none)":
+        raise UsageError("nvidia-driver-580 has no APT candidate")
+
+    selected = rollback_dir / "nvidia-535-purge-list.txt"
+    selected.write_text("\\n".join(packages) + "\\n")
+    os.chown(selected, 0, 0)
+    os.chmod(selected, 0o600)
+    _audit_artifact(
+        "nvidia-580-transition-snapshot",
+        snapshot=str(snapshot),
+        purge_list=str(selected),
+        packages=packages,
+        target="nvidia-driver-580",
+        candidate=candidate,
+    )
+
+    apt = ["/usr/bin/env", "DEBIAN_FRONTEND=noninteractive", "/usr/bin/apt-get", "-y"]
+    if packages:
+        run([*apt, "purge", *packages])
+    run([*apt, "install", "nvidia-driver-580"])
+    run([*apt, "-f", "install"])
+    run(["/usr/bin/dpkg", "--configure", "-a"])
+    run(["/usr/bin/apt-get", "check"])
+
+    if Path("/usr/sbin/update-initramfs").exists():
+        run(["/usr/sbin/update-initramfs", "-u", "-k", "all"])
+
+    audit = subprocess.run(
+        ["/usr/bin/dpkg", "--audit"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if audit.returncode != 0 or audit.stdout.strip() or audit.stderr.strip():
+        print(audit.stdout, end="", file=sys.stderr)
+        print(audit.stderr, end="", file=sys.stderr)
+        raise SystemExit(audit.returncode or 1)
+
+    post = subprocess.run(
+        ["/usr/bin/dpkg-query", "-W", "-f=${binary:Package}\\t${db:Status-Abbrev}\\t${Version}\\n"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    post_nvidia = [
+        line for line in post.stdout.splitlines()
+        if "nvidia" in line.lower() and ("580" in line or "535" in line)
+    ]
+    print(json.dumps({
+        "ok": True,
+        "operation": "apt-nvidia-580-transition",
+        "operation_id": op_id,
+        "purged_535_packages": packages,
+        "target_candidate": candidate,
+        "running_kernel": os.uname().release,
+        "reboot_required": Path("/var/run/reboot-required").exists(),
+        "post_nvidia": post_nvidia,
+        "snapshot": str(snapshot),
+        "purge_list": str(selected),
+    }, separators=(",", ":")))
+
+
+def _firewall_backend_state(iface_raw: str, port_raw: str) -> dict:
+    interface = iface(iface_raw)
+    port = tcp_port(port_raw)
+    present = UFW_PATH.is_file()
+    status_text = ""
+    status_rc = None
+    active = False
+    if present:
+        proc = subprocess.run(
+            [str(UFW_PATH), "status"],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        status_rc = proc.returncode
+        status_text = (proc.stdout or "") + (proc.stderr or "")
+        active = any(line.strip().lower() == "status: active" for line in status_text.splitlines())
+    relevant_rules = [
+        line.strip()
+        for line in status_text.splitlines()
+        if BACKEND_LAN_CIDR in line and str(port) in line
+    ]
+    return {
+        "backend_cidr": BACKEND_LAN_CIDR,
+        "interface": interface,
+        "port": port,
+        "ufw_present": present,
+        "ufw_status_returncode": status_rc,
+        "ufw_active": active,
+        "relevant_rules": relevant_rules,
+    }
+
+
+def firewall_backend_tcp_inspect(iface_raw: str, port_raw: str) -> None:
+    state = _firewall_backend_state(iface_raw, port_raw)
+    _audit_artifact("firewall-backend-tcp-inspect", **state)
+    print(json.dumps({
+        "ok": True,
+        "operation": "firewall-backend-tcp-inspect",
+        "operation_id": _CURRENT_OP_ID,
+        **state,
+    }, separators=(",", ":")))
+
+
+def firewall_backend_tcp_mutate(action: str, iface_raw: str, port_raw: str) -> None:
+    if action not in {"allow", "remove"}:
+        raise UsageError(f"invalid backend firewall action: {action}")
+    before = _firewall_backend_state(iface_raw, port_raw)
+    if not before["ufw_present"]:
+        raise UsageError("UFW is not installed; refusing to guess another firewall manager")
+    if not before["ufw_active"]:
+        raise UsageError("UFW is not active; refusing to mutate an unknown firewall policy")
+
+    interface = str(before["interface"])
+    port = str(before["port"])
+    base_rule = [
+        "in", "on", interface,
+        "from", BACKEND_LAN_CIDR,
+        "to", "any", "port", port,
+        "proto", "tcp",
+    ]
+    if action == "allow":
+        argv = [str(UFW_PATH), "allow", *base_rule, "comment", "xavi-backend-lan"]
+        rollback_operation = "firewall-backend-tcp-remove"
+    else:
+        argv = [str(UFW_PATH), "--force", "delete", "allow", *base_rule]
+        rollback_operation = "firewall-backend-tcp-allow"
+
+    run(argv)
+    after = _firewall_backend_state(interface, port)
+    _audit_artifact(
+        "firewall-backend-tcp-rule",
+        action=action,
+        backend_cidr=BACKEND_LAN_CIDR,
+        interface=interface,
+        port=int(port),
+        before=before,
+        after=after,
+        rollback={"type": "inverse", "operation": rollback_operation, "args": [interface, port]},
+    )
+    print(json.dumps({
+        "ok": True,
+        "operation": f"firewall-backend-tcp-{action}",
+        "operation_id": _CURRENT_OP_ID,
+        "backend_cidr": BACKEND_LAN_CIDR,
+        "interface": interface,
+        "port": int(port),
+        "before": before,
+        "after": after,
+        "rollback_operation": rollback_operation,
+        "rollback_args": [interface, port],
+    }, separators=(",", ":")))
 
 
 def evidence_tail(limit_raw: str = "50") -> None:
@@ -358,6 +609,185 @@ def install_nginx_config(src_raw: str, target_raw: str) -> None:
     }, separators=(",", ":")))
 
 
+def _path_within(path: Path, roots: tuple[Path, ...]) -> bool:
+    for root in roots:
+        rr = root.resolve(strict=False)
+        try:
+            path.relative_to(rr)
+            return True
+        except ValueError:
+            continue
+    return False
+
+
+def managed_file_source(value: str) -> Path:
+    p = Path(value).resolve(strict=True)
+    if not p.is_file():
+        raise UsageError("managed file source must be a regular file")
+    if not _path_within(p, ALLOWED_MANAGED_SOURCE_ROOTS):
+        raise UsageError(f"managed file source outside privileged staging roots: {p}")
+    if p.stat().st_size > MANAGED_FILE_MAX_BYTES:
+        raise UsageError(f"managed file source exceeds {MANAGED_FILE_MAX_BYTES} bytes")
+    return p
+
+
+def managed_file_target(value: str) -> Path:
+    if not value.startswith("/") or "\x00" in value:
+        raise UsageError("managed file target must be an absolute path")
+    original = Path(value)
+    if original.exists() and original.is_symlink():
+        raise UsageError("refusing to replace a managed-file symlink")
+    p = original.resolve(strict=False)
+    if p in {x.resolve(strict=False) for x in MANAGED_FILE_DENY}:
+        raise UsageError(f"managed file target is explicitly protected: {p}")
+    if p.parent == Path("/etc/ssh") and p.name.startswith("ssh_host_") and p.name.endswith("_key"):
+        raise UsageError(f"refusing to overwrite SSH host private key: {p}")
+    if not _path_within(p, ALLOWED_MANAGED_TARGET_ROOTS):
+        raise UsageError(f"managed file target outside Xavi-managed roots: {p}")
+    if p.exists() and not p.is_file():
+        raise UsageError("managed file target exists and is not a regular file")
+    return p
+
+
+def _sudoers_target(path: Path) -> bool:
+    sudoers = Path("/etc/sudoers")
+    sudoers_d = Path("/etc/sudoers.d")
+    return path == sudoers or path.parent == sudoers_d
+
+
+def _validate_managed_target(path: Path) -> bool:
+    if _sudoers_target(path):
+        visudo = Path("/usr/sbin/visudo")
+        if not visudo.is_file():
+            raise UsageError("visudo is required to install sudoers files")
+        return run([str(visudo), "-cf", "/etc/sudoers"], check=False) == 0
+    return True
+
+
+def _restore_managed_file(path: Path, existed: bool, backup: Path | None, uid: int, gid: int, mode: int) -> None:
+    if existed:
+        if backup is None or not backup.is_file():
+            raise UsageError("managed-file rollback backup is missing")
+        shutil.copy2(backup, path)
+        os.chown(path, uid, gid)
+        os.chmod(path, mode)
+    else:
+        path.unlink(missing_ok=True)
+    if _sudoers_target(path) and Path("/usr/sbin/visudo").is_file():
+        run(["/usr/sbin/visudo", "-cf", "/etc/sudoers"], check=False)
+
+
+def managed_file_install(src_raw: str, target_raw: str) -> None:
+    global _CURRENT_OP_ID
+    src = managed_file_source(src_raw)
+    target = managed_file_target(target_raw)
+    if not _CURRENT_OP_ID:
+        _CURRENT_OP_ID = uuid.uuid4().hex
+    op_id = _CURRENT_OP_ID
+    rollback_dir = ROLLBACK_ROOT / op_id
+    rollback_dir.mkdir(parents=True, exist_ok=True)
+    os.chown(rollback_dir, 0, 0)
+    os.chmod(rollback_dir, 0o700)
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    existed = target.exists()
+    backup: Path | None = None
+    if existed:
+        before = target.stat()
+        uid, gid, mode = before.st_uid, before.st_gid, before.st_mode & 0o7777
+        backup = rollback_dir / "managed-file.before"
+        shutil.copy2(target, backup)
+        os.chown(backup, 0, 0)
+        os.chmod(backup, 0o600)
+    else:
+        parent_stat = target.parent.stat()
+        uid, gid = parent_stat.st_uid, parent_stat.st_gid
+        if _sudoers_target(target):
+            mode = 0o440
+            uid = gid = 0
+        elif target.parent == Path("/usr/local/sbin"):
+            mode = 0o755
+            uid = gid = 0
+        else:
+            mode = 0o644
+
+    data = src.read_bytes()
+    digest = hashlib.shake_256(data).hexdigest(64)
+    tmp = target.with_name(target.name + f".tmp-xavi-{os.getpid()}")
+    try:
+        with tmp.open("wb") as fh:
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.chown(tmp, uid, gid)
+        os.chmod(tmp, mode)
+        os.replace(tmp, target)
+        if not _validate_managed_target(target):
+            _restore_managed_file(target, existed, backup, uid, gid, mode)
+            raise UsageError(f"managed target validation failed and was rolled back: {target}")
+    except Exception:
+        tmp.unlink(missing_ok=True)
+        raise
+
+    manifest = rollback_dir / "managed-file.json"
+    manifest.write_text(json.dumps({
+        "target": str(target),
+        "existed": existed,
+        "backup": str(backup) if backup else "",
+        "uid": uid,
+        "gid": gid,
+        "mode": mode,
+        "shake256_512": digest,
+    }, sort_keys=True, separators=(",", ":")) + "\n")
+    os.chown(manifest, 0, 0)
+    os.chmod(manifest, 0o600)
+    _audit_artifact(
+        "managed-file-backup",
+        target=str(target),
+        backup=str(backup) if backup else "",
+        existed=existed,
+        shake256_512=digest,
+        rollback={"operation": "managed-file-restore", "args": [op_id]},
+    )
+    print(json.dumps({
+        "ok": True,
+        "operation": "managed-file-install",
+        "operation_id": op_id,
+        "target": str(target),
+        "backup": str(backup) if backup else "",
+        "shake256_512": digest,
+        "rollback_operation": "managed-file-restore",
+        "rollback_args": [op_id],
+    }, separators=(",", ":")))
+
+
+def managed_file_restore(op_id: str) -> None:
+    if not OP_ID_RE.fullmatch(op_id):
+        raise UsageError("invalid operation id")
+    manifest = ROLLBACK_ROOT / op_id / "managed-file.json"
+    if not manifest.is_file():
+        raise UsageError(f"managed-file rollback manifest not found for {op_id}")
+    meta = json.loads(manifest.read_text())
+    target = managed_file_target(str(meta["target"]))
+    backup_raw = str(meta.get("backup") or "")
+    backup = Path(backup_raw) if backup_raw else None
+    _restore_managed_file(
+        target,
+        bool(meta.get("existed")),
+        backup,
+        int(meta.get("uid", 0)),
+        int(meta.get("gid", 0)),
+        int(meta.get("mode", 0o644)),
+    )
+    _audit_artifact("managed-file-restore", target=str(target), restored_from_operation_id=op_id)
+    print(json.dumps({
+        "ok": True,
+        "operation": "managed-file-restore",
+        "restored_from_operation_id": op_id,
+        "target": str(target),
+    }, separators=(",", ":")))
+
+
 def usage() -> str:
     return """Usage: xavi-ops-root OPERATION [ARGS...]
 
@@ -377,6 +807,11 @@ Operations:
   nginx-config-install SOURCE_PATH TARGET
   acl-set PATH SPEC
   acl-restore OPERATION_ID
+  firewall-backend-tcp-inspect IFACE PORT
+  firewall-backend-tcp-allow IFACE PORT
+  firewall-backend-tcp-remove IFACE PORT
+  managed-file-install SOURCE_PATH TARGET_PATH
+  managed-file-restore OPERATION_ID
   evidence-tail [LIMIT]
 """
 
@@ -471,6 +906,42 @@ def main(argv: list[str]) -> int:
         if len(args) != 1:
             raise UsageError("acl-restore requires OPERATION_ID")
         acl_restore(args[0])
+        return 0
+
+    if op == "firewall-backend-tcp-inspect":
+        if len(args) != 2:
+            raise UsageError("firewall-backend-tcp-inspect requires IFACE PORT")
+        firewall_backend_tcp_inspect(args[0], args[1])
+        return 0
+
+    if op == "firewall-backend-tcp-allow":
+        if len(args) != 2:
+            raise UsageError("firewall-backend-tcp-allow requires IFACE PORT")
+        firewall_backend_tcp_mutate("allow", args[0], args[1])
+        return 0
+
+    if op == "firewall-backend-tcp-remove":
+        if len(args) != 2:
+            raise UsageError("firewall-backend-tcp-remove requires IFACE PORT")
+        firewall_backend_tcp_mutate("remove", args[0], args[1])
+        return 0
+
+    if op == "managed-file-install":
+        if len(args) != 2:
+            raise UsageError("managed-file-install requires SOURCE_PATH TARGET_PATH")
+        managed_file_install(args[0], args[1])
+        return 0
+
+    if op == "managed-file-restore":
+        if len(args) != 1:
+            raise UsageError("managed-file-restore requires OPERATION_ID")
+        managed_file_restore(args[0])
+        return 0
+
+    if op == "apt-nvidia-580-transition":
+        if args:
+            raise UsageError("apt-nvidia-580-transition accepts no arguments")
+        apt_nvidia_580_transition()
         return 0
 
     if op == "evidence-tail":

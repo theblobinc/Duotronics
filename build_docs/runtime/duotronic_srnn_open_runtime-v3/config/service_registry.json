@@ -1,0 +1,289 @@
+{
+  "network": {
+    "backend_cidr": "10.77.0.0/24",
+    "gateway_private_ipv4": "10.77.0.254/24",
+    "internet_required": false,
+    "local_node_id": "tbi-production-4",
+    "local_private_ipv4": "10.77.0.1/24",
+    "name": "xavi-backend-lan",
+    "policy": "same-host-loopback;cross-host-private-lan;public-management-bootstrap-only"
+  },
+  "nodes": [
+    {
+      "capacity": {
+        "gpus": [
+          {
+            "memory_mib": 5120,
+            "name": "NVIDIA Quadro P2000"
+          }
+        ],
+        "logical_cpu_threads": 24,
+        "memory_bytes": 135157612544,
+        "notes": "Primary WG-RNN coordinator; same-host services prefer loopback.",
+        "source": "observed-2026-08-20"
+      },
+      "id": "tbi-production-4",
+      "metrics": {
+        "internet_required": false,
+        "primary_url": "http://10.77.0.1:8788",
+        "protocol": "xavi-node-metrics-v1"
+      },
+      "roles": [
+        "coordinator",
+        "wgrnn-core",
+        "reference-corpus",
+        "postgresql",
+        "local-worker",
+        "wgrnn-worker",
+        "cpu-inference",
+        "cpu-training",
+        "gpu-inference",
+        "secondary-accelerator"
+      ],
+      "scheduler_eligible": true,
+      "services": {
+        "ollama": {
+          "container_url": "http://ollama:11434",
+          "health_path": "/api/tags",
+          "internet_required": false,
+          "lan_preferred": false,
+          "primary_url": "http://127.0.0.1:11436",
+          "protocol": "ollama-api",
+          "same_host_preferred": true
+        }
+      },
+      "status": "commissioned",
+      "transport": {
+        "internet_required": false,
+        "kind": "local-and-dedicated-private-ethernet",
+        "private_ipv4": "10.77.0.1/24"
+      }
+    },
+    {
+      "capacity": {
+        "gpus": [
+          {
+            "memory_mib": 8192,
+            "name": "NVIDIA GeForce RTX 2070"
+          }
+        ],
+        "logical_cpu_threads": 32,
+        "memory_bytes": 67337175040,
+        "source": "observed-2026-08-20"
+      },
+      "id": "tbi-production-3",
+      "metrics": {
+        "internet_required": false,
+        "primary_url": "http://10.77.0.2:8788",
+        "protocol": "xavi-node-metrics-v1"
+      },
+      "roles": [
+        "gpu-inference",
+        "gpu-training",
+        "ollama-model-store",
+        "preferred-accelerator",
+        "remote-worker",
+        "wgrnn-worker",
+        "vision-worker",
+        "gpu-vision"
+      ],
+      "scheduler_eligible": true,
+      "services": {
+        "ollama": {
+          "fallback_transport": "ssh-local-forward:18205->127.0.0.1:11434",
+          "fallback_url": "http://127.0.0.1:18205",
+          "health_path": "/api/tags",
+          "internet_required": false,
+          "lan_preferred": true,
+          "primary_url": "http://10.77.0.2:11434",
+          "protocol": "ollama-api"
+        },
+        "vision": {
+          "health_path": "/api/tags",
+          "image_max_bytes": 8388608,
+          "inference_path": "/api/generate",
+          "internet_required": false,
+          "lan_preferred": true,
+          "model": "gemma3:4b",
+          "model_profile": "rtx2070-gemma3-4b-vram/v1",
+          "num_predict": 192,
+          "previous_primary_model": "minicpm-v:latest",
+          "primary_url": "http://10.77.0.2:11434",
+          "protocol": "ollama-api",
+          "qualification_note": "Gemma3 returned HTTP 200 on a JPEG that reproducibly stops the MiniCPM-V runner; promoted after live comparison.",
+          "qualified_fixture": "20 Psychology Books Collection Pack-3/Covers/Building Motivational Interviewing Skills, Second Edition - A Practitioner Workbook.jpg",
+          "qualified_wall_seconds": 14.741,
+          "request_format": "ollama-generate-images-base64",
+          "response_format": "json",
+          "temperature": 0.0,
+          "worker_kind": "gpu"
+        }
+      },
+      "status": "commissioned",
+      "transport": {
+        "bandwidth_mbps": 1000,
+        "internet_required": false,
+        "kind": "dedicated-private-ethernet",
+        "peer_private_ipv4": "10.77.0.1/24",
+        "private_ipv4": "10.77.0.2/24",
+        "public_transport_role": "fallback-management-only"
+      }
+    },
+    {
+      "capacity": {
+        "logical_cpu_threads": 80,
+        "memory_bytes": 109633986560,
+        "observed": true,
+        "source": "observed-2026-08-25"
+      },
+      "commissioning_gate": "observe-private-ip-and-private-service-health-before-scheduling",
+      "declared_scheduler_eligible": true,
+      "id": "vm1",
+      "management": {
+        "bootstrap_ipv4": "209.53.57.58",
+        "bootstrap_status": "tcp-open-ssh-banner-timeout",
+        "hostname": "vm1.theblobinc.com",
+        "ssh_port": 22,
+        "ssh_user": "tbi"
+      },
+      "metrics": {
+        "health_path": "/health",
+        "internet_required": false,
+        "metrics_path": "/v1/metrics",
+        "primary_url": "http://10.77.0.3:8788",
+        "protocol": "xavi-node-metrics-v1"
+      },
+      "roles": [
+        "virtualization-host",
+        "cpu-training",
+        "cpu-inference",
+        "remote-worker",
+        "wgrnn-worker",
+        "storage-resource",
+        "embedding-worker",
+        "cpu-embedding",
+        "transcription-worker",
+        "cpu-transcription",
+        "visual-embedding-worker",
+        "perceptual-embedding",
+        "audio-embedding-worker",
+        "perceptual-audio-embedding",
+        "music-transcription-worker",
+        "polyphonic-music-transcription"
+      ],
+      "scheduler_eligible": true,
+      "services": {
+        "audio_embedding": {
+          "authority": "perceptual_audio_embedding_similarity_evidence_only",
+          "cpu_cap": 48,
+          "dimensions": 512,
+          "embed_path": "/embed/windows",
+          "health_path": "/health",
+          "hop_seconds": 0.5,
+          "identity_semantics": "not_speaker_identity_evidence; audio content/timbre/structure similarity only",
+          "image": "localhost/xavi-motif-audio-embed:clap-htsat-unfused-v1",
+          "image_id": "30f62e862124e0b5f211ba5985dea101c332c1fc582c3c367dcfb25fd0493f05",
+          "internet_required": false,
+          "lan_preferred": true,
+          "max_windows": 512,
+          "model": "laion/clap-htsat-unfused",
+          "normalized": true,
+          "primary_url": "http://10.77.0.3:8792",
+          "protocol": "xavi-clap-audio-embedding-v1",
+          "window_seconds": 1.0,
+          "worker_kind": "cpu"
+        },
+        "embedding": {
+          "cpu_cap": 48,
+          "dimensions": 768,
+          "embed_path": "/api/embed",
+          "health_path": "/api/tags",
+          "internet_required": false,
+          "lan_preferred": true,
+          "model": "nomic-embed-text:latest",
+          "primary_url": "http://10.77.0.3:11434",
+          "protocol": "ollama-api",
+          "worker_kind": "cpu"
+        },
+        "music_transcription": {
+          "activation_semantics": "model note-event activation, not calibrated probability",
+          "authority": "ml_polyphonic_music_transcription_evidence",
+          "cpu_cap": 48,
+          "health_path": "/health",
+          "image": "localhost/xavi-basic-pitch:0.4.0-tflite-v1",
+          "image_id": "068ad61617341ab1e985f7368f0b57c04c325526005a6c842dfb065bbe3722d9",
+          "inference_path": "/transcribe",
+          "internet_required": false,
+          "lan_preferred": true,
+          "model": "spotify/basic-pitch-0.4.0",
+          "primary_url": "http://10.77.0.3:8793",
+          "protocol": "xavi-basic-pitch-polyphonic-v1",
+          "qualification": {
+            "exact_image_offline_model_load": true,
+            "retained_rich_live_note_count": 0,
+            "synthetic_midis": [
+              60,
+              64
+            ],
+            "synthetic_notes": [
+              "C4",
+              "E4"
+            ]
+          },
+          "runtime": "tflite",
+          "worker_kind": "cpu"
+        },
+        "transcription": {
+          "container_network_internal": true,
+          "cpu_cap": 48,
+          "health_path": "/health",
+          "image": "localhost/xavi-whisper-cpu:server-v2",
+          "image_id": "26d996346342a3a66d545a4008600ab7e04e82066ae15f7a8283a4869d666182",
+          "inference_path": "/inference",
+          "internet_required": false,
+          "lan_preferred": true,
+          "model": "ggml-small.bin",
+          "model_sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b",
+          "primary_url": "http://10.77.0.3:8790",
+          "protocol": "whisper.cpp-http",
+          "request_format": "multipart/form-data",
+          "response_format": "json",
+          "server_convert": true,
+          "threads": 24,
+          "worker_kind": "cpu"
+        },
+        "visual_embedding": {
+          "authority": "perceptual_embedding_similarity_evidence_only",
+          "cpu_cap": 48,
+          "dimensions": 384,
+          "embed_path": "/embed/batch",
+          "health_path": "/health",
+          "identity_semantics": "not_person_identity_evidence; visual appearance/composition/content similarity only",
+          "image": "localhost/xavi-motif-visual-embed:dinov2-small-v1",
+          "image_id": "71b791f7bf7b60bcf643e5a192541d3b7469d7f8197ea96d4ff3e457c02e3c89",
+          "internet_required": false,
+          "lan_preferred": true,
+          "model": "facebook/dinov2-small",
+          "normalized": true,
+          "primary_url": "http://10.77.0.3:8791",
+          "protocol": "xavi-visual-embedding-api",
+          "qualification": {
+            "exact_image_offline_inference": true,
+            "qualified_at": "2026-08-28",
+            "retained_frame_different_cosine": 0.7446659869484192,
+            "retained_frame_same_cosine": 1.0
+          },
+          "worker_kind": "cpu"
+        }
+      },
+      "status": "commissioned",
+      "transport": {
+        "internet_required": false,
+        "kind": "dedicated-private-ethernet",
+        "private_ipv4": "10.77.0.3/24",
+        "public_transport_role": "bootstrap-management-only"
+      }
+    }
+  ],
+  "schema_version": "xavi-service-registry-v1"
+}

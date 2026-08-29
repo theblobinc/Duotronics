@@ -116,6 +116,7 @@ def test_wgrnn_safe_tool_policy_allows_observation_and_blocks_mutating_surfaces(
     assert safe("runtime.health")
     assert safe("runtime.autonomy_status")
     assert safe("runtime.session_search")
+    assert safe("runtime.reference_search")
     assert safe("runtime.transcript_search")
     assert safe("coordination.status")
     assert safe("coordination.search")

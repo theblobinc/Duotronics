@@ -208,8 +208,11 @@ def v3_rebuild_runtime_image() -> dict[str, Any]:
 
 
 def v3_restart_runtime_only() -> dict[str, Any]:
+    # The long-lived runtime supervisor owns Podman's conmon/rootlessport cgroup.
+    # Its ExecReload runs the actual recreate helper; restarting the supervisor
+    # alone only restarts health monitoring and does not deploy a rebuilt image.
     return run_cmd(
-        ["systemctl", "--user", "restart", "xavi-duotronic-runtime.service"],
+        ["systemctl", "--user", "reload", "xavi-duotronic-runtime.service"],
         cwd=_v3_runtime_dir(),
         timeout=300,
     )
@@ -401,7 +404,7 @@ ALLOWED_COMMANDS: dict[str, dict[str, Any]] = {
         "timeout": 900,
     },
     "v3_restart_runtime_only": {
-        "cmd": ["systemctl", "--user", "restart", "xavi-duotronic-runtime.service"],
+        "cmd": ["systemctl", "--user", "reload", "xavi-duotronic-runtime.service"],
         "cwd": Path("/var/www/xavi/Duotronics/build_docs/runtime/duotronic_srnn_open_runtime-v3"),
         "timeout": 300,
     },

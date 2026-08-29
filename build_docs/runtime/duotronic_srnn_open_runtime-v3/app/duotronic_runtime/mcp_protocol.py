@@ -21,11 +21,17 @@ _AUTO_CAPTURE_EXACT = {
     # Operational liveness/inventory probes are not training events.
     "runtime.health",
     "runtime.models",
+    "runtime.browser_test",
+    "runtime.service_registry",
+    "runtime.service_health",
+    "runtime.node_pressure",
+    "runtime.service_candidates",
     "runtime.modules",
     "runtime.session_append",
     "runtime.session_index",
     "runtime.session_search",
     "runtime.session_find",
+    "runtime.reference_search",
     "runtime.session_tail",
     "runtime.session_summary",
     "runtime.session_verify",
@@ -126,6 +132,26 @@ def _server_info() -> dict[str, Any]:
     }
 
 
+_COLLABORATION_OMIT_VALUES = {"omit", "none", "off", "false", "0"}
+
+
+def _include_collaboration_context(request: Request) -> bool:
+    """Keep peer-awareness enrichment on by default; authenticated service clients may omit it."""
+    value = str(request.headers.get("x-xavi-collaboration-context") or "include").strip().lower()
+    return value not in _COLLABORATION_OMIT_VALUES
+
+
+def _include_auto_capture(request: Request) -> bool:
+    """Keep generic MCP training capture on by default.
+
+    Authenticated service clients may omit only this wrapper when the invoked domain
+    tools already create their own task/delegation/coordination/WG-RNN witnesses.
+    Authentication is enforced at the route before this header is evaluated.
+    """
+    value = str(request.headers.get("x-xavi-auto-capture") or "include").strip().lower()
+    return value not in _COLLABORATION_OMIT_VALUES
+
+
 def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Settings) -> None:
     async def _handle_mcp_inner(
         req: McpJsonRpcRequest,
@@ -160,6 +186,7 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
                         "Use tools/list to discover Xavi Runtime tools. "
                         "Use resources/list and resources/read for runtime and Concrete CMS skill resources. "
                         "Use tools/call with a tool name and arguments to operate the runtime, repo worktrees, and bounded ops. "
+                        "Use runtime.browser_test for server-side browser/UI verification; default to browser=both for browser-facing changes so Chromium and Firefox are both exercised unless the test is intentionally engine-specific. "
                         "For every tool call in one chat, provide the same durable conversation_id and conversation_source. Prefer a real source-native id when the client exposes one; otherwise generate one stable UUID-based id once for that chat and keep reusing it. Never reuse one conversation_id across unrelated chats. "
                         "When transcript access exists, use runtime.transcript_ingest under the same conversation identity for real user/assistant turns; never fabricate unseen transcript content. "
                         "At the beginning of substantive work, inspect session.inbox and delegation.inbox, acknowledge addressed messages when handled, and consult any _collaboration peer-awareness/task-backlog context before choosing work. "
@@ -207,7 +234,7 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
                 arguments["agent_id"] = context["agent_id"]
                 arguments["client_name"] = "native-mcp"
             ledger_session_id = conversation.get("conversation_id") or context["session_id"]
-            capture = _capture_tool(tool_name)
+            capture = _capture_tool(tool_name) and _include_auto_capture(request)
             started_ms = int(time.time() * 1000)
             start_event = None
             if capture:
@@ -229,7 +256,7 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
 
             try:
                 result = await _call_tool(kernel, tool_name, arguments)
-                if tool_name not in {"task.awareness", "runtime.health", "runtime.models", "runtime.modules"}:
+                if _include_collaboration_context(request) and tool_name not in {"task.awareness", "runtime.health", "runtime.models", "runtime.modules"}:
                     try:
                         from .project_tasks import ProjectTaskService
                         collaboration = ProjectTaskService(kernel.store).compact_awareness({
@@ -382,9 +409,21 @@ def register_real_mcp_protocol(app: FastAPI, kernel: RuntimeKernel, settings: Se
         x_xavi_mcp_key: str | None = Header(default=None),
         x_api_key: str | None = Header(default=None, alias="x-api-key"),
     ) -> Response:
-        # Native MCP dispatch performs synchronous DB/WG-RNN/autonomy work in
-        # addition to async provider calls. Isolate the whole request from the
-        # Uvicorn event loop so /health remains responsive under MCP load.
+        # Protocol-only inventory/liveness methods are deterministic and cheap.
+        # Keep them off the default executor so a long-running tools/call convoy
+        # cannot starve initialize/ping/tools/list discovery.
+        if req.method in {"initialize", "ping", "tools/list"}:
+            return await _handle_mcp_inner(
+                req,
+                request,
+                authorization,
+                x_xavi_mcp_key,
+                x_api_key,
+            )
+
+        # Native tool/resource dispatch may perform synchronous DB/WG-RNN/autonomy
+        # work in addition to async provider calls. Isolate those requests from
+        # the Uvicorn event loop so /health remains responsive under MCP load.
         return await asyncio.to_thread(
             lambda: asyncio.run(
                 _handle_mcp_inner(

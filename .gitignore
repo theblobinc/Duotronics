@@ -2,3 +2,12 @@
 # Shared local runtime model storage
 /build_docs/runtime/models/
 /build_docs/runtime/**/models/
+
+# Playwright browser downloads are local test dependencies.
+/.test-browsers/
+**/compose*.backup*
+**/docker-compose*.backup*
+**/compose*.bak*
+**/docker-compose*.bak*
+**/.env.bak*
+**/.env.backup*

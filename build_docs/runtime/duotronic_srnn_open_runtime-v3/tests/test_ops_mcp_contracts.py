@@ -77,14 +77,24 @@ def test_developer_ops_unrestricted_mode_and_direct_runtime_restart():
     assert 'return None' in preflight
     assert 'coordination.preflight' not in preflight
     assert 'fetch_json(RUNTIME_URL + "/health", timeout=3)' in adapter
-    assert '["systemctl", "--user", "restart", "xavi-duotronic-runtime.service"]' in adapter
-    assert '["systemctl", "--user", "restart", "xavi-duotronic-runtime.service"]' in ops_agent
+    runtime_reload = '["systemctl", "--user", "reload", "xavi-duotronic-runtime.service"]'
+    runtime_restart = '["systemctl", "--user", "restart", "xavi-duotronic-runtime.service"]'
+    assert runtime_reload in adapter
+    assert runtime_reload in ops_agent
+    assert runtime_restart not in adapter
+    assert runtime_restart not in ops_agent
 
     runtime_unit = Path("/home/tbi/.config/systemd/user/xavi-duotronic-runtime.service").read_text()
     assert "Type=simple" in runtime_unit
     assert "xavi-core-stack-supervisor.sh runtime" in runtime_unit
     assert "Restart=always" in runtime_unit
     assert "KillMode=control-group" in runtime_unit
+
+    reload_dropin = Path(
+        "/home/tbi/.config/systemd/user/xavi-duotronic-runtime.service.d/20-recreate-reload.conf"
+    ).read_text()
+    assert "ExecReload=/bin/bash" in reload_dropin
+    assert "ops_agent/v3_maintenance/restart_runtime_only.sh" in reload_dropin
 
 
 def test_runtime_mcp_dispatch_isolated_from_health_event_loop():
@@ -150,7 +160,9 @@ def test_conversation_identity_is_first_class_and_training_scoped():
     assert '"required": ["role", "content"]' in http_mcp
     assert 'prompt="Observed durable conversation transcript turn: "' in http_mcp
     assert 'thread_id=f"conversation:{conversation_id}"' in http_mcp
-    assert 'thread_id=(f"conversation:{str(payload.get(\'conversation_id\'))[:256]}"' in autonomy
+    assert "graph_thread_id = (" in autonomy
+    assert 'f"conversation:{str(payload.get(\'conversation_id\'))[:256]}"' in autonomy
+    assert "thread_id=graph_thread_id" in autonomy
 
 
 def test_developer_ops_coordination_is_observability_not_gate():
@@ -160,3 +172,50 @@ def test_developer_ops_coordination_is_observability_not_gate():
     assert 'coordination.preflight' not in preflight
     assert 'Mutating MCP call refused because the shared coordination service is unavailable.' in adapter
     # The old refusal branch remains unreachable compatibility code; preflight itself never produces a gate.
+
+
+def test_developer_ops_managed_root_writes_use_audited_privileged_fallback():
+    adapter = (ROOT / "ops_agent/xavi_dev_mcp_adapter.py").read_text()
+    helper = (ROOT / "ops_agent/v3_maintenance/xavi_ops_root.py").read_text()
+
+    assert 'Path("/datastore2")' in adapter
+    assert 'Path("/datastore1")' in adapter
+    assert 'Path("/etc")' in adapter
+    assert 'Path("/usr/local")' in adapter
+    assert 'def _privileged_managed_install(' in adapter
+    assert '"managed-file-install"' in adapter
+    assert '["sudo", "-n", str(_PRIVILEGED_ROOT_HELPER), "managed-file-install"' in adapter
+    assert 'def _managed_write_text(' in adapter
+
+    assert 'ALLOWED_MANAGED_SOURCE_ROOTS' in helper
+    assert 'ALLOWED_MANAGED_TARGET_ROOTS' in helper
+    assert 'def managed_file_install(' in helper
+    assert 'def managed_file_restore(' in helper
+    assert '"managed-file-install"' in helper
+    assert '"managed-file-restore"' in helper
+    assert 'MANAGED_FILE_DENY' in helper
+    assert 'visudo' in helper
+    assert 'managed-file-backup' in helper
+    compile(adapter, str(ROOT / "ops_agent/xavi_dev_mcp_adapter.py"), "exec")
+    compile(helper, str(ROOT / "ops_agent/v3_maintenance/xavi_ops_root.py"), "exec")
+
+
+def test_bounded_jobs_use_isolated_systemd_services_and_ephemeral_environment():
+    root = Path(__file__).resolve().parents[1]
+    ext = (root / "ops_agent/xavi_mcp_bounded_ext.py").read_text()
+    launch = ext.split("def bounded_job_start(", 1)[1].split("def bounded_job_status(", 1)[0]
+    supervisor = ext.split("def _async_job_supervisor_code(", 1)[1].split("def bounded_job_start(", 1)[0]
+
+    assert '"/usr/bin/systemd-run"' in launch
+    assert '"--no-block"' in launch
+    assert '"--property=Type=exec"' in launch
+    assert '"--property=Delegate=yes"' in launch
+    assert '"--property=KillMode=process"' in launch
+    assert 'env_path.chmod(0o600)' in launch
+    assert 'json.dumps(dict(os.environ)' in launch
+    assert 'subprocess.Popen(' not in launch
+    assert 'pid=os.getpid()' in supervisor
+    assert 'supervisor_pid=os.getpid()' in supervisor
+    assert 'env_path.unlink(missing_ok=True)' in supervisor
+    assert 'os.environ.update(' in supervisor
+    assert 'os.kill(pid, signal.SIGTERM)' in ext

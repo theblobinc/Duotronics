@@ -81,6 +81,14 @@ services:
       CORPUS_BACKEND: ${CORPUS_BACKEND:-postgres}
       RUNTIME_DATA_DIR: /runtime/data
       XAVI_DATALAKE_ROOT: /data-lake
+      XAVI_TRAIN_ROOT: ${XAVI_TRAIN_ROOT:-/train}
+      XAVI_TRAIN_INGEST_ENABLED: ${XAVI_TRAIN_INGEST_ENABLED:-1}
+      XAVI_TRAIN_SCAN_SECONDS: ${XAVI_TRAIN_SCAN_SECONDS:-120}
+      XAVI_TRAIN_BACKLOG_SCAN_SECONDS: ${XAVI_TRAIN_BACKLOG_SCAN_SECONDS:-3}
+      XAVI_TRAIN_SETTLE_SECONDS: ${XAVI_TRAIN_SETTLE_SECONDS:-30}
+      XAVI_TRAIN_MAX_FILES_PER_SCAN: ${XAVI_TRAIN_MAX_FILES_PER_SCAN:-4}
+      XAVI_TRAIN_PARALLEL_WORKERS: ${XAVI_TRAIN_PARALLEL_WORKERS:-3}
+      XAVI_TRAIN_MODALITY_SCHEDULE: ${XAVI_TRAIN_MODALITY_SCHEDULE:-extraction,transcription,extraction,vision,witness}
       MODEL_REGISTRY_PATH: /runtime/config/models.json
       MODEL_ORCHESTRATOR_PATH: /runtime/config/model_orchestrator.json
       MODULE_REGISTRY_PATH: /runtime/config/modules.json
@@ -94,6 +102,7 @@ services:
       - "/var/www/xavi/Duotronics/build_docs/witness_contract:/runtime/corpus-history:ro,Z"
       - /datastore2/xavi/data/duotronic-runtime/runtime-data:/runtime/data:Z
       - /datastore2/xavi/data:/data-lake:ro,Z
+      - /datastore2/xavi/train:/train:ro,Z
       - ./config:/runtime/config:Z
       - ../models/gguf:/models:Z
       - ./formal:/runtime/formal:Z
@@ -163,9 +172,11 @@ services:
       OLLAMA_KEEP_ALIVE: "30m"
       OLLAMA_NUM_PARALLEL: "1"
       OLLAMA_MAX_LOADED_MODELS: "1"
-    # GPU CDI is intentionally not forced here. The host's NVIDIA CDI spec can
-    # become stale after driver updates; Ollama remains available on CPU until
-    # CDI is regenerated, instead of failing the entire model service startup.
+    # GPU is attached through the persistent Podman-compatible NVIDIA CDI 0.5
+    # spec. The host's newer /var/run CDI 0.7 spec is ignored by Podman 4.x;
+    # /etc/cdi/nvidia.yaml is regenerated/compatibility-filtered after driver changes.
+    devices:
+      - nvidia.com/gpu=all
     volumes:
       - ../models/ollama:/root/.ollama:Z
     ports:

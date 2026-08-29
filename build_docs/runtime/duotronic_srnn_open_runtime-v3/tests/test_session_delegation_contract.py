@@ -78,3 +78,27 @@ class SessionDelegationContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_http_mcp_caches_session_delegation_service_source_contract():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    content = (root / "app" / "duotronic_runtime" / "http_mcp.py").read_text()
+    assert 'service = getattr(kernel, "_session_delegation_service", None)' in content
+    assert 'service = SessionDelegationService(kernel)' in content
+    assert 'setattr(kernel, "_session_delegation_service", service)' in content
+
+
+def test_delegation_digest_uses_imported_shake256_ref():
+    from duotronic_runtime.session_delegation import _digest
+    digest = _digest({"status": "completed", "result": {"schema_version": "xavi-node-pressure-v1"}})
+    assert isinstance(digest, str)
+    assert digest.startswith("shake256-512:") or digest.startswith("duoid:shake256-512:")
+
+
+def test_wgrnn_tick_source_digests_successful_results_before_completion():
+    runtime_root = Path(__file__).resolve().parents[1]
+    content = (runtime_root / "app" / "duotronic_runtime" / "session_delegation.py").read_text()
+    assert 'from .crypto_primitives import shake256_ref' in content
+    assert 'result_digest = _digest(safe_result)' in content
+    assert '"result_digest": _digest(safe_result)' in content

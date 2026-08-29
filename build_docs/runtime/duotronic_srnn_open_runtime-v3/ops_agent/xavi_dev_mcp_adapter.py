@@ -51,7 +51,7 @@ V3_DIR = Path(os.environ.get(
 REPO_ROOT = Path(os.environ.get("XAVI_OPS_REPO_ROOT", "/var/www/xavi/Duotronics")).resolve()
 OPS_URL = os.environ.get("XAVI_OPS_URL", "http://127.0.0.1:8091").replace("host.containers.internal", "127.0.0.1").rstrip("/")
 OPS_KEY = os.environ.get("XAVI_OPS_API_KEY", "")
-RUNTIME_MCP_KEY = os.environ.get("XAVI_MCP_API_KEY", "")
+RUNTIME_MCP_KEY = os.environ.get("XAVI_MCP_AUTH_KEY") or os.environ.get("XAVI_MCP_API_KEY", "")
 RUNTIME_URL = os.environ.get("XAVI_RUNTIME_URL", "http://127.0.0.1:8080").rstrip("/")
 SESSION_SECRET = os.environ.get("XAVI_MCP_SESSION_SECRET") or OPS_KEY or RUNTIME_MCP_KEY or shake256_hex(str(V3_DIR))
 SESSION_CLIENTS: dict[str, dict[str, Any]] = {}
@@ -117,10 +117,10 @@ def fetch_json(url: str, timeout: int = 15) -> Any:
 def runtime_mcp_rpc(method: str, params: dict[str, Any] | None = None, timeout: int = 30, auth_header: str | None = None, session_id: str | None = None, agent_id: str | None = None) -> dict[str, Any]:
     payload = json.dumps({"jsonrpc": "2.0", "id": method, "method": method, "params": params or {}}).encode()
     headers = {"content-type": "application/json"}
-    if auth_header:
-        headers["authorization"] = auth_header
-    elif RUNTIME_MCP_KEY:
+    if RUNTIME_MCP_KEY:
         headers["x-xavi-mcp-key"] = RUNTIME_MCP_KEY
+    elif auth_header:
+        headers["authorization"] = auth_header
     if session_id:
         headers["mcp-session-id"] = str(session_id)[:200]
     if agent_id:
@@ -1033,25 +1033,41 @@ def apply_vscode_aliases() -> dict[str, Any]:
 
 
 def _dev_allowed_roots() -> list[Path]:
+    """Filesystem roots managed by the privileged Xavi Ops MCP.
+
+    The Ops connector is intentionally host-administrative.  Direct writes are
+    attempted as the service user first; root-owned targets are installed through
+    xavi-ops-root so they retain rollback/evidence rather than requiring a raw root
+    shell.  Keep this list host-management scoped instead of simply allowing '/'.
+    """
     roots = [
         REPO_ROOT,
         V3_DIR,
         Path("/var/www/xavi"),
         Path("/home/tbi"),
-        Path("/etc/nginx"),
-        Path("/etc/caddy"),
-        Path("/etc/systemd/system"),
-        Path("/etc/containers"),
+        Path("/datastore1"),
+        Path("/datastore2"),
+        Path("/etc"),
+        Path("/usr/local"),
+        Path("/opt"),
+        Path("/srv"),
+        Path("/var/lib/xavi-ops-root"),
+        Path("/var/backups/xavi-ops-root"),
     ]
     return [r.resolve() for r in roots if r.exists()]
 
 
-def _safe_dev_path(raw: str) -> Path:
+def _dev_read_allowed_roots() -> list[Path]:
+    """Reads use the same host-management scope as writes."""
+    return list(_dev_allowed_roots())
+
+
+def _safe_path_in_roots(raw: str, roots: list[Path]) -> Path:
     target = Path(raw).expanduser()
     if not target.is_absolute():
         target = (REPO_ROOT / target)
     target = target.resolve()
-    for root in _dev_allowed_roots():
+    for root in roots:
         try:
             if target == root or target.is_relative_to(root):
                 return target
@@ -1059,6 +1075,79 @@ def _safe_dev_path(raw: str) -> Path:
             if str(target).startswith(str(root) + "/") or target == root:
                 return target
     raise ValueError(f"path is outside allowed roots: {target}")
+
+
+def _safe_dev_path(raw: str) -> Path:
+    return _safe_path_in_roots(raw, _dev_allowed_roots())
+
+
+def _safe_dev_read_path(raw: str) -> Path:
+    return _safe_path_in_roots(raw, _dev_read_allowed_roots())
+
+
+_PRIVILEGED_MANAGED_STAGE = V3_DIR / "data" / "privileged_staging" / "managed-files"
+_PRIVILEGED_ROOT_HELPER = Path("/usr/local/sbin/xavi-ops-root")
+
+
+def _privileged_managed_install(path: Path, content: str) -> dict[str, Any]:
+    """Install text through the audited root helper when the service user cannot."""
+    if not DEV_OPS_UNRESTRICTED:
+        raise PermissionError(f"privileged managed write requires unrestricted Ops mode: {path}")
+    if not _PRIVILEGED_ROOT_HELPER.is_file():
+        raise PermissionError(f"privileged helper unavailable: {_PRIVILEGED_ROOT_HELPER}")
+    _PRIVILEGED_MANAGED_STAGE.mkdir(parents=True, exist_ok=True)
+    stage = _PRIVILEGED_MANAGED_STAGE / f"dev-rpc-{os.getpid()}-{threading.get_ident()}-{uuid.uuid4().hex}.txt"
+    try:
+        stage.write_text(content)
+        os.chmod(stage, 0o600)
+        proc = subprocess.run(
+            ["sudo", "-n", str(_PRIVILEGED_ROOT_HELPER), "managed-file-install", str(stage), str(path)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        if proc.returncode != 0:
+            detail = (proc.stderr or proc.stdout or "privileged managed install failed").strip()
+            raise PermissionError(_trim_output(detail, 4000))
+        payload: dict[str, Any] = {}
+        for line in reversed((proc.stdout or "").splitlines()):
+            try:
+                candidate = json.loads(line)
+            except Exception:
+                continue
+            if isinstance(candidate, dict):
+                payload = candidate
+                break
+        return {
+            "privileged": True,
+            "operation_id": payload.get("operation_id"),
+            "backup": payload.get("backup"),
+            "shake256_512": payload.get("shake256_512"),
+        }
+    finally:
+        try:
+            stage.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+def _managed_write_text(path: Path, content: str, *, backup: bool = True) -> dict[str, Any]:
+    """Write directly where possible, otherwise use xavi-ops-root transactionally."""
+    backup_path: Path | None = None
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and backup:
+            backup_path = path.with_name(path.name + ".backup-dev-rpc-" + datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"))
+            backup_path.write_text(path.read_text(errors="replace"))
+        path.write_text(content)
+        return {"privileged": False, "backup": str(backup_path) if backup_path else None}
+    except PermissionError:
+        return _privileged_managed_install(path, content)
+    except OSError as exc:
+        if getattr(exc, "errno", None) not in {13, 30}:
+            raise
+        return _privileged_managed_install(path, content)
 
 
 def _trim_output(value: str, limit: int = 60000) -> str:
@@ -1087,9 +1176,11 @@ def dev_rpc(args: dict[str, Any]) -> dict[str, Any]:
     action = str(args.get("action", "")).strip()
 
     if action == "list_dir":
-        path = _safe_dev_path(str(args.get("path", ".")))
+        path = _safe_dev_read_path(str(args.get("path", ".")))
+        max_entries = min(max(int(args.get("limit", 500)), 1), 5000)
+        children = sorted(path.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower()))
         entries = []
-        for child in sorted(path.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower())):
+        for child in children[:max_entries]:
             st = child.stat()
             entries.append({
                 "name": child.name,
@@ -1097,10 +1188,16 @@ def dev_rpc(args: dict[str, Any]) -> dict[str, Any]:
                 "type": "dir" if child.is_dir() else "file",
                 "size": st.st_size,
             })
-        return {"action": action, "path": str(path), "entries": entries}
+        return {
+            "action": action,
+            "path": str(path),
+            "entries": entries,
+            "truncated": len(children) > max_entries,
+            "total_entries": len(children),
+        }
 
     if action == "read_file":
-        path = _safe_dev_path(str(args["path"]))
+        path = _safe_dev_read_path(str(args["path"]))
         limit = min(int(args.get("limit", 60000)), 250000)
         text = path.read_text(errors="replace")
         return {
@@ -1114,21 +1211,37 @@ def dev_rpc(args: dict[str, Any]) -> dict[str, Any]:
     if action == "write_file":
         path = _safe_dev_path(str(args["path"]))
         content = str(args.get("content", ""))
-        backup = None
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if path.exists() and bool(args.get("backup", True)):
-            backup = path.with_name(path.name + ".backup-dev-rpc-" + datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"))
-            backup.write_text(path.read_text(errors="replace"))
-        path.write_text(content)
-        return {"action": action, "path": str(path), "bytes": len(content), "backup": str(backup) if backup else None}
+        result = _managed_write_text(path, content, backup=bool(args.get("backup", True)))
+        return {
+            "action": action,
+            "path": str(path),
+            "bytes": len(content),
+            "backup": result.get("backup"),
+            "privileged": bool(result.get("privileged")),
+            "operation_id": result.get("operation_id"),
+        }
 
     if action == "append_file":
         path = _safe_dev_path(str(args["path"]))
         content = str(args.get("content", ""))
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a") as f:
-            f.write(content)
-        return {"action": action, "path": str(path), "bytes_appended": len(content)}
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a") as f:
+                f.write(content)
+            result = {"privileged": False, "backup": None, "operation_id": None}
+        except (PermissionError, OSError) as exc:
+            if isinstance(exc, OSError) and getattr(exc, "errno", None) not in {13, 30}:
+                raise
+            prior = path.read_text(errors="replace") if path.exists() else ""
+            result = _privileged_managed_install(path, prior + content)
+        return {
+            "action": action,
+            "path": str(path),
+            "bytes_appended": len(content),
+            "backup": result.get("backup"),
+            "privileged": bool(result.get("privileged")),
+            "operation_id": result.get("operation_id"),
+        }
 
     if action == "replace_text":
         path = _safe_dev_path(str(args["path"]))
@@ -1144,10 +1257,16 @@ def dev_rpc(args: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(f"expected {expected} occurrences, found {occurrences}")
         if occurrences == 0:
             raise ValueError("old text not found")
-        backup = path.with_name(path.name + ".backup-dev-rpc-" + datetime.utcnow().strftime("%Y%m%dT%H%M%SZ"))
-        backup.write_text(text)
-        path.write_text(text.replace(old, new, count))
-        return {"action": action, "path": str(path), "occurrences": occurrences, "replaced": min(count, occurrences), "backup": str(backup)}
+        result = _managed_write_text(path, text.replace(old, new, count), backup=True)
+        return {
+            "action": action,
+            "path": str(path),
+            "occurrences": occurrences,
+            "replaced": min(count, occurrences),
+            "backup": result.get("backup"),
+            "privileged": bool(result.get("privileged")),
+            "operation_id": result.get("operation_id"),
+        }
 
     if action == "shell_exec":
         raise ValueError("dev_rpc shell_exec is disabled; use bounded_job_start/status/output/kill with a registered bounded command instead.")
@@ -1702,7 +1821,7 @@ for _tool in TOOLS:
             _tool["inputSchema"]["properties"]["action"]["enum"] = [
                 x for x in enum if x != "shell_exec"
             ]
-            _tool["description"] = "Read, write, patch, and list files in allowed Xavi development roots."
+            _tool["description"] = "Read/list/write Xavi-managed host roots. Root-owned write/append/replace targets are staged through the audited xavi-ops-root managed-file transaction with rollback evidence."
         except Exception:
             pass
 # ---- End disabled synchronous tools ----
@@ -1726,6 +1845,7 @@ def _ops_request_authorized(request: Request) -> bool:
     return bool(supplied) and hmac.compare_digest(supplied, OPS_KEY)
 
 
+@app.get("/mcp")
 @app.get("/")
 async def health() -> dict[str, Any]:
     return {
@@ -1744,6 +1864,7 @@ async def health() -> dict[str, Any]:
         },
     }
 
+@app.post("/mcp")
 @app.post("/")
 def mcp_root(request: Request, body: Any = Body(...)) -> JSONResponse:
     if not _ops_request_authorized(request):
@@ -1975,10 +2096,12 @@ def mcp_root(request: Request, body: Any = Body(...)) -> JSONResponse:
                 )
 
             elif name == "restart_runtime_only":
-                # Runtime lifecycle belongs to its own user service so Podman
-                # conmon/rootlessport never inherit an MCP adapter cgroup.
+                # ExecReload on the long-lived runtime supervisor owns the actual
+                # recreate helper. That keeps Podman conmon/rootlessport in the
+                # persistent runtime service cgroup while still deploying a rebuilt
+                # image; restarting the supervisor itself is only health monitoring.
                 result = run_fixed(
-                    ["systemctl", "--user", "restart", "xavi-duotronic-runtime.service"],
+                    ["systemctl", "--user", "reload", "xavi-duotronic-runtime.service"],
                     V3_DIR,
                     timeout=300,
                 )

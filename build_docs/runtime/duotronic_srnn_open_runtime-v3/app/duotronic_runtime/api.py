@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 import json
+import os
 import re
+import secrets
 import uuid
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
@@ -27,6 +30,13 @@ from .openai_models import build_openai_models_response, find_openai_model, open
 from .tool_services import ToolRuntime
 from .wgrnn_kernel_chat import WGRNNKernelChat
 from .wgrnn_worker_loop import WGRNNWorkerLoop
+from .train_ingest import TrainFolderIngestLoop
+from .media_reconstruction import MediaReconstructionManager, MAX_SOURCE_BYTES as MEDIA_RECONSTRUCTION_MAX_SOURCE_BYTES
+from .geometry_codec import (
+    build_information_stream, decode_information_stream, get_depth_plan, build_depth_frame,
+    decode_depth_frame, reassemble_depth_frames, get_carrier_capacity, build_carrier, decode_carrier,
+    carrier_to_json, decode_result_to_json, b64 as geometry_b64, from_b64 as geometry_from_b64,
+)
 
 
 class RunRequest(BaseModel):
@@ -176,6 +186,10 @@ class SelfDevelopRequest(BaseModel):
     repo_ref: str = "mounted-workspace"
 
 
+class PositiveBaselineEvaluateRequest(BaseModel):
+    package: dict[str, Any]
+
+
 class CodeExecuteRequest(BaseModel):
     language: str = "python"
     code: str = Field(..., min_length=1, max_length=200000)
@@ -287,6 +301,13 @@ class MetaGraphRetrieveRequest(BaseModel):
     limit: int = Field(default=128, ge=1, le=1024)
 
 
+class MemoryPacketRetrieveRequest(BaseModel):
+    source_scope: str = Field(default="default", min_length=1, max_length=256)
+    query: str = Field(default="", max_length=16000)
+    meta_objects: list[dict[str, Any]] = Field(default_factory=list)
+    limit: int = Field(default=128, ge=1, le=1024)
+
+
 class MetaGraphChainBuildRequest(BaseModel):
     profile_ids: list[str] = Field(..., min_length=2, max_length=1024)
     chain_ref: str | None = Field(default=None, max_length=1024)
@@ -315,6 +336,28 @@ def require_api_key(settings: Settings, authorization: str | None) -> None:
         raise HTTPException(status_code=401, detail="missing or invalid bearer token")
 
 
+def require_memory_packet_key(settings: Settings, authorization: str | None) -> None:
+    """Accept the full runtime bearer or the narrow memory-packet ingress bearer.
+
+    The narrow key is read from the process environment as a deployment boundary so
+    a bind-mounted API update does not depend on the container image's Settings
+    dataclass revision. Future rebuilt images may expose the same value on Settings;
+    the environment remains the authoritative fallback for compatibility.
+    """
+    runtime_key = str(getattr(settings, "runtime_api_key", "") or "")
+    memory_key = str(getattr(settings, "memory_packet_ingest_api_key", "") or os.environ.get("MEMORY_PACKET_INGEST_API_KEY", "") or "")
+    if not runtime_key and not memory_key:
+        return
+    supplied = str(authorization or "")
+    accepted: list[str] = []
+    if runtime_key:
+        accepted.append(f"Bearer {runtime_key}")
+    if memory_key:
+        accepted.append(f"Bearer {memory_key}")
+    if not any(secrets.compare_digest(supplied, candidate) for candidate in accepted):
+        raise HTTPException(status_code=401, detail="missing or invalid memory packet bearer token")
+
+
 def _meta_graph_adapter_namespace(adapter_id: str, source_scope: str) -> tuple[str, str, str]:
     """Create a server-owned adapter namespace that cannot spoof corpus/user scopes."""
     def clean(value: str, fallback: str) -> str:
@@ -323,6 +366,193 @@ def _meta_graph_adapter_namespace(adapter_id: str, source_scope: str) -> tuple[s
     adapter = clean(adapter_id, "unknown-adapter")
     scope = clean(source_scope, "default")
     return f"adapter-observation/{adapter}/{scope}", adapter, scope
+
+
+MEMORY_PACKET_SCHEMA = "media_meta_witness_memory_packet/v1"
+MEMORY_PACKET_WITNESS_TYPE = "MediaMetaWitnessMemoryPacketWitness"
+MEMORY_PACKET_ADAPTER_ID = "media-meta-witness-memory"
+
+
+def _validate_media_meta_witness_payload(witness: Any, *, field: str) -> dict[str, Any]:
+    if not isinstance(witness, dict):
+        raise HTTPException(status_code=422, detail=f"{field}_must_be_object")
+    if str(witness.get("schema_version") or "") != "media_meta_witness/v1":
+        raise HTTPException(status_code=422, detail=f"{field}_schema_must_be_media_meta_witness_v1")
+    sockets = witness.get("sockets")
+    if not isinstance(sockets, list) or len(sockets) != 6:
+        raise HTTPException(status_code=422, detail=f"{field}_requires_six_sockets")
+    normalized_sockets: list[int] = []
+    for value in sockets:
+        if isinstance(value, bool):
+            raise HTTPException(status_code=422, detail=f"{field}_socket_must_be_positive_even_integer")
+        try:
+            number = int(value)
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"{field}_socket_must_be_positive_even_integer") from exc
+        if number <= 0 or number % 2:
+            raise HTTPException(status_code=422, detail=f"{field}_socket_must_be_positive_even_integer")
+        normalized_sockets.append(number)
+    try:
+        payload_v = int(witness.get("payload_v"))
+        codeword_p = int(witness.get("codeword_p"))
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail=f"{field}_vp_must_be_integers") from exc
+    if payload_v != sum(normalized_sockets) or codeword_p != payload_v + 1:
+        raise HTTPException(status_code=422, detail=f"{field}_vp_invariant_failed")
+    tokens = witness.get("tokens")
+    if not isinstance(tokens, list) or len(tokens) > 4096:
+        raise HTTPException(status_code=422, detail=f"{field}_tokens_invalid")
+    for token in tokens:
+        if not isinstance(token, dict):
+            raise HTTPException(status_code=422, detail=f"{field}_token_must_be_object")
+        if not str(token.get("category") or "").strip() or not str(token.get("object_name") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{field}_token_identity_required")
+        try:
+            confidence_q = int(token.get("confidence_q", 0))
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=422, detail=f"{field}_token_confidence_q_invalid") from exc
+        if confidence_q < 0 or confidence_q > 1000:
+            raise HTTPException(status_code=422, detail=f"{field}_token_confidence_q_invalid")
+    return witness
+
+
+def _validate_external_memory_packet(raw: Any) -> dict[str, Any]:
+    if not isinstance(raw, dict):
+        raise HTTPException(status_code=422, detail="memory_packet_must_be_object")
+    try:
+        encoded = json.dumps(raw, ensure_ascii=False, separators=(",", ":"), default=str).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=422, detail="memory_packet_not_serializable") from exc
+    if len(encoded) > 4 * 1024 * 1024:
+        raise HTTPException(status_code=422, detail="memory_packet_too_large")
+    if str(raw.get("schema_version") or "") != MEMORY_PACKET_SCHEMA:
+        raise HTTPException(status_code=422, detail="memory_packet_schema_invalid")
+    if str(raw.get("status") or "") != "unsealed":
+        raise HTTPException(status_code=422, detail="external_memory_packet_must_be_unsealed")
+    logical_id = str(raw.get("logical_id") or "").strip()
+    anchor_node_id = str(raw.get("anchor_node_id") or "").strip()
+    if not logical_id or len(logical_id) > 1024:
+        raise HTTPException(status_code=422, detail="memory_packet_logical_id_required")
+    if not anchor_node_id or len(anchor_node_id) > 512:
+        raise HTTPException(status_code=422, detail="memory_packet_anchor_node_id_required")
+    integrity = raw.get("integrity")
+    if not isinstance(integrity, dict) or str(integrity.get("status") or "") != "unsealed":
+        raise HTTPException(status_code=422, detail="memory_packet_integrity_must_be_unsealed")
+    if integrity.get("algorithm") not in (None, ""):
+        raise HTTPException(status_code=422, detail="external_memory_packet_cannot_claim_sealing_algorithm")
+    for forbidden in ("signed_envelope", "signature_verified", "trust_status", "authority"):
+        if forbidden in raw:
+            raise HTTPException(status_code=422, detail=f"external_memory_packet_forbidden_authority_field:{forbidden}")
+    _validate_media_meta_witness_payload(raw.get("anchor_witness"), field="anchor_witness")
+    recalled_nodes = raw.get("recalled_nodes")
+    if not isinstance(recalled_nodes, list) or len(recalled_nodes) > 256:
+        raise HTTPException(status_code=422, detail="memory_packet_recalled_nodes_invalid")
+    node_ids = {anchor_node_id}
+    for index, node in enumerate(recalled_nodes):
+        if not isinstance(node, dict):
+            raise HTTPException(status_code=422, detail="memory_packet_recalled_node_must_be_object")
+        node_id = str(node.get("node_id") or "").strip()
+        if not node_id or len(node_id) > 512 or node_id in node_ids:
+            raise HTTPException(status_code=422, detail="memory_packet_recalled_node_id_invalid")
+        node_ids.add(node_id)
+        _validate_media_meta_witness_payload(node.get("witness"), field=f"recalled_nodes_{index}_witness")
+    relations = raw.get("relations")
+    if not isinstance(relations, list) or len(relations) > 4096:
+        raise HTTPException(status_code=422, detail="memory_packet_relations_invalid")
+    for relation in relations:
+        if not isinstance(relation, dict):
+            raise HTTPException(status_code=422, detail="memory_packet_relation_must_be_object")
+        source = str(relation.get("source") or "").strip()
+        target = str(relation.get("target") or "").strip()
+        if not source or not target or source not in node_ids or target not in node_ids or source == target:
+            raise HTTPException(status_code=422, detail="memory_packet_relation_endpoint_invalid")
+        for key in ("strength_q", "token_overlap_q"):
+            try:
+                q = int(relation.get(key, 0))
+            except (TypeError, ValueError) as exc:
+                raise HTTPException(status_code=422, detail=f"memory_packet_relation_{key}_invalid") from exc
+            if q < 0 or q > 1000:
+                raise HTTPException(status_code=422, detail=f"memory_packet_relation_{key}_invalid")
+    return raw
+
+
+def _memory_packet_projection(packet: dict[str, Any]) -> dict[str, Any]:
+    meta_objects: list[dict[str, Any]] = []
+    labels: list[str] = []
+    evidence_terms: list[str] = []
+
+    def add_witness(node_id: str, role: str, witness: dict[str, Any], label: str = "") -> None:
+        source = witness.get("source") if isinstance(witness.get("source"), dict) else {}
+        derived_label = label or " — ".join(str(source.get(key) or "").strip() for key in ("artist", "title") if str(source.get(key) or "").strip())
+        labels.append(derived_label or node_id)
+        for token in witness.get("tokens") or []:
+            category = str(token.get("category") or "unknown").strip()[:128]
+            object_name = str(token.get("object_name") or "").strip()[:4000]
+            if not object_name:
+                continue
+            confidence_q = max(0, min(1000, int(token.get("confidence_q") or 0)))
+            provenance = token.get("provenance") if isinstance(token.get("provenance"), dict) else {}
+            channel = str(provenance.get("modality") or "").strip()[:128] or None
+            evidence_terms.append(object_name)
+            meta_objects.append({
+                "label": f"media_token.{category}"[:256],
+                "value": object_name,
+                "measurement_kind": "media_meta_token",
+                "channel": channel,
+                "confidence": confidence_q / 1000.0,
+                "locator": {"node_id": node_id, "role": role},
+                "attributes": {"category": category, "node_id": node_id, "node_role": role},
+            })
+
+    add_witness(str(packet["anchor_node_id"]), "anchor", packet["anchor_witness"])
+    for node in packet.get("recalled_nodes") or []:
+        add_witness(str(node.get("node_id") or ""), "recalled", node.get("witness") or {}, str(node.get("label") or ""))
+    for relation in packet.get("relations") or []:
+        relation_type = str(relation.get("type") or "recurrence").strip()[:128] or "recurrence"
+        evidence_terms.append(relation_type)
+        confidence_q = max(0, min(1000, int(relation.get("strength_q") or relation.get("token_overlap_q") or 0)))
+        meta_objects.append({
+            "label": "recurrence_relation",
+            "value": relation_type,
+            "measurement_kind": "recurrence_relation",
+            "confidence": confidence_q / 1000.0,
+            "locator": {"source": str(relation.get("source") or ""), "target": str(relation.get("target") or "")},
+            "attributes": {
+                "explicit": bool(relation.get("explicit")),
+                "source": str(relation.get("source") or ""),
+                "target": str(relation.get("target") or ""),
+                "token_overlap_q": int(relation.get("token_overlap_q") or 0),
+            },
+        })
+    recall_query = packet.get("recall", {}).get("query", {}) if isinstance(packet.get("recall"), dict) else {}
+    return {
+        "information_kind": "media_meta_witness_memory_packet",
+        "information_ref": str(packet["logical_id"]),
+        "text_fields": {
+            "anchor": labels[0] if labels else str(packet["anchor_node_id"]),
+            "recalled": "\n".join(labels[1:])[:40000],
+            "evidence_terms": " ".join(evidence_terms)[:80000],
+        },
+        "facets": {
+            "packet_schema": MEMORY_PACKET_SCHEMA,
+            "packet_status": "unsealed",
+            "graph_schema": str(packet.get("graph_schema") or ""),
+            "formal_contract": str(packet.get("formal_contract") or ""),
+            "recall_direction": str(recall_query.get("direction") or "both"),
+            "include_inferred": bool(recall_query.get("include_inferred", True)),
+            "recalled_node_count": len(packet.get("recalled_nodes") or []),
+            "relation_count": len(packet.get("relations") or []),
+        },
+        "meta_objects": meta_objects[:4096],
+        "metadata": {
+            "logical_id": str(packet["logical_id"]),
+            "anchor_node_id": str(packet["anchor_node_id"]),
+            "source_integrity": "unsealed",
+            "promotion_eligible": False,
+            "contract_boundary": packet.get("contract_boundary") if isinstance(packet.get("contract_boundary"), dict) else {},
+            "portability": packet.get("portability") if isinstance(packet.get("portability"), dict) else {},
+        },
+    }
 
 
 def _image_payload_from_url(url: str) -> str | None:
@@ -486,6 +716,12 @@ def _wgrnn_identity(req: ChatCompletionRequest) -> dict[str, str | None]:
         or meta.get("userId")
         or meta.get("user")
     )
+    user_name = _safe_identity_value(
+        meta.get("user_name")
+        or meta.get("userName")
+        or meta.get("display_name")
+        or meta.get("displayName")
+    )
     agent_id = _safe_identity_value(
         req.agent_id
         or meta.get("agent_id")
@@ -504,6 +740,7 @@ def _wgrnn_identity(req: ChatCompletionRequest) -> dict[str, str | None]:
     source = _safe_identity_value(req.source or meta.get("source") or meta.get("client")) or "openai-compatible"
     return {
         "user_id": user_id or "anonymous",
+        "user_name": user_name,
         "agent_id": agent_id or "wg-rnn:chat",
         "thread_id": thread_id,
         "source": source,
@@ -514,12 +751,18 @@ def _apply_wgrnn_identity_headers(
     req: ChatCompletionRequest,
     *,
     x_wgrnn_user_id: str | None = None,
+    x_wgrnn_user_name: str | None = None,
     x_wgrnn_agent_id: str | None = None,
     x_wgrnn_thread_id: str | None = None,
     x_wgrnn_source: str | None = None,
     x_xavi_user_id: str | None = None,
 ) -> None:
     req.user_id = _safe_identity_value(x_wgrnn_user_id) or _safe_identity_value(x_xavi_user_id) or req.user_id
+    identity_label = _safe_identity_value(x_wgrnn_user_name)
+    if identity_label:
+        meta = dict(req.metadata) if isinstance(req.metadata, dict) else {}
+        meta["user_name"] = identity_label
+        req.metadata = meta
     req.agent_id = _safe_identity_value(x_wgrnn_agent_id) or req.agent_id
     req.thread_id = _safe_identity_value(x_wgrnn_thread_id) or req.thread_id
     req.source = _safe_identity_value(x_wgrnn_source) or req.source
@@ -1258,6 +1501,7 @@ def create_app() -> FastAPI:
     kernel = RuntimeKernel(settings, initialize_schema=True)
 
     app = FastAPI(title="Duotronic SRNN Runtime Host", version="0.2.0", openapi_url="/fastapi/openapi.json")
+    media_reconstruction = MediaReconstructionManager(Path(os.environ.get("RUNTIME_DATA_DIR", "/runtime/data")) / "media_reconstruction", kernel.service_registry, max_workers=int(os.environ.get("XAVI_MEDIA_RECONSTRUCTION_WORKERS", "1")))
     autonomy_control_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="autonomy-control")
     app.state.autonomy_control_executor = autonomy_control_executor
     static_dir = __import__("pathlib").Path(__file__).resolve().parent / "static"
@@ -1270,6 +1514,8 @@ def create_app() -> FastAPI:
     kernel_chat = WGRNNKernelChat(kernel)
     wgrnn_worker_loop = WGRNNWorkerLoop(kernel)
     app.state.wgrnn_worker_loop = wgrnn_worker_loop
+    train_ingest_loop = TrainFolderIngestLoop(kernel)
+    app.state.train_ingest_loop = train_ingest_loop
 
     @app.on_event("startup")
     async def startup() -> None:
@@ -1282,9 +1528,12 @@ def create_app() -> FastAPI:
             if validation.get("inspection", {}).get("status") == "ok":
                 kernel.store.upsert_corpus_version(validation["inspection"]["corpus_ref"], validation, status="candidate")
         await wgrnn_worker_loop.start()
+        await train_ingest_loop.start()
 
     @app.on_event("shutdown")
     async def shutdown() -> None:
+        await train_ingest_loop.stop()
+        media_reconstruction.shutdown()
         await wgrnn_worker_loop.stop()
         autonomy_control_executor.shutdown(wait=False, cancel_futures=True)
 
@@ -1310,10 +1559,400 @@ def create_app() -> FastAPI:
         # Explicit diagnostic endpoint; may perform corpus/filesystem work.
         return kernel.deep_health()
 
+    @app.post("/v1/geometry/stream/build")
+    def geometry_stream_build(req: dict[str, Any]) -> dict[str, Any]:
+        try:
+            source = geometry_from_b64(str(req.get("source_b64") or ""), field="source_b64")
+            information = req.get("information") if isinstance(req.get("information"), dict) else {}
+            stream = build_information_stream(source_bytes=source, information=information)
+            decoded = decode_information_stream(stream)
+            return {
+                "schema_version": "duotronic_geometry_backend_stream/v1",
+                "stream_b64": geometry_b64(stream),
+                "stream": {
+                    "schema_version": decoded["schema_version"],
+                    "total_bytes": decoded["total_bytes"],
+                    "information_bytes": len(decoded["information_bytes"]),
+                    "source_bytes": len(decoded["source_bytes"]),
+                    "information_crc_ok": decoded["information_crc_ok"],
+                    "source_crc_ok": decoded["source_crc_ok"],
+                    "stream_crc_ok": decoded["stream_crc_ok"],
+                },
+                "information": decoded["information"],
+            }
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/geometry/stream/decode")
+    def geometry_stream_decode(req: dict[str, Any]) -> dict[str, Any]:
+        try:
+            decoded = decode_information_stream(geometry_from_b64(str(req.get("stream_b64") or ""), field="stream_b64"))
+            return {
+                "schema_version": decoded["schema_version"],
+                "information": decoded["information"],
+                "source_b64": geometry_b64(decoded["source_bytes"]),
+                "total_bytes": decoded["total_bytes"],
+                "information_crc_ok": decoded["information_crc_ok"],
+                "source_crc_ok": decoded["source_crc_ok"],
+                "stream_crc_ok": decoded["stream_crc_ok"],
+            }
+        except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/geometry/depth/build")
+    def geometry_depth_build(req: dict[str, Any]) -> dict[str, Any]:
+        try:
+            stream = geometry_from_b64(str(req.get("stream_b64") or ""), field="stream_b64")
+            frame = build_depth_frame(stream, int(req.get("payload_capacity") or 512), int(req.get("depth_index") or 0))
+            return {**{k: v for k, v in frame.items() if k != "payload_bytes"}, "payload_b64": geometry_b64(frame["payload_bytes"])}
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/geometry/depth/reassemble")
+    def geometry_depth_reassemble(req: dict[str, Any]) -> dict[str, Any]:
+        try:
+            values = req.get("frames_b64") if isinstance(req.get("frames_b64"), list) else []
+            result = reassemble_depth_frames([geometry_from_b64(str(v), field="frames_b64") for v in values])
+            out = {k: v for k, v in result.items() if k != "bytes"}
+            if result.get("complete") and isinstance(result.get("bytes"), (bytes, bytearray)):
+                out["stream_b64"] = geometry_b64(result["bytes"])
+            return out
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/geometry/carrier/build")
+    def geometry_carrier_build(req: dict[str, Any]) -> dict[str, Any]:
+        try:
+            payload = geometry_from_b64(str(req.get("payload_b64") or ""), field="payload_b64")
+            carrier = build_carrier(
+                payload, int(req.get("frame_index") or 0),
+                family=str(req.get("family") or "fractal_branch"),
+                width=float(req.get("width") or 1280), height=float(req.get("height") or 720),
+                primitive_budget=int(req.get("primitive_budget") or 3000),
+            )
+            return carrier_to_json(carrier)
+        except (ValueError, TypeError) as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/geometry/carrier/decode")
+    def geometry_carrier_decode(req: dict[str, Any]) -> dict[str, Any]:
+        carrier = req.get("carrier") if isinstance(req.get("carrier"), dict) else {}
+        return decode_result_to_json(decode_carrier(carrier))
+
+    @app.get("/v1/geometry/capabilities")
+    def geometry_capabilities() -> dict[str, Any]:
+        return {
+            "schema_version": "duotronic_geometry_backend_capabilities/v1",
+            "information_stream": "duotronic_geometry_information_stream/v1",
+            "depth_frame": "duotronic_geometry_depth_frame/v1",
+            "carrier": "duotronic_geometry_carrier/v1",
+            "families": ["fractal_branch", "polygon_rings"],
+            "carrier_capacity_default": get_carrier_capacity(3000),
+            "ecc": "hamming(7,4)",
+            "crc": "crc32/iso-hdlc",
+            "color_required_for_decode": False,
+            "single_stream_only": True,
+            "logical_depth_unbounded": True,
+            "authority": "geometry_is_carrier",
+        }
+
+    @app.post("/v1/media/reconstruction/start")
+    async def media_reconstruction_start(
+        request: Request,
+        filename: str | None = Header(default=None, alias="X-Filename"),
+        mime_type: str | None = Header(default=None, alias="X-Mime-Type"),
+        deterministic_rate_hz: float | None = None,
+        semantic_interval_seconds: float | None = None,
+        max_semantic_anchors: int | None = None,
+        range_start_seconds: float | None = None,
+        range_end_seconds: float | None = None,
+        analysis_profile: str = "full",
+    ) -> dict[str, Any]:
+        length = request.headers.get("content-length")
+        if length and int(length) > MEDIA_RECONSTRUCTION_MAX_SOURCE_BYTES:
+            raise HTTPException(status_code=413, detail="media_reconstruction_source_too_large")
+        body = await request.body()
+        if not body:
+            raise HTTPException(status_code=400, detail="media_reconstruction_empty_source")
+        if len(body) > MEDIA_RECONSTRUCTION_MAX_SOURCE_BYTES:
+            raise HTTPException(status_code=413, detail="media_reconstruction_source_too_large")
+        try:
+            return media_reconstruction.start_job(
+                body,
+                filename=filename or "uploaded-media",
+                mime_type=mime_type or request.headers.get("content-type") or "application/octet-stream",
+                options={
+                    "deterministic_rate_hz": deterministic_rate_hz,
+                    "semantic_interval_seconds": semantic_interval_seconds,
+                    "max_semantic_anchors": max_semantic_anchors,
+                    "range_start_seconds": range_start_seconds,
+                    "range_end_seconds": range_end_seconds,
+                    "analysis_profile": analysis_profile,
+                },
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/media/reconstruction/refine/{parent_job_id}")
+    def media_reconstruction_refine(
+        parent_job_id: str,
+        range_start_seconds: float,
+        range_end_seconds: float,
+        analysis_profile: str = "forensic_range",
+        deterministic_rate_hz: float | None = None,
+        semantic_interval_seconds: float | None = None,
+        max_semantic_anchors: int | None = None,
+    ) -> dict[str, Any]:
+        try:
+            return media_reconstruction.refine_from_job(
+                parent_job_id,
+                range_start_seconds=range_start_seconds,
+                range_end_seconds=range_end_seconds,
+                analysis_profile=analysis_profile,
+                deterministic_rate_hz=deterministic_rate_hz,
+                semantic_interval_seconds=semantic_interval_seconds,
+                max_semantic_anchors=max_semantic_anchors,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/v1/media/reconstruction/jobs")
+    def media_reconstruction_jobs(limit: int = 50, status: str | None = None) -> dict[str, Any]:
+        return media_reconstruction.list_jobs(limit=limit, status=status)
+
+    @app.get("/v1/media/reconstruction/graph")
+    def media_reconstruction_graph(limit: int = 100, relationship_limit: int = 500) -> dict[str, Any]:
+        return media_reconstruction.investigation_graph(limit=limit, relationship_limit=relationship_limit)
+
+    @app.get("/v1/media/reconstruction/compare")
+    def media_reconstruction_compare(left_job_id: str, right_job_id: str) -> dict[str, Any]:
+        try:
+            return media_reconstruction.compare_jobs(left_job_id, right_job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/v1/media/reconstruction/align")
+    def media_reconstruction_align(
+        query_job_id: str,
+        target_job_id: str,
+        query_start_seconds: float | None = None,
+        query_end_seconds: float | None = None,
+        window_seconds: float | None = None,
+        step_seconds: float | None = None,
+        limit: int = 8,
+        min_similarity: float = 0.0,
+        max_windows: int = 2000,
+    ) -> dict[str, Any]:
+        try:
+            return media_reconstruction.align_jobs(
+                query_job_id,
+                target_job_id,
+                query_start_seconds=query_start_seconds,
+                query_end_seconds=query_end_seconds,
+                window_seconds=window_seconds,
+                step_seconds=step_seconds,
+                limit=limit,
+                min_similarity=min_similarity,
+                max_windows=max_windows,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/v1/media/reconstruction/motifs")
+    def media_reconstruction_motifs(
+        job_id: str,
+        recompute_if_missing: bool = True,
+    ) -> dict[str, Any]:
+        try:
+            return media_reconstruction.motifs(job_id, recompute_if_missing=recompute_if_missing)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_or_motif_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/v1/media/reconstruction/motif/align")
+    def media_reconstruction_motif_align(
+        query_job_id: str,
+        motif_id: str,
+        target_job_id: str,
+        step_seconds: float | None = None,
+        limit: int = 8,
+        min_similarity: float = 0.0,
+        max_windows: int = 2000,
+    ) -> dict[str, Any]:
+        try:
+            return media_reconstruction.align_motif(
+                query_job_id,
+                motif_id,
+                target_job_id,
+                step_seconds=step_seconds,
+                limit=limit,
+                min_similarity=min_similarity,
+                max_windows=max_windows,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_or_motif_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/v1/media/reconstruction/motif/similar")
+    def media_reconstruction_motif_similar(
+        query_job_id: str,
+        motif_id: str,
+        limit: int = 20,
+        min_similarity: float = 0.25,
+        max_jobs: int = 200,
+        include_salient_candidates: bool = True,
+        include_query_job: bool = False,
+    ) -> dict[str, Any]:
+        try:
+            return media_reconstruction.find_similar_motifs(
+                query_job_id,
+                motif_id,
+                limit=limit,
+                min_similarity=min_similarity,
+                max_jobs=max_jobs,
+                include_salient_candidates=include_salient_candidates,
+                include_query_job=include_query_job,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_or_motif_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.get("/v1/media/reconstruction/similar")
+    def media_reconstruction_similar(
+        job_id: str,
+        limit: int = 12,
+        min_similarity: float = 0.0,
+        max_candidates: int = 500,
+    ) -> dict[str, Any]:
+        try:
+            return media_reconstruction.find_similar_jobs(
+                job_id,
+                limit=limit,
+                min_similarity=min_similarity,
+                max_candidates=max_candidates,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    @app.post("/v1/media/reconstruction/cancel/{job_id}")
+    def media_reconstruction_cancel(job_id: str) -> dict[str, Any]:
+        try:
+            return media_reconstruction.cancel(job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+
+    @app.delete("/v1/media/reconstruction/job/{job_id}")
+    def media_reconstruction_delete(job_id: str) -> dict[str, Any]:
+        try:
+            return media_reconstruction.delete(job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @app.get("/v1/media/reconstruction/status/{job_id}")
+    def media_reconstruction_status(job_id: str) -> dict[str, Any]:
+        try:
+            return media_reconstruction.status(job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+
+    @app.get("/v1/media/reconstruction/result/{job_id}")
+    def media_reconstruction_result(job_id: str) -> dict[str, Any]:
+        try:
+            return media_reconstruction.result(job_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail="media_reconstruction_job_not_found") from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
     @app.get("/v1/capabilities")
     def runtime_capabilities(authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
         return tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
+
+    @app.get("/v1/runtime/service-registry")
+    def runtime_service_registry(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.service_registry.report()
+
+    @app.get("/v1/runtime/service-health")
+    def runtime_service_health(
+        node_id: str | None = None,
+        service: str | None = None,
+        timeout_seconds: float = 2.0,
+        authorization: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.service_registry.service_health(
+            node_id=node_id,
+            service=service,
+            timeout_seconds=timeout_seconds,
+        )
+
+    @app.get("/v1/runtime/node-pressure")
+    def runtime_node_pressure(
+        node_id: str | None = None,
+        timeout_seconds: float = 1.5,
+        authorization: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return kernel.service_registry.node_pressure(node_id=node_id, timeout_seconds=timeout_seconds)
+
+    @app.get("/v1/runtime/service-candidates")
+    def runtime_service_candidates(
+        node_id: str | None = None,
+        role: str | None = None,
+        service: str | None = None,
+        prefer_gpu: bool = False,
+        minimum_memory_gib: float = 0.0,
+        min_memory_gib: float | None = None,
+        require_live: bool = False,
+        live_timeout_seconds: float = 2.0,
+        observe_pressure: bool = True,
+        pressure_timeout_seconds: float = 1.5,
+        limit: int = 8,
+        authorization: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        effective_memory_gib = max(float(minimum_memory_gib or 0.0), float(min_memory_gib or 0.0))
+        return kernel.service_registry.scheduler_candidates(
+            node_id=node_id,
+            role=role,
+            service=service,
+            prefer_gpu=prefer_gpu,
+            minimum_memory_gib=effective_memory_gib,
+            require_live=require_live,
+            live_timeout_seconds=live_timeout_seconds,
+            observe_pressure=observe_pressure,
+            pressure_timeout_seconds=pressure_timeout_seconds,
+            limit=limit,
+        )
 
     @app.get("/v1/client-profiles")
     def client_route_profiles(authorization: str | None = Header(default=None)) -> dict[str, Any]:
@@ -1330,7 +1969,7 @@ def create_app() -> FastAPI:
 
         payload = profile_payload(req.profile, mode="route", overrides=req.overrides)
         report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
-        route = plan_inference_route(report, payload)
+        route = plan_inference_route(report, payload, service_registry=kernel.service_registry)
         return {"schema_version": "client-profile-route-v1", "profile": req.profile, "payload": payload, "route": route}
 
     @app.post("/v1/client-profiles/operation")
@@ -1355,7 +1994,7 @@ def create_app() -> FastAPI:
         from .inference_router import plan_inference_route
 
         report = tools_runtime.capability_report(models=kernel.model_provider.registry.list_models())
-        return plan_inference_route(report, req.model_dump())
+        return plan_inference_route(report, req.model_dump(), service_registry=kernel.service_registry)
 
     @app.post("/v1/operations/plan")
     def operation_plan(req: OperationPlanRequestModel, authorization: str | None = Header(default=None)) -> dict[str, Any]:
@@ -1514,6 +2153,7 @@ def create_app() -> FastAPI:
         req: ChatCompletionRequest,
         authorization: str | None = Header(default=None),
         x_wgrnn_user_id: str | None = Header(default=None, alias="X-WGRNN-User-ID"),
+        x_wgrnn_user_name: str | None = Header(default=None, alias="X-WGRNN-User-Name"),
         x_wgrnn_agent_id: str | None = Header(default=None, alias="X-WGRNN-Agent-ID"),
         x_wgrnn_thread_id: str | None = Header(default=None, alias="X-WGRNN-Thread-ID"),
         x_wgrnn_source: str | None = Header(default=None, alias="X-WGRNN-Source"),
@@ -1523,6 +2163,7 @@ def create_app() -> FastAPI:
         _apply_wgrnn_identity_headers(
             req,
             x_wgrnn_user_id=x_wgrnn_user_id,
+            x_wgrnn_user_name=x_wgrnn_user_name,
             x_wgrnn_agent_id=x_wgrnn_agent_id,
             x_wgrnn_thread_id=x_wgrnn_thread_id,
             x_wgrnn_source=x_wgrnn_source,
@@ -1546,7 +2187,15 @@ def create_app() -> FastAPI:
             mode = req.model.split(":", 1)[1] if ":" in req.model else "runtime"
             if mode == "chat":
                 compact_prompt, compact_messages, search_query = _wgrnn_compact_prompt(req.messages, req.prompt)
-                corpus_search = kernel.corpus_manager.search_documents(search_query, top_k=4) if search_query else {"results": []}
+                identity = _wgrnn_identity(req)
+                evidence_source = str(identity.get("source") or "").strip().lower()
+                if evidence_source in {"xavi-news-evidence", "news-evidence"}:
+                    # News already supplies bounded retrieved titles/snippets as the evidence corpus.
+                    # Avoid a second, unrelated Witness Contract corpus search for the same turn;
+                    # the normal kernel prepare/finalize/witness path remains active.
+                    corpus_search = {"status": "external_evidence", "results": [], "source": evidence_source}
+                else:
+                    corpus_search = kernel.corpus_manager.search_documents(search_query, top_k=4) if search_query else {"results": []}
                 needs_vision = _messages_have_images(req.messages)
                 model_candidates = _wgrnn_chat_model_candidates(kernel, needs_vision=needs_vision, needs_tools=bool(req.tools))
                 prepared = kernel_chat.prepare_turn(
@@ -1554,7 +2203,7 @@ def create_app() -> FastAPI:
                     messages=compact_messages,
                     corpus_search=corpus_search,
                     needs_vision=needs_vision,
-                    identity=_wgrnn_identity(req),
+                    identity=identity,
                 )
                 chat_messages = _wgrnn_provider_messages(req, compact_messages, prepared)
                 has_search_tool_result = _latest_search_tool_message(compact_messages) is not None
@@ -1823,6 +2472,86 @@ def create_app() -> FastAPI:
             "signed_envelope": signed,
             "signature_verified": True,
             "authority": "observed_evidence_only",
+        }
+
+    @app.post("/v1/memory-packets/observe")
+    async def memory_packet_observe_rest(req: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_memory_packet_key(settings, authorization)
+        packet = _validate_external_memory_packet(req.get("packet"))
+        source_scope = str(req.get("source_scope") or "default")
+        namespace, adapter_id, source_scope = _meta_graph_adapter_namespace(MEMORY_PACKET_ADAPTER_ID, source_scope)
+        projection = _memory_packet_projection(packet)
+        graph = build_information_graph(
+            information_kind=projection["information_kind"],
+            information_ref=projection["information_ref"],
+            text_fields=projection["text_fields"],
+            facets=projection["facets"],
+            meta_objects=projection["meta_objects"],
+            metadata=projection["metadata"],
+        )
+        witness_payload = {
+            "schema_version": "media_meta_witness_memory_packet_observation/v1",
+            "packet": packet,
+            "ingest": {
+                "adapter_id": adapter_id,
+                "source_scope": source_scope,
+                "trust_status": "candidate",
+                "promotion_eligible": False,
+                "authority": "observed_evidence_only",
+            },
+        }
+        witness = kernel.evidence.witness(
+            MEMORY_PACKET_WITNESS_TYPE,
+            witness_payload,
+            force="observe",
+            status="candidate",
+        )
+        base_witness = dict(witness)
+        signed = kernel.pq_keys.sign(
+            {"witness_id": witness["witness_id"], "witness": base_witness},
+            purpose="evidence",
+        )
+        if not bool(kernel.pq_keys.verify(signed)):
+            raise HTTPException(status_code=500, detail="memory_packet_signature_verification_failed")
+        witness["signature_suite"] = signed.get("signature_suite")
+        witness["signing_key_id"] = signed.get("key_id")
+        witness["signed_envelope"] = signed
+        witness["signature_verified"] = True
+        kernel.store.insert_witness(witness, run_id=str(req.get("run_id") or "") or None)
+
+        import time
+        persisted = await asyncio.to_thread(
+            kernel.store.insert_meta_graph_observation,
+            graph=graph,
+            namespace=namespace,
+            source_update_id=str(witness["witness_id"]),
+            trust_status="candidate",
+            observed_at_ms=int(time.time() * 1000),
+            metadata={
+                "adapter_id": adapter_id,
+                "source_scope": source_scope,
+                "evidence_witness_id": str(witness["witness_id"]),
+                "packet_logical_id": str(packet["logical_id"]),
+                "source_integrity": "unsealed",
+                "promotion_eligible": False,
+                "authority": "candidate_observation_only",
+            },
+        )
+        return {
+            "schema_version": "media_meta_witness_memory_packet_ingest/v1",
+            "logical_id": str(packet["logical_id"]),
+            "witness_id": str(witness["witness_id"]),
+            "observation_id": str(persisted.get("observation_id") or ""),
+            "namespace": namespace,
+            "trust_status": "candidate",
+            "source_integrity": "unsealed",
+            "signature_suite": witness.get("signature_suite"),
+            "signing_key_id": witness.get("signing_key_id"),
+            "signature_verified": True,
+            "promotion_eligible": False,
+            "authority": "observed_evidence_only",
+            "retrieval_authority": "candidate_ranking_signal_only",
+            "note": "The runtime signature witnesses receipt and storage of this unsealed packet; it does not promote the packet contents to truth or learned behavior.",
         }
 
     @app.post("/v1/evidence/verify")
@@ -2176,6 +2905,76 @@ def create_app() -> FastAPI:
             "composition_similarity": composition_result,
         }
 
+    @app.post("/v1/memory-packets/retrieve")
+    async def memory_packet_retrieve_rest(req: MemoryPacketRetrieveRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_memory_packet_key(settings, authorization)
+        if not req.query.strip() and not req.meta_objects:
+            raise HTTPException(status_code=422, detail="memory_packet_query_required")
+        retrieval = await meta_graph_retrieve_rest(
+            MetaGraphRetrieveRequest(
+                adapter_id=MEMORY_PACKET_ADAPTER_ID,
+                source_scope=req.source_scope,
+                query=req.query,
+                facets={},
+                meta_objects=req.meta_objects,
+                limit=req.limit,
+            ),
+            authorization,
+        )
+        witness_refs: list[str] = []
+        for section_name in ("exact_witness_recurrence", "composition_similarity"):
+            section = retrieval.get(section_name) if isinstance(retrieval.get(section_name), dict) else {}
+            for row in section.get("matches") or []:
+                if not isinstance(row, dict):
+                    continue
+                ref = str(row.get("source_update_id") or "").strip()
+                if ref and ref not in witness_refs:
+                    witness_refs.append(ref)
+        return {
+            "schema_version": "media_meta_witness_memory_packet_retrieve/v1",
+            "namespace": retrieval.get("namespace"),
+            "query": req.query,
+            "witness_refs": witness_refs,
+            "authority": "candidate_ranking_signal_only",
+            "promotion_eligible": False,
+            "retrieval": retrieval,
+        }
+
+    @app.get("/v1/memory-packets/{witness_id}")
+    def memory_packet_get_rest(witness_id: str, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_memory_packet_key(settings, authorization)
+        row = kernel.store.get_evidence_witness(witness_id)
+        if row is None or str(row.get("witness_type") or "") != MEMORY_PACKET_WITNESS_TYPE:
+            raise HTTPException(status_code=404, detail="memory_packet_witness_not_found")
+        payload = row.get("payload")
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError as exc:
+                raise HTTPException(status_code=500, detail="stored_memory_packet_payload_invalid") from exc
+        if not isinstance(payload, dict) or not isinstance(payload.get("packet"), dict):
+            raise HTTPException(status_code=500, detail="stored_memory_packet_payload_invalid")
+        envelope = row.get("signed_envelope")
+        if isinstance(envelope, str):
+            try:
+                envelope = json.loads(envelope)
+            except json.JSONDecodeError:
+                envelope = None
+        return {
+            "schema_version": "media_meta_witness_memory_packet_record/v1",
+            "witness_id": str(row.get("witness_id") or witness_id),
+            "witness_type": MEMORY_PACKET_WITNESS_TYPE,
+            "status": str(row.get("status") or "candidate"),
+            "packet": payload["packet"],
+            "ingest": payload.get("ingest") if isinstance(payload.get("ingest"), dict) else {},
+            "signature_suite": row.get("signature_suite"),
+            "signing_key_id": row.get("signing_key_id"),
+            "signed_envelope": envelope,
+            "signature_verified": bool(row.get("signature_verified")),
+            "authority": "observed_evidence_only",
+            "promotion_eligible": False,
+        }
+
     @app.post("/v1/meta-graph/chain/build")
     async def meta_graph_chain_build_rest(req: MetaGraphChainBuildRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
@@ -2393,6 +3192,27 @@ def create_app() -> FastAPI:
             preview_chars=max(120, min(int(req.get("preview_chars", 900)), 2000)),
         )
 
+    @app.post("/v1/autonomy/reference/search")
+    async def autonomy_reference_search_rest(req: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        """LAN/offline-safe search over witnessed local training/reference chunks."""
+        require_api_key(settings, authorization)
+        import asyncio
+        query = str(req.get("query") or "").strip()
+        if not query:
+            raise HTTPException(status_code=422, detail="query_required")
+        return await asyncio.to_thread(
+            kernel.store.search_reference_corpus,
+            query=query,
+            session_id=req.get("session_id"),
+            event_type=str(req.get("event_type") or "source_training_chunk"),
+            tag=req.get("tag"),
+            source_path_prefix=req.get("source_path_prefix"),
+            adapter=req.get("adapter"),
+            mime_type=req.get("mime_type"),
+            limit=max(1, min(int(req.get("limit", 20)), 100)),
+            preview_chars=max(120, min(int(req.get("preview_chars", 900)), 2000)),
+        )
+
     @app.post("/v1/autonomy/training/observe")
     async def autonomy_training_observe_rest(req: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
         require_api_key(settings, authorization)
@@ -2429,8 +3249,21 @@ def create_app() -> FastAPI:
             derived_records=req.get("derived_records") if isinstance(req.get("derived_records"), list) else [],
             metadata=req.get("metadata") if isinstance(req.get("metadata"), dict) else {},
             training_eligible=bool(req.get("training_eligible", True)),
+            auto_transcribe=bool(req.get("auto_transcribe", True)),
+            auto_extract=bool(req.get("auto_extract", True)),
+            auto_vision=bool(req.get("auto_vision", True)),
             session_id=str(req.get("session_id") or "media-ingest"),
         )
+
+    @app.get("/v1/autonomy/train-ingest/status")
+    async def autonomy_train_ingest_status_rest(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return train_ingest_loop.status()
+
+    @app.post("/v1/autonomy/train-ingest/scan")
+    async def autonomy_train_ingest_scan_rest(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        require_api_key(settings, authorization)
+        return await asyncio.to_thread(train_ingest_loop.scan_once)
 
     @app.post("/v1/autonomy/datalake/observe")
     async def autonomy_datalake_observe_rest(req: dict[str, Any], authorization: str | None = Header(default=None)) -> dict[str, Any]:
@@ -2712,6 +3545,46 @@ def create_app() -> FastAPI:
             allow_memory_write=req.allow_memory_write,
             allow_promote=req.allow_promote_witness,
         )
+
+    @app.post("/v1/math/positive-baseline/evaluate")
+    def positive_baseline_evaluate(req: PositiveBaselineEvaluateRequest) -> dict[str, Any]:
+        """Evaluate a polygonal cell package with the mounted Draft 5.3.18 reference evaluator."""
+        import hashlib
+        import importlib.util
+        from pathlib import Path
+
+        source_path = Path(settings.corpus_dir) / "executable" / "runtime" / "positive_baseline.py"
+        if not source_path.is_file():
+            raise HTTPException(status_code=503, detail={"code": "reference_evaluator_unavailable", "path": str(source_path)})
+        import sys
+
+        module_name = "duotronic_positive_baseline_v5318"
+        spec = importlib.util.spec_from_file_location(module_name, source_path)
+        if spec is None or spec.loader is None:
+            raise HTTPException(status_code=503, detail={"code": "reference_evaluator_load_failed"})
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        try:
+            spec.loader.exec_module(module)
+        except Exception as exc:
+            sys.modules.pop(module_name, None)
+            raise HTTPException(
+                status_code=503,
+                detail={"code": "reference_evaluator_load_failed", "message": str(exc)},
+            ) from exc
+        try:
+            result = module.evaluate_graph(req.package)
+        except module.EvaluationError as exc:
+            raise HTTPException(status_code=422, detail={"code": exc.code, "message": str(exc)}) from exc
+        source_hash = hashlib.shake_256(source_path.read_bytes()).hexdigest(64)
+        return {
+            "contract_version": "v1.6-draft-5.3.18",
+            "evaluator_version": getattr(module, "EVALUATOR_VERSION", "unknown"),
+            "source": "mounted-canonical-corpus",
+            "source_path": str(source_path),
+            "source_shake256_512": f"shake256-512:{source_hash}",
+            "result": result,
+        }
 
     @app.get("/v1/formal/status")
     def formal_status() -> dict[str, Any]:

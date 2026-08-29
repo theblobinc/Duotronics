@@ -56,7 +56,7 @@ PROVIDER_WEIGHTS = {
     "echo": -40,
 }
 
-REMOTE_MARKERS = ("host.containers.internal", "10.77.0.2", "18205", "gpu", "remote")
+REMOTE_MARKERS = ("host.containers.internal", "18205", "gpu", "remote")
 
 
 @dataclass(frozen=True)
@@ -109,8 +109,13 @@ def _capabilities_for(req: InferenceRouteRequest) -> list[str]:
 
 
 def _is_remote(record: dict[str, Any]) -> bool:
-    haystack = " ".join(str(record.get(k) or "") for k in ("name", "model", "base_url", "provider")).lower()
     metadata = record.get("metadata")
+    if isinstance(metadata, dict):
+        if metadata.get("node_id"):
+            return True
+        if str(metadata.get("transport") or "") in {"dedicated-private-ethernet", "dedicated-private-ethernet-pending"}:
+            return True
+    haystack = " ".join(str(record.get(k) or "") for k in ("name", "model", "base_url", "provider")).lower()
     if isinstance(metadata, dict):
         haystack += " " + " ".join(str(v).lower() for v in metadata.values() if isinstance(v, (str, int, float, bool)))
     return any(marker in haystack for marker in REMOTE_MARKERS)
@@ -121,7 +126,146 @@ def _backend_configured(backends: dict[str, Any], route_kind: str) -> bool:
     return bool(isinstance(backend, dict) and backend.get("configured"))
 
 
-def _score_model(record: dict[str, Any], req: InferenceRouteRequest, desired_caps: list[str]) -> dict[str, Any] | None:
+def _normalize_endpoint(value: Any) -> str:
+    return str(value or "").strip().rstrip("/")
+
+
+def _model_service_name(record: dict[str, Any]) -> str | None:
+    metadata = record.get("metadata") if isinstance(record.get("metadata"), dict) else {}
+    explicit = str(metadata.get("service_name") or "").strip()
+    if explicit:
+        return explicit
+    return {
+        "ollama": "ollama",
+        "llama_cpp": "llama_cpp",
+    }.get(str(record.get("provider") or ""))
+
+
+def _observe_live_model_backends(
+    report: dict[str, Any],
+    req: InferenceRouteRequest,
+    service_registry: Any | None,
+) -> dict[str, Any] | None:
+    if not req.require_live_backend:
+        return None
+    if service_registry is None:
+        return {
+            "schema_version": "inference-live-backends-v1",
+            "required": True,
+            "available": False,
+            "offline_only": True,
+            "services": [],
+            "observations": [],
+            "skipped": [],
+            "observation_digests": [],
+            "healthy_count": 0,
+        }
+
+    services = sorted(
+        {
+            service_name
+            for model in (report.get("models") or [])
+            if isinstance(model, dict)
+            for service_name in [_model_service_name(model)]
+            if service_name
+        }
+    )
+    observations: list[dict[str, Any]] = []
+    skipped: list[dict[str, Any]] = []
+    digests: list[str] = []
+    observed_at_ms: list[int] = []
+    for service_name in services:
+        if service_name == "ollama" and hasattr(service_registry, "ollama_inventory"):
+            observed = service_registry.ollama_inventory(timeout_seconds=1.5)
+            observations.extend(row for row in (observed.get("observations") or []) if isinstance(row, dict))
+            digest = str(observed.get("observation_digest") or "")
+            health_digest = str(observed.get("service_health_digest") or "")
+            if digest:
+                digests.append(digest)
+            if health_digest and health_digest not in digests:
+                digests.append(health_digest)
+            if observed.get("observed_at_ms") is not None:
+                observed_at_ms.append(int(observed["observed_at_ms"]))
+            continue
+        health = service_registry.service_health(service=service_name, timeout_seconds=1.5)
+        observations.extend(row for row in (health.get("observations") or []) if isinstance(row, dict))
+        skipped.extend(row for row in (health.get("skipped") or []) if isinstance(row, dict))
+        digest = str(health.get("observation_digest") or "")
+        if digest:
+            digests.append(digest)
+        if health.get("observed_at_ms") is not None:
+            observed_at_ms.append(int(health["observed_at_ms"]))
+    return {
+        "schema_version": "inference-live-backends-v1",
+        "required": True,
+        "available": True,
+        "offline_only": True,
+        "services": services,
+        "observed_at_ms": max(observed_at_ms) if observed_at_ms else None,
+        "observations": observations,
+        "skipped": skipped,
+        "observation_digests": digests,
+        "healthy_count": sum(1 for row in observations if row.get("healthy") is True),
+    }
+
+
+def _live_state_for_model(record: dict[str, Any], live_backends: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(live_backends, dict):
+        return {"observed": False, "healthy": None}
+    metadata = record.get("metadata") if isinstance(record.get("metadata"), dict) else {}
+    wanted_node = str(metadata.get("node_id") or "").strip()
+    wanted_service = _model_service_name(record)
+    wanted_endpoint = _normalize_endpoint(record.get("base_url"))
+    matches: list[dict[str, Any]] = []
+    for row in live_backends.get("observations") or []:
+        if not isinstance(row, dict):
+            continue
+        if wanted_service and str(row.get("service") or "") != wanted_service:
+            continue
+        row_node = str(row.get("node_id") or "").strip()
+        row_endpoint = _normalize_endpoint(row.get("endpoint"))
+        if wanted_node and row_node == wanted_node:
+            matches.append(row)
+        elif wanted_endpoint and row_endpoint == wanted_endpoint:
+            matches.append(row)
+    if not matches:
+        return {
+            "observed": False,
+            "healthy": False,
+            "node_id": wanted_node or None,
+            "service": wanted_service,
+            "endpoint": wanted_endpoint or None,
+        }
+    selected = next((row for row in matches if row.get("healthy") is True), matches[0])
+    selected_service = str(selected.get("service") or wanted_service or "").strip() or None
+    requested_model = str(record.get("model") or "").strip()
+    inventory_observed = bool(selected.get("inventory_observed", False))
+    installed_models = [str(item) for item in (selected.get("models") or [])]
+    model_available: bool | None = None
+    if selected_service == "ollama":
+        model_available = bool(inventory_observed and requested_model and requested_model in installed_models)
+    return {
+        "observed": True,
+        "healthy": bool(selected.get("healthy")),
+        "node_id": selected.get("node_id") or wanted_node or None,
+        "service": selected_service,
+        "endpoint": selected.get("endpoint") or wanted_endpoint or None,
+        "latency_ms": selected.get("latency_ms"),
+        "status_code": selected.get("status_code"),
+        "inventory_observed": inventory_observed,
+        "model_available": model_available,
+        "installed_model_count": int(selected.get("model_count") or len(installed_models)),
+        "observation_digests": list(live_backends.get("observation_digests") or []),
+    }
+
+
+def _score_model(
+    record: dict[str, Any],
+    req: InferenceRouteRequest,
+    desired_caps: list[str],
+    *,
+    live_state: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     caps = {str(item) for item in record.get("capabilities") or []}
     mods = {str(item) for item in record.get("modalities") or []}
     if desired_caps and not (set(desired_caps) & caps):
@@ -144,25 +288,58 @@ def _score_model(record: dict[str, Any], req: InferenceRouteRequest, desired_cap
         score += 4
     if req.prefer_provider and provider == req.prefer_provider:
         score += 20
+    metadata = record.get("metadata") if isinstance(record.get("metadata"), dict) else {}
     remote = _is_remote(record)
+    scheduler_eligible = metadata.get("scheduler_eligible")
+    lan_preferred = bool(metadata.get("lan_preferred", False))
+    internet_required = metadata.get("internet_required")
+    node_status = str(metadata.get("node_status") or "")
     if req.prefer_remote and remote:
         score += 12
     if not req.prefer_remote and not remote:
         score += 6
+    if lan_preferred and scheduler_eligible is True and node_status == "commissioned":
+        score += 18
+    if internet_required is False:
+        score += 6
+    if scheduler_eligible is False:
+        score -= 80
+    if metadata.get("node_id") and node_status and node_status != "commissioned":
+        score -= 20
     if provider == "echo":
         score -= 60
+    live_state = dict(live_state or {})
+    if live_state.get("healthy") is True:
+        score += 24
 
     return {
         "route_kind": "model",
         "name": record.get("name") or record.get("model"),
         "provider": provider,
         "model": record.get("model"),
+        "base_url": record.get("base_url"),
         "endpoint_type": record.get("endpoint_type"),
         "capabilities": sorted(caps),
         "modalities": sorted(mods),
         "score": round(float(score), 2),
         "remote": remote,
+        "node_id": metadata.get("node_id") or live_state.get("node_id"),
+        "node_status": node_status or None,
+        "transport": metadata.get("transport"),
+        "lan_preferred": lan_preferred,
+        "internet_required": internet_required,
+        "scheduler_eligible": scheduler_eligible,
         "enabled": bool(record.get("enabled", True)),
+        "live_backend_observed": bool(live_state.get("observed", False)),
+        "live_backend_healthy": live_state.get("healthy"),
+        "live_service": live_state.get("service"),
+        "live_endpoint": live_state.get("endpoint"),
+        "live_latency_ms": live_state.get("latency_ms"),
+        "live_status_code": live_state.get("status_code"),
+        "live_inventory_observed": bool(live_state.get("inventory_observed", False)),
+        "live_model_available": live_state.get("model_available"),
+        "live_installed_model_count": live_state.get("installed_model_count"),
+        "live_observation_digests": list(live_state.get("observation_digests") or []),
         "reason": "matched_model_capabilities",
     }
 
@@ -202,20 +379,65 @@ def _tool_candidates(report: dict[str, Any], req: InferenceRouteRequest, desired
     return out
 
 
-def plan_inference_route(report: dict[str, Any], payload: dict[str, Any] | None = None) -> dict[str, Any]:
+def plan_inference_route(
+    report: dict[str, Any],
+    payload: dict[str, Any] | None = None,
+    *,
+    service_registry: Any | None = None,
+) -> dict[str, Any]:
     req = InferenceRouteRequest.from_payload(payload)
     desired_caps = _capabilities_for(req)
     models = report.get("models") or []
+    live_backends = _observe_live_model_backends(report, req, service_registry)
     candidates: list[dict[str, Any]] = []
+    live_exclusions: list[dict[str, Any]] = []
     for model in models:
-        if isinstance(model, dict):
-            scored = _score_model(model, req, desired_caps)
-            if scored:
-                candidates.append(scored)
+        if not isinstance(model, dict):
+            continue
+        live_state = _live_state_for_model(model, live_backends)
+        scored = _score_model(model, req, desired_caps, live_state=live_state)
+        if not scored:
+            continue
+        service_name = _model_service_name(model)
+        provider = str(model.get("provider") or "unknown")
+        if req.require_live_backend and (service_name or provider == "echo"):
+            live_ok = provider != "echo" and live_state.get("healthy") is True
+            if service_name == "ollama":
+                live_ok = live_ok and live_state.get("model_available") is True
+            if not live_ok:
+                if provider == "echo":
+                    exclusion_reason = "echo_is_not_a_live_model_backend"
+                elif live_state.get("healthy") is not True:
+                    exclusion_reason = "live_backend_unhealthy_or_unobserved"
+                elif service_name == "ollama" and live_state.get("model_available") is not True:
+                    exclusion_reason = "ollama_model_not_observed_installed"
+                else:
+                    exclusion_reason = "live_backend_requirement_not_satisfied"
+                live_exclusions.append(
+                    {
+                        "name": model.get("name") or model.get("model"),
+                        "provider": provider,
+                        "model": model.get("model"),
+                        "node_id": (model.get("metadata") or {}).get("node_id") if isinstance(model.get("metadata"), dict) else None,
+                        "service": service_name,
+                        "base_url": model.get("base_url"),
+                        "live_observed": bool(live_state.get("observed", False)),
+                        "live_healthy": live_state.get("healthy"),
+                        "inventory_observed": bool(live_state.get("inventory_observed", False)),
+                        "model_available": live_state.get("model_available"),
+                        "reason": exclusion_reason,
+                    }
+                )
+                continue
+        candidates.append(scored)
     candidates.extend(_tool_candidates(report, req, desired_caps))
     candidates.sort(key=lambda item: item.get("score", 0), reverse=True)
     selected = candidates[0] if candidates else None
     warnings: list[str] = []
+    if req.require_live_backend and isinstance(live_backends, dict) and not live_backends.get("available"):
+        warnings.append("live_backend_observer_unavailable")
+    if live_exclusions:
+        warnings.append("live_model_candidates_filtered")
     if not candidates:
         warnings.append("no_matching_route")
     if selected and selected.get("route_kind") == "tool" and not selected.get("backend_configured", True):
@@ -238,6 +460,8 @@ def plan_inference_route(report: dict[str, Any], payload: dict[str, Any] | None 
         "desired_capabilities": desired_caps,
         "selected": selected,
         "candidates": candidates[: req.max_candidates],
+        "live_backend_observation": live_backends,
+        "live_exclusions": live_exclusions[: req.max_candidates],
         "warnings": warnings,
     }
     result["route_digest"] = shake256_ref({k: v for k, v in result.items() if k != "route_digest"})

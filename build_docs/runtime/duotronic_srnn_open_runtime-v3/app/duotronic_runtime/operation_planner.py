@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import json
 from typing import Any
 
-from .evidence import shake256_ref
+from .crypto_primitives import canonical_json, framed_shake256_duoid
 from .inference_router import plan_inference_route
 
 INTENT_TASKS = {
@@ -36,7 +35,12 @@ def classify_task(goal: str, intent: str = "logic") -> str:
     return "logic"
 
 
-def plan_operation(report: dict[str, Any], payload: dict[str, Any] | None = None) -> dict[str, Any]:
+def plan_operation(
+    report: dict[str, Any],
+    payload: dict[str, Any] | None = None,
+    *,
+    service_registry: Any | None = None,
+) -> dict[str, Any]:
     payload = payload or {}
     goal = str(payload.get("goal") or payload.get("task") or "").strip()
     intent = str(payload.get("intent") or "logic")
@@ -51,6 +55,7 @@ def plan_operation(report: dict[str, Any], payload: dict[str, Any] | None = None
             "needs_vision": task in {"vision", "document_ocr"},
             "max_candidates": int(payload.get("max_candidates", 6)),
         },
+        service_registry=service_registry,
     )
     steps = [
         {"id": "observe_goal", "kind": "observation", "read_only": True},
@@ -72,5 +77,8 @@ def plan_operation(report: dict[str, Any], payload: dict[str, Any] | None = None
         "expected_witnesses": ["OperationPlanWitness"],
         "warnings": sorted(set(warnings)),
     }
-    out["plan_digest"] = shake256_ref(json.dumps(out, sort_keys=True, default=str))
+    out["plan_digest"] = framed_shake256_duoid(
+        "DUOTRONIC/OPERATION-PLAN/v1",
+        canonical_json(out).encode("utf-8"),
+    )
     return out

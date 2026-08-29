@@ -1013,13 +1013,27 @@ from datetime import datetime
 from pathlib import Path
 
 job_id = sys.argv[1]
-jobs_dir = Path(os.environ["XAVI_BOUNDED_JOBS_DIR"])
+jobs_dir = Path(sys.argv[2]) if len(sys.argv) > 2 else Path(os.environ["XAVI_BOUNDED_JOBS_DIR"])
+env_path = Path(sys.argv[3]) if len(sys.argv) > 3 and sys.argv[3] else None
+supervisor_unit = sys.argv[4] if len(sys.argv) > 4 else ""
 paths = {
     "root": jobs_dir / job_id,
     "meta": jobs_dir / job_id / "meta.json",
     "stdout": jobs_dir / job_id / "stdout.log",
     "stderr": jobs_dir / job_id / "stderr.log",
 }
+
+# A bounded job is launched by systemd in its own cgroup.  Import the exact
+# adapter environment from a mode-0600 per-job JSON file, then remove that
+# file immediately so credentials are never retained in unit properties or
+# command arguments.
+if env_path is not None:
+    try:
+        inherited_env = json.loads(env_path.read_text())
+        if isinstance(inherited_env, dict):
+            os.environ.update({str(k): str(v) for k, v in inherited_env.items()})
+    finally:
+        env_path.unlink(missing_ok=True)
 
 child = None
 finished = False
@@ -1071,15 +1085,14 @@ def handle_term(signum, frame):
 signal.signal(signal.SIGTERM, handle_term)
 signal.signal(signal.SIGINT, handle_term)
 
-# Wait for parent to write supervisor pid/status after spawning us.
-deadline = time.time() + 10
-while time.time() < deadline:
-    meta = read_meta()
-    if meta.get("pid") and meta.get("status") == "running":
-        break
-    time.sleep(0.05)
-else:
-    meta = read_meta()
+# Register the real supervisor PID from inside the isolated systemd service.
+# The launcher process exits immediately and is never treated as the job PID.
+meta = update_meta(
+    pid=os.getpid(),
+    supervisor_pid=os.getpid(),
+    supervisor_unit=supervisor_unit,
+    status="running",
+)
 
 argv = meta["argv"]
 cwd = meta["cwd"]
@@ -1146,29 +1159,73 @@ def bounded_job_start(args: dict[str, Any]) -> dict[str, Any]:
 
     py = V3_DIR / ".venv" / "bin" / "python"
     python_exe = str(py if py.exists() else "python3")
-    env = os.environ.copy()
-    env["XAVI_BOUNDED_JOBS_DIR"] = str(_jobs_dir())
+    unit_name = "xavi-bounded-job-" + re.sub(r"[^a-z0-9_.-]+", "-", job_id.lower())
+    unit = unit_name + ".service"
 
-    proc = subprocess.Popen(
-        [python_exe, "-c", _async_job_supervisor_code(), job_id],
+    # Preserve the adapter's exact environment without exposing values in the
+    # transient unit definition.  The isolated supervisor imports this 0600
+    # JSON file and deletes it before starting the registered command.
+    env_path = paths["root"] / "environment.json"
+    paths["root"].chmod(0o700)
+    env_path.write_text(json.dumps(dict(os.environ), separators=(",", ":")))
+    env_path.chmod(0o600)
+
+    launcher = subprocess.run(
+        [
+            "/usr/bin/systemd-run",
+            "--user",
+            f"--unit={unit_name}",
+            "--collect",
+            "--no-block",
+            "--property=Type=exec",
+            "--property=Delegate=yes",
+            "--property=KillMode=process",
+            "--",
+            python_exe,
+            "-c",
+            _async_job_supervisor_code(),
+            job_id,
+            str(_jobs_dir()),
+            str(env_path),
+            unit,
+        ],
         cwd=str(V3_DIR),
-        env=env,
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        start_new_session=True,
+        stderr=subprocess.PIPE,
+        text=True,
+        timeout=5,
+        check=False,
     )
+    if launcher.returncode != 0:
+        env_path.unlink(missing_ok=True)
+        meta["status"] = "launch_failed"
+        meta["returncode"] = launcher.returncode
+        meta["finished_at"] = datetime.utcnow().isoformat() + "Z"
+        meta["error"] = _trim(launcher.stderr or "systemd-run failed", 2000)
+        _write_job_meta_atomic(job_id, meta)
+        raise RuntimeError(f"bounded job systemd launch failed: {meta['error']}")
 
-    meta["pid"] = proc.pid
-    meta["status"] = "running"
-    meta["supervisor_pid"] = proc.pid
-    _write_job_meta_atomic(job_id, meta)
+    # The supervisor self-registers its actual PID from inside the new cgroup.
+    # Wait only for that small metadata handshake, never for the command itself.
+    deadline = datetime.utcnow().timestamp() + 3.0
+    current = meta
+    while datetime.utcnow().timestamp() < deadline:
+        current = _read_job_meta(job_id)
+        if current.get("pid") or current.get("status") not in {"starting", "running"}:
+            break
+        import time
+        time.sleep(0.02)
+    if not current.get("pid"):
+        current["supervisor_unit"] = unit
+        _write_job_meta_atomic(job_id, current)
 
     return {
         "ok": True,
         "job_id": job_id,
-        "status": "running",
-        "pid": proc.pid,
+        "status": current.get("status", "starting"),
+        "pid": current.get("pid"),
         "name": command_name,
+        "supervisor_unit": unit,
         "stdout_path": str(paths["stdout"]),
         "stderr_path": str(paths["stderr"]),
     }
@@ -1196,7 +1253,9 @@ def bounded_job_status(args: dict[str, Any]) -> dict[str, Any]:
                     except Exception:
                         pass
                 try:
-                    os.killpg(os.getpgid(pid), signal.SIGTERM)
+                    # Signal only the isolated supervisor. Its handler owns
+                    # termination of the registered command's process group.
+                    os.kill(pid, signal.SIGTERM)
                 except Exception:
                     pass
                 meta["status"] = "timeout_killed"
@@ -1242,7 +1301,9 @@ def bounded_job_kill(args: dict[str, Any]) -> dict[str, Any]:
     pid = int(meta["pid"])
 
     try:
-        os.killpg(os.getpgid(pid), signal.SIGTERM)
+        # The supervisor is the only process explicitly signaled here; its
+        # SIGTERM handler terminates the registered command process group.
+        os.kill(pid, signal.SIGTERM)
         killed = True
     except ProcessLookupError:
         killed = False

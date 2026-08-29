@@ -133,7 +133,7 @@ def project_task_tool_manifest() -> list[dict[str, Any]]:
         },
         {
             'name': 'task.claim_next',
-            'description': 'Atomically claim the highest-priority dependency-ready task no other MCP session owns. Uses FOR UPDATE SKIP LOCKED and an expiring lease.',
+            'description': 'Atomically claim the highest-priority dependency-ready task no other MCP session owns. Optional WG-RNN selection requires an explicit context.wgrnn_delegation tool contract inside the supplied allowlist. Uses FOR UPDATE SKIP LOCKED and an expiring lease.',
             'read_only': False,
             'input_schema': {
                 'type': 'object',
@@ -141,6 +141,8 @@ def project_task_tool_manifest() -> list[dict[str, Any]]:
                     'project_key': {'type': 'string', 'default': 'xavi.app-backend'},
                     'task_kinds': {'type': 'array', 'items': {'type': 'string', 'enum': list(TASK_KINDS)}},
                     'capabilities': {'type': 'array', 'items': {'type': 'string'}},
+                    'allowed_tools': {'type': 'array', 'items': {'type': 'string'}},
+                    'require_wgrnn_contract': {'type': 'boolean', 'default': False},
                     'lease_seconds': {'type': 'integer', 'minimum': 60, 'maximum': 86400, 'default': 1800},
                 },
                 'additionalProperties': True,
@@ -362,10 +364,20 @@ class ProjectTaskService:
         if invalid_kinds:
             raise HTTPException(422, {'message': 'Invalid task kinds', 'values': invalid_kinds})
         capabilities = _clean_array(args.get('capabilities'), maximum=64, item_maximum=160)
+        allowed_tools = _clean_array(args.get('allowed_tools'), maximum=128, item_maximum=200)
+        require_wgrnn_contract = bool(args.get('require_wgrnn_contract', False))
         lease_seconds = max(60, min(int(args.get('lease_seconds', 1800)), 86400))
         token = str(uuid.uuid4())
         with self.store.connect() as conn:
             expired = self._expire_claims(conn, project_key)
+            if require_wgrnn_contract and not allowed_tools:
+                conn.commit()
+                return {
+                    'task': None,
+                    'expired_claims_requeued': expired,
+                    'reason': 'wgrnn_allowlist_empty',
+                    'selector': {'require_wgrnn_contract': True, 'allowed_tool_count': 0},
+                }
             row = conn.execute(
                 """
                 SELECT t.*
@@ -374,6 +386,13 @@ class ProjectTaskService:
                    AND t.status='ready'
                    AND t.task_kind = ANY(%s::text[])
                    AND (cardinality(t.required_capabilities)=0 OR t.required_capabilities <@ %s::text[])
+                   AND (
+                     %s = false OR (
+                       jsonb_typeof(t.context->'wgrnn_delegation')='object'
+                       AND COALESCE(t.context->'wgrnn_delegation'->>'tool_name','') <> ''
+                       AND (t.context->'wgrnn_delegation'->>'tool_name') = ANY(%s::text[])
+                     )
+                   )
                    AND NOT EXISTS (
                      SELECT 1
                        FROM unnest(t.depends_on) AS dep(task_id)
@@ -384,7 +403,7 @@ class ProjectTaskService:
                  FOR UPDATE SKIP LOCKED
                  LIMIT 1
                 """,
-                (project_key, requested_kinds, capabilities),
+                (project_key, requested_kinds, capabilities, require_wgrnn_contract, allowed_tools),
             ).fetchone()
             if row is None:
                 conn.commit()
@@ -411,6 +430,10 @@ class ProjectTaskService:
             'claim_token': token,
             'expired_claims_requeued': expired,
             'next_step': 'Run normal coordination.preflight/claim for the returned resources before mutating them.',
+            'selector': {
+                'require_wgrnn_contract': require_wgrnn_contract,
+                'allowed_tool_count': len(allowed_tools),
+            },
             'event': self.event_document('claimed', claimed),
         }
 

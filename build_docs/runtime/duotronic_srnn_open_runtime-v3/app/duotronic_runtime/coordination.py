@@ -356,6 +356,16 @@ class CoordinationService:
 
     def _cleanup(self, conn: Any) -> None:
         conn.execute("UPDATE coordination_resource_claims SET status='expired' WHERE status='active' AND expires_at<=now()")
+        conn.execute(
+            """
+            UPDATE coordination_resource_claims c
+               SET status='released',renewed_at=now(),expires_at=now()
+              FROM coordination_work_items w
+             WHERE c.work_id=w.work_id
+               AND c.status='active'
+               AND w.status IN ('completed','cancelled')
+            """
+        )
         conn.execute("UPDATE coordination_agent_sessions SET status='idle' WHERE status='active' AND last_seen_at<now()-interval '2 hours'")
 
     def _touch_session(self, conn: Any, args: dict[str, Any]) -> dict[str, Any]:
@@ -724,9 +734,14 @@ class CoordinationService:
             if work is None:
                 raise HTTPException(404, "No active coordination work item")
             work = self._update_work(conn, {**args, "status": status}, work)
+            # Finishing a work item closes the work, not merely this transport's
+            # participation in it. A refreshed MCP transport can legitimately finish
+            # work created by the prior transport for the same witnessed conversation.
+            # Release every active claim bound to the closed work item or those stale
+            # leases can deadlock the handoff until their original TTL expires.
             rows = conn.execute(
-                "UPDATE coordination_resource_claims SET status='released',expires_at=now(),renewed_at=now() WHERE work_id=%s AND session_id=%s AND status='active' RETURNING resource_key",
-                (work["work_id"], session["session_id"]),
+                "UPDATE coordination_resource_claims SET status='released',expires_at=now(),renewed_at=now() WHERE work_id=%s AND status='active' RETURNING resource_key",
+                (work["work_id"],),
             ).fetchall()
             event = self._append_event(
                 conn, project_key=work["project_key"], work_id=work["work_id"], session_id=session["session_id"],
